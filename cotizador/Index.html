@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotizador · Partes y Computadores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#F6F4EE;
+    --panel:#FFFFFF;
+    --ink:#1C2521;
+    --ink-soft:#5B665F;
+    --ink-faint:#8B9490;
+    --line:#DCD6C7;
+    --trace:#1B7A5E;
+    --trace-dark:#125940;
+    --trace-soft:#E4F2EC;
+    --copper:#B5652F;
+    --copper-soft:#F5E7D8;
+    --danger:#B3462C;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .topbar{
+    background:var(--ink);
+    color:#F6F4EE;
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    border-bottom:3px solid var(--trace);
+  }
+  .topbar .mark{
+    width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(135deg,var(--trace),var(--trace-dark));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;
+    flex-shrink:0;
+  }
+  .topbar h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.2px;}
+  .topbar p{margin:2px 0 0;font-size:12.5px;color:#B9C2BC;}
+
+  .layout{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:0;
+    max-width:1400px;
+    margin:0 auto;
+  }
+  @media(min-width:980px){
+    .layout{grid-template-columns:minmax(360px,460px) 1fr;align-items:start;}
+  }
+
+  .formcol{padding:20px;}
+  .previewcol{padding:20px;position:sticky;top:0;}
+  @media(min-width:980px){
+    .previewcol{position:sticky;top:0;height:100vh;overflow-y:auto;}
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 16px 18px;
+    margin-bottom:14px;
+  }
+  .card h2{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--trace-dark);
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .card h2::before{
+    content:"";
+    width:8px;height:8px;
+    border:2px solid var(--trace);
+    border-radius:2px;
+    background:var(--trace-soft);
+    flex-shrink:0;
+  }
+  label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:10px 0 4px;
+    font-weight:500;
+  }
+  label:first-child{margin-top:0;}
+  input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],textarea,select{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    font-family:inherit;
+    font-size:13.5px;
+    color:var(--ink);
+    background:#FCFBF8;
+  }
+  input:focus,textarea:focus,select:focus{
+    outline:none;
+    border-color:var(--trace);
+    background:#fff;
+  }
+  textarea{resize:vertical;min-height:64px;line-height:1.4;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+  .filebtn{
+    display:flex;align-items:center;gap:10px;
+    border:1px dashed var(--line);
+    border-radius:7px;
+    padding:8px 10px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    background:#FCFBF8;
+  }
+  .filebtn input{display:none;}
+  .filebtn img{height:32px;border-radius:4px;object-fit:contain;background:#fff;border:1px solid var(--line);}
+  .filebtn .btnlabel{
+    background:var(--ink);color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;flex-shrink:0;
+  }
+
+  .item-row{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    margin-bottom:8px;
+    position:relative;
+    background:#FCFBF8;
+  }
+  .item-row .del{
+    position:absolute;top:6px;right:6px;
+    width:20px;height:20px;border-radius:5px;
+    border:none;background:var(--copper-soft);color:var(--copper);
+    font-size:13px;cursor:pointer;line-height:1;
+  }
+  .item-row .row3{margin-top:8px;}
+  .additem{
+    width:100%;padding:9px;border:1px dashed var(--trace);
+    background:var(--trace-soft);color:var(--trace-dark);
+    border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;
+  }
+
+  .pmethod{
+    border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;background:#FCFBF8;
+  }
+  .pmethod .head{display:flex;align-items:center;gap:8px;}
+  .pmethod .head input[type=checkbox]{width:16px;height:16px;accent-color:var(--trace);}
+  .pmethod .head span{font-size:13.5px;font-weight:600;}
+  .pmethod .detail{margin-top:8px;display:none;}
+  .pmethod.on .detail{display:block;}
+  .pmethod.on{border-color:var(--trace);}
+
+  .totalsgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  .actions{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+  .btn{
+    border:none;border-radius:8px;padding:11px 14px;font-size:14px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+    font-family:inherit;
+  }
+  .btn-primary{background:var(--trace);color:#fff;}
+  .btn-primary:hover{background:var(--trace-dark);}
+  .btn-secondary{background:var(--ink);color:#fff;}
+  .btn-outline{background:#fff;border:1px solid var(--line);color:var(--ink);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .status{font-size:12px;color:var(--ink-soft);margin-top:2px;min-height:16px;}
+  .status.ok{color:var(--trace-dark);}
+  .note{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:6px;}
+
+  /* PREVIEW SHEET */
+  .sheet{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:6px;
+    width:100%;
+    max-width:720px;
+    margin:0 auto;
+    padding:34px 32px;
+    font-family:'IBM Plex Sans',sans-serif;
+    box-shadow:0 8px 24px rgba(28,37,33,.08);
+  }
+  .sheet-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:2px solid var(--trace);padding-bottom:14px;}
+  .sheet-head .co{display:flex;gap:12px;align-items:center;}
+  .sheet-head .co img{height:44px;max-width:80px;object-fit:contain;}
+  .sheet-head .co-name{font-size:18px;font-weight:700;}
+  .sheet-head .co-sub{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .sheet-head .co-meta{font-size:9.5px;color:var(--ink-soft);margin-top:4px;line-height:1.65;}
+  .sheet-head .quoteinfo{text-align:right;font-size:11.5px;color:var(--ink-soft);min-width:160px;}
+  .sheet-head .quoteinfo .tag{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;
+    color:var(--trace-dark);background:var(--trace-soft);padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:4px;
+  }
+  .sheet-head .quoteinfo .num{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--ink);font-size:13px;}
+
+  .sheet-section{margin-top:18px;}
+  .sheet-section h3{
+    font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--trace-dark);
+    margin:0 0 8px;border-bottom:1px solid var(--line);padding-bottom:4px;
+  }
+  .clientgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;font-size:12px;color:var(--ink);}
+  .clientgrid b{color:var(--ink-soft);font-weight:500;}
+
+  table.items{width:100%;border-collapse:collapse;margin-top:6px;font-size:11.5px;}
+  table.items th{
+    background:var(--ink);color:#fff;text-align:left;padding:6px 8px;font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;
+  }
+  table.items th:last-child, table.items td:last-child, table.items th:nth-child(3), table.items td:nth-child(3), table.items th:nth-child(4), table.items td:nth-child(4){text-align:right;}
+  table.items td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.items tr:nth-child(even) td{background:#FBFAF7;}
+
+  .totalsbox{margin-top:8px;margin-left:auto;width:230px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+  .totalsbox div{display:flex;justify-content:space-between;padding:3px 0;}
+  .totalsbox .grand{
+    border-top:2px solid var(--trace);margin-top:4px;padding-top:6px;font-weight:700;font-size:13.5px;color:var(--trace-dark);
+  }
+
+  .sheet-section p{font-size:11px;color:var(--ink-soft);line-height:1.6;white-space:pre-wrap;margin:0;}
+  .paylist{font-size:11.5px;line-height:1.7;}
+  .paylist .pitem{margin-bottom:6px;}
+  .paylist .pitem b{color:var(--ink);}
+  .sheet-foot{margin-top:22px;padding-top:10px;border-top:1px solid var(--line);font-size:9.5px;color:var(--ink-faint);text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="mark">PC</div>
+  <div>
+    <h1>Cotizador · Partes y Computadores</h1>
+    <p>Genera cotizaciones en PDF listas para enviar por WhatsApp o correo</p>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="formcol">
+
+    <div class="card">
+      <h2>Datos de tu empresa</h2>
+      <label class="filebtn" for="logoInput">
+        <img id="logoPreview" src="" style="display:none;">
+        <span id="logoPlaceholder">Sin logo cargado</span>
+        <span class="btnlabel">Subir logo</span>
+        <input type="file" id="logoInput" accept="image/*">
+      </label>
+      <label>Nombre comercial</label>
+      <input type="text" id="co_name" value="Partes y Computadores">
+      <label>Eslogan / actividad (opcional)</label>
+      <input type="text" id="co_tagline" value="Partes, componentes y equipos de cómputo">
+      <div class="row2">
+        <div><label>NIT</label><input type="text" id="co_nit" placeholder="900.XXX.XXX-X"></div>
+        <div><label>Teléfono / WhatsApp</label><input type="tel" id="co_phone" placeholder="300 000 0000"></div>
+      </div>
+      <div class="row2">
+        <div><label>Correo</label><input type="email" id="co_email" placeholder="ventas@partesycomputadores.com.co"></div>
+        <div><label>Sitio web</label><input type="text" id="co_website" value="partesycomputadores.com.co"></div>
+      </div>
+      <label>Dirección / ciudad</label>
+      <input type="text" id="co_address" placeholder="Ciudad, dirección">
+      <div class="actions">
+        <button class="btn btn-outline" id="saveProfileBtn">💾 Guardar datos de mi empresa</button>
+      </div>
+      <div class="status" id="profileStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2>Datos del cliente</h2>
+      <div class="row2">
+        <div><label>Nombre / razón social</label><input type="text" id="cl_name" placeholder="Nombre del cliente"></div>
+        <div><label>NIT / Cédula</label><input type="text" id="cl_id" placeholder="C.C. / NIT"></div>
+      </div>
+      <div class="row2">
+        <div><label>Teléfono</label><input type="tel" id="cl_phone" placeholder="Ej: 3001234567"></div>
+        <div><label>Correo</label><input type="email" id="cl_email" placeholder="cliente@correo.com"></div>
+      </div>
+      <label>Ciudad / dirección (opcional)</label>
+      <input type="text" id="cl_address" placeholder="Ciudad">
+    </div>
+
+    <div class="card">
+      <h2>Cotización</h2>
+      <div class="row3">
+        <div><label>N.° cotización</label><input type="text" id="q_number"></div>
+        <div><label>Fecha</label><input type="date" id="q_date"></div>
+        <div><label>Validez (días)</label><input type="number" id="q_validity" value="15" min="1"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Productos o servicios</h2>
+      <div id="itemsContainer"></div>
+      <button class="additem" id="addItemBtn">+ Agregar ítem</button>
+      <div class="row3" style="margin-top:12px;">
+        <div><label>IVA (%)</label><input type="number" id="ivaPercent" value="19" min="0"></div>
+        <div><label>Descuento (COP)</label><input type="number" id="discount" value="0" min="0"></div>
+        <div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Condiciones comerciales</h2>
+      <textarea id="conditions" rows="6"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>Medios de pago disponibles</h2>
+
+      <div class="pmethod on" id="pm_transfer">
+        <div class="head">
+          <input type="checkbox" id="pm_transfer_chk" checked>
+          <span>Transferencia / consignación bancaria</span>
+        </div>
+        <div class="detail">
+          <div class="row2">
+            <div><label>Banco</label><input type="text" id="pm_transfer_bank" placeholder="Ej: Bancolombia"></div>
+            <div><label>Tipo de cuenta</label>
+              <select id="pm_transfer_type"><option>Ahorros</option><option>Corriente</option></select>
+            </div>
+          </div>
+          <label>Número de cuenta</label>
+          <input type="text" id="pm_transfer_number">
+          <div class="row2">
+            <div><label>Titular</label><input type="text" id="pm_transfer_holder" value="Partes y Computadores"></div>
+            <div><label>NIT / C.C. titular</label><input type="text" id="pm_transfer_holderid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pmethod" id="pm_pse">
+        <div class="head"><input type="checkbox" id="pm_pse_chk"><span>PSE</span></div>
+        <div class="detail"><label>Enlace o instrucción</label><input type="text" id="pm_pse_note" placeholder="Ej: enlace de pago enviado por correo"></div>
+      </div>
+
+      <div class="pmethod" id="pm_brebb">
+        <div class="head"><input type="checkbox" id="pm_brebb_chk"><span>Llave Bre-B</span></div>
+        <div class="detail">
+          <label>Llave (celular, correo o llave alfanumérica)</label>
+          <input type="text" id="pm_brebb_key" placeholder="Ej: 300 000 0000">
+          <label>Banco o entidad asociada (opcional)</label>
+          <input type="text" id="pm_brebb_bank" placeholder="Ej: Bancolombia">
+        </div>
+      </div>
+
+      <div class="pmethod" id="pm_nequi">
+        <div class="head"><input type="checkbox" id="pm_nequi_chk"><span>Nequi</span></div>
+        <div class="detail"><label>Número Nequi</label><input type="tel" id="pm_nequi_number"></div>
+      </div>
+
+      <div class="pmethod" id="pm_daviplata">
+        <div class="head"><input type="checkbox" id="pm_daviplata_chk"><span>Daviplata</span></div>
+        <div class="detail"><label>Número Daviplata</label><input type="tel" id="pm_daviplata_number"></div>
+      </div>
+
+      <div class="pmethod" id="pm_card">
+        <div class="head"><input type="checkbox" id="pm_card_chk"><span>Tarjeta débito / crédito</span></div>
+        <div class="detail"><label>Nota</label><input type="text" id="pm_card_note" value="Datáfono disponible en punto de venta o link de pago."></div>
+      </div>
+
+      <div class="pmethod" id="pm_cash">
+        <div class="head"><input type="checkbox" id="pm_cash_chk"><span>Efectivo</span></div>
+        <div class="detail"><label>Nota</label><input type="text" id="pm_cash_note" value="Pago contra entrega, sujeto a disponibilidad."></div>
+      </div>
+
+      <div class="status ok" id="saveBankStatus"></div>
+      <button class="btn btn-outline" id="saveBankBtn" style="margin-top:6px;">💾 Guardar medios de pago</button>
+    </div>
+
+    <div class="card">
+      <h2>Certificación bancaria</h2>
+      <label class="filebtn" for="certInput">
+        <span id="certPlaceholder">Adjunta una imagen (JPG/PNG) de la certificación</span>
+        <span class="btnlabel">Subir</span>
+        <input type="file" id="certInput" accept="image/*,application/pdf">
+      </label>
+      <div class="note" id="certNote">Se agregará como página adicional al final del PDF. Si tu certificación es un PDF, adjúntala manualmente junto con la cotización al escribir por WhatsApp o correo — el navegador no puede fusionar dos PDF automáticamente.</div>
+    </div>
+
+    <div class="card">
+      <h2>Guardar y retomar cotización</h2>
+      <button class="btn btn-outline" id="saveDraftBtn">💾 Guardar avance de esta cotización</button>
+      <div class="status" id="draftStatus"></div>
+      <label>Cotizaciones guardadas</label>
+      <select id="draftSelect"><option value="">— Selecciona una cotización guardada —</option></select>
+      <div class="actions" style="flex-direction:row;">
+        <button class="btn btn-secondary" id="loadDraftBtn" style="flex:1;">↩️ Retomar</button>
+        <button class="btn btn-outline" id="deleteDraftBtn" style="flex:1;">🗑️ Eliminar</button>
+      </div>
+      <div class="note">Se guarda en este mismo lugar (tu cuenta de Claude, o este navegador si lo usas desde GitHub Pages), identificada por su número de cotización.</div>
+    </div>
+
+    <div class="card">
+      <h2>Generar y compartir</h2>
+      <div class="actions">
+        <button class="btn btn-primary" id="generateBtn">📄 Generar PDF de la cotización</button>
+        <button class="btn btn-secondary" id="waBtn" disabled>💬 Compartir por WhatsApp</button>
+        <button class="btn btn-outline" id="mailBtn" disabled>✉️ Compartir por correo</button>
+      </div>
+      <div class="status" id="genStatus"></div>
+      <div class="note">Al compartir por WhatsApp o correo se abrirá el chat/borrador con un mensaje listo — como los navegadores no permiten adjuntar archivos automáticamente, deberás adjuntar el PDF ya descargado en esa misma ventana.</div>
+    </div>
+
+  </div>
+
+  <div class="previewcol">
+    <div class="sheet" id="sheet">
+      <div class="sheet-head">
+        <div class="co">
+          <img id="pv_logo" style="display:none;">
+          <div>
+            <div class="co-name" id="pv_coname">Partes y Computadores</div>
+            <div class="co-sub" id="pv_cotag">Partes, componentes y equipos de cómputo</div>
+            <div class="co-meta" id="pv_cometa"></div>
+          </div>
+        </div>
+        <div class="quoteinfo">
+          <span class="tag">COTIZACIÓN</span><br>
+          <span class="num" id="pv_number"></span><br>
+          <span id="pv_date"></span><br>
+          <span id="pv_validity"></span>
+        </div>
+      </div>
+
+      <div class="sheet-section">
+        <h3>Cliente</h3>
+        <div class="clientgrid" id="pv_client"></div>
+      </div>
+
+      <div class="sheet-section">
+        <h3>Detalle de la cotización</h3>
+        <table class="items">
+          <thead><tr><th>Ítem</th><th>Descripción</th><th>Cant.</th><th>Vlr. unit.</th><th>Vlr. total</th></tr></thead>
+          <tbody id="pv_items"></tbody>
+        </table>
+        <div class="totalsbox" id="pv_totals"></div>
+      </div>
+
+      <div class="sheet-section">
+        <h3>Condiciones comerciales</h3>
+        <p id="pv_conditions"></p>
+      </div>
+
+      <div class="sheet-section">
+        <h3>Medios de pago disponibles</h3>
+        <div class="paylist" id="pv_payment"></div>
+      </div>
+
+      <div class="sheet-foot" id="pv_foot"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const state = {
+  company:{name:'Partes y Computadores', tagline:'Partes, componentes y equipos de cómputo', nit:'', phone:'', email:'', website:'partesycomputadores.com.co', address:'', logo:null},
+  client:{name:'', id:'', phone:'', email:'', address:''},
+  meta:{number:'', date:'', validity:15},
+  items:[{desc:'', qty:1, price:0}],
+  ivaPercent:19,
+  discount:0,
+  conditions:`Precios expresados en pesos colombianos (COP).
+Esta cotización tiene una validez de 15 días calendario a partir de la fecha de emisión.
+Los precios pueden variar sin previo aviso según disponibilidad de inventario o fluctuación del dólar.
+Tiempo de entrega a convenir según disponibilidad de stock.
+Garantía sujeta a las políticas del fabricante y/o de Partes y Computadores.`,
+  payment:{
+    transfer:{enabled:true, bank:'', type:'Ahorros', number:'', holder:'Partes y Computadores', holderId:''},
+    pse:{enabled:false, note:''},
+    nequi:{enabled:false, number:''},
+    daviplata:{enabled:false, number:''},
+    brebb:{enabled:false, key:'', bank:''},
+    card:{enabled:false, note:'Datáfono disponible en punto de venta o link de pago.'},
+    cash:{enabled:false, note:'Pago contra entrega, sujeto a disponibilidad.'}
+  },
+  bankCert:{dataUrl:null, isImage:false, fileName:''}
+};
+
+let lastPdfBlob = null;
+let lastPdfName = '';
+
+/* Works both inside Claude (window.storage) and standalone, e.g. GitHub Pages (localStorage) */
+const storageAdapter = {
+  async get(key){
+    if(typeof window.storage !== 'undefined' && window.storage){
+      try{ const r = await window.storage.get(key, false); return r ? r.value : null; }
+      catch(e){ return null; }
+    }
+    try{ return localStorage.getItem(key); }catch(e){ return null; }
+  },
+  async set(key, value){
+    if(typeof window.storage !== 'undefined' && window.storage){
+      try{ const r = await window.storage.set(key, value, false); return !!r; }
+      catch(e){ return false; }
+    }
+    try{ localStorage.setItem(key, value); return true; }catch(e){ return false; }
+  },
+  async delete(key){
+    if(typeof window.storage !== 'undefined' && window.storage){
+      try{ await window.storage.delete(key, false); return true; }
+      catch(e){ return false; }
+    }
+    try{ localStorage.removeItem(key); return true; }catch(e){ return false; }
+  }
+};
+
+function formatCOP(n){
+  if(isNaN(n)) n = 0;
+  return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n);
+}
+
+function computeTotals(){
+  const subtotal = state.items.reduce((s,it)=> s + (Number(it.qty)||0)*(Number(it.price)||0), 0);
+  const afterDiscount = Math.max(subtotal - (Number(state.discount)||0), 0);
+  const iva = afterDiscount * ((Number(state.ivaPercent)||0)/100);
+  const total = afterDiscount + iva;
+  return {subtotal, discount:Number(state.discount)||0, iva, total, ivaPercent:Number(state.ivaPercent)||0};
+}
+
+/* ---------- ITEM ROWS ---------- */
+function renderItemsForm(){
+  const c = $('itemsContainer');
+  c.innerHTML = '';
+  state.items.forEach((it, i)=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+      <button class="del" data-i="${i}" title="Eliminar">✕</button>
+      <label style="margin-top:0;">Descripción</label>
+      <input type="text" data-field="desc" data-i="${i}" value="${escapeAttr(it.desc)}" placeholder="Ej: Disco SSD 1TB NVMe">
+      <div class="row3">
+        <div><label>Cantidad</label><input type="number" min="0" step="1" data-field="qty" data-i="${i}" value="${it.qty}"></div>
+        <div><label>Vlr. unitario (COP)</label><input type="number" min="0" data-field="price" data-i="${i}" value="${it.price}"></div>
+        <div><label>Subtotal</label><input type="text" disabled value="${formatCOP((it.qty||0)*(it.price||0))}"></div>
+      </div>`;
+    c.appendChild(row);
+  });
+
+  c.querySelectorAll('input[data-field]').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const i = Number(e.target.dataset.i);
+      const f = e.target.dataset.field;
+      state.items[i][f] = f==='desc' ? e.target.value : Number(e.target.value);
+      // update subtotal cell live without full re-render (avoid focus loss)
+      const row = e.target.closest('.item-row');
+      const subCell = row.querySelector('.row3 input[disabled]');
+      if(subCell) subCell.value = formatCOP((state.items[i].qty||0)*(state.items[i].price||0));
+      renderPreview();
+    });
+  });
+  c.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const i = Number(e.target.dataset.i);
+      state.items.splice(i,1);
+      if(state.items.length===0) state.items.push({desc:'',qty:1,price:0});
+      renderItemsForm();
+      renderPreview();
+    });
+  });
+}
+$('addItemBtn').addEventListener('click', ()=>{
+  state.items.push({desc:'', qty:1, price:0});
+  renderItemsForm();
+  renderPreview();
+});
+
+function escapeAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- SIMPLE FIELD BINDINGS ---------- */
+function bind(id, getSet){
+  const el = $(id);
+  el.addEventListener('input', ()=>{
+    getSet(el.type==='number' ? Number(el.value) : el.value);
+    renderPreview();
+  });
+}
+bind('co_name', v=>state.company.name=v);
+bind('co_tagline', v=>state.company.tagline=v);
+bind('co_nit', v=>state.company.nit=v);
+bind('co_phone', v=>state.company.phone=v);
+bind('co_email', v=>state.company.email=v);
+bind('co_website', v=>state.company.website=v);
+bind('co_address', v=>state.company.address=v);
+
+bind('cl_name', v=>state.client.name=v);
+bind('cl_id', v=>state.client.id=v);
+bind('cl_phone', v=>state.client.phone=v);
+bind('cl_email', v=>state.client.email=v);
+bind('cl_address', v=>state.client.address=v);
+
+bind('q_number', v=>state.meta.number=v);
+bind('q_date', v=>state.meta.date=v);
+bind('q_validity', v=>state.meta.validity=v);
+
+bind('ivaPercent', v=>state.ivaPercent=v);
+bind('discount', v=>state.discount=v);
+bind('conditions', v=>state.conditions=v);
+
+/* payment methods */
+function wirePayMethod(key, prefix, fields){
+  const chk = $(prefix+'_chk');
+  const box = $(prefix.replace('pm_','pm_')); // container id equals prefix
+  chk.addEventListener('change', ()=>{
+    state.payment[key].enabled = chk.checked;
+    $(prefix).classList.toggle('on', chk.checked);
+    renderPreview();
+  });
+  fields.forEach(f=>{
+    const el = $(prefix+'_'+f.id);
+    if(!el) return;
+    el.addEventListener('input', ()=>{
+      state.payment[key][f.state] = el.value;
+      renderPreview();
+    });
+  });
+}
+wirePayMethod('transfer','pm_transfer',[{id:'bank',state:'bank'},{id:'type',state:'type'},{id:'number',state:'number'},{id:'holder',state:'holder'},{id:'holderid',state:'holderId'}]);
+wirePayMethod('pse','pm_pse',[{id:'note',state:'note'}]);
+wirePayMethod('nequi','pm_nequi',[{id:'number',state:'number'}]);
+wirePayMethod('daviplata','pm_daviplata',[{id:'number',state:'number'}]);
+wirePayMethod('brebb','pm_brebb',[{id:'key',state:'key'},{id:'bank',state:'bank'}]);
+wirePayMethod('card','pm_card',[{id:'note',state:'note'}]);
+wirePayMethod('cash','pm_cash',[{id:'note',state:'note'}]);
+$('pm_transfer_type').addEventListener('change', e=>{ state.payment.transfer.type = e.target.value; renderPreview(); });
+
+/* ---------- FILE UPLOADS ---------- */
+function fileToDataUrl(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+$('logoInput').addEventListener('change', async e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const dataUrl = await fileToDataUrl(f);
+  state.company.logo = dataUrl;
+  $('logoPreview').src = dataUrl;
+  $('logoPreview').style.display='inline-block';
+  $('logoPlaceholder').style.display='none';
+  renderPreview();
+});
+$('certInput').addEventListener('change', async e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const isImage = f.type.startsWith('image/');
+  const dataUrl = await fileToDataUrl(f);
+  state.bankCert = {dataUrl, isImage, fileName:f.name};
+  $('certPlaceholder').textContent = f.name + (isImage ? ' ✓ se incluirá como página final del PDF' : ' — es un PDF, adjúntalo manualmente al compartir');
+});
+
+/* ---------- PREVIEW ---------- */
+function renderPreview(){
+  $('pv_coname').textContent = state.company.name || 'Tu empresa';
+  $('pv_cotag').textContent = state.company.tagline || '';
+  const metaParts = [];
+  if(state.company.nit) metaParts.push('NIT: '+state.company.nit);
+  if(state.company.address) metaParts.push(state.company.address);
+  if(state.company.phone) metaParts.push('Tel: '+state.company.phone);
+  if(state.company.email) metaParts.push(state.company.email);
+  if(state.company.website) metaParts.push(state.company.website);
+  $('pv_cometa').innerHTML = metaParts.map(p=>escapeHtml(p)).join('<br>');
+
+  if(state.company.logo){
+    $('pv_logo').src = state.company.logo;
+    $('pv_logo').style.display='block';
+  } else {
+    $('pv_logo').style.display='none';
+  }
+
+  $('pv_number').textContent = state.meta.number || '(sin número)';
+  const dateStr = state.meta.date ? new Date(state.meta.date+'T00:00:00').toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'}) : '';
+  $('pv_date').textContent = dateStr ? 'Fecha: '+dateStr : '';
+  let validText = '';
+  if(state.meta.date && state.meta.validity){
+    const d = new Date(state.meta.date+'T00:00:00');
+    d.setDate(d.getDate()+Number(state.meta.validity));
+    validText = 'Válida hasta: '+d.toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  }
+  $('pv_validity').textContent = validText;
+
+  $('pv_client').innerHTML = `
+    <div><b>Cliente:</b> ${escapeHtml(state.client.name)||'—'}</div>
+    <div><b>NIT/CC:</b> ${escapeHtml(state.client.id)||'—'}</div>
+    <div><b>Teléfono:</b> ${escapeHtml(state.client.phone)||'—'}</div>
+    <div><b>Correo:</b> ${escapeHtml(state.client.email)||'—'}</div>
+    <div style="grid-column:1/-1;"><b>Dirección:</b> ${escapeHtml(state.client.address)||'—'}</div>`;
+
+  $('pv_items').innerHTML = state.items.map((it,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${escapeHtml(it.desc)||'—'}</td>
+      <td>${it.qty||0}</td>
+      <td>${formatCOP(it.price)}</td>
+      <td>${formatCOP((it.qty||0)*(it.price||0))}</td>
+    </tr>`).join('');
+
+  const t = computeTotals();
+  let totalsHtml = `<div><span>Subtotal</span><span>${formatCOP(t.subtotal)}</span></div>`;
+  if(t.discount>0) totalsHtml += `<div><span>Descuento</span><span>-${formatCOP(t.discount)}</span></div>`;
+  totalsHtml += `<div><span>IVA (${t.ivaPercent}%)</span><span>${formatCOP(t.iva)}</span></div>`;
+  totalsHtml += `<div class="grand"><span>Total</span><span>${formatCOP(t.total)}</span></div>`;
+  $('pv_totals').innerHTML = totalsHtml;
+
+  $('pv_conditions').textContent = state.conditions;
+
+  const pay = state.payment;
+  let payHtml = '';
+  if(pay.transfer.enabled){
+    payHtml += `<div class="pitem"><b>Transferencia bancaria:</b> ${escapeHtml(pay.transfer.bank)||'Banco'} · Cta. ${escapeHtml(pay.transfer.type)} N.° ${escapeHtml(pay.transfer.number)||'—'}<br>Titular: ${escapeHtml(pay.transfer.holder)} ${pay.transfer.holderId? '· '+escapeHtml(pay.transfer.holderId):''}</div>`;
+  }
+  if(pay.pse.enabled) payHtml += `<div class="pitem"><b>PSE:</b> ${escapeHtml(pay.pse.note)||'Disponible'}</div>`;
+  if(pay.nequi.enabled) payHtml += `<div class="pitem"><b>Nequi:</b> ${escapeHtml(pay.nequi.number)||'—'}</div>`;
+  if(pay.daviplata.enabled) payHtml += `<div class="pitem"><b>Daviplata:</b> ${escapeHtml(pay.daviplata.number)||'—'}</div>`;
+  if(pay.brebb.enabled) payHtml += `<div class="pitem"><b>Llave Bre-B:</b> ${escapeHtml(pay.brebb.key)||'—'}${pay.brebb.bank? ' · '+escapeHtml(pay.brebb.bank):''}</div>`;
+  if(pay.card.enabled) payHtml += `<div class="pitem"><b>Tarjeta débito/crédito:</b> ${escapeHtml(pay.card.note)}</div>`;
+  if(pay.cash.enabled) payHtml += `<div class="pitem"><b>Efectivo:</b> ${escapeHtml(pay.cash.note)}</div>`;
+  $('pv_payment').innerHTML = payHtml || '<div class="pitem" style="color:#B3462C;">Selecciona al menos un medio de pago.</div>';
+
+  $('pv_foot').textContent = `${state.company.name} · ${state.company.website} — Documento generado automáticamente, sujeto a las condiciones comerciales descritas.`;
+}
+
+/* ---------- STORAGE (persist company + payment profile) ---------- */
+async function loadProfile(){
+  try{
+    const raw = await storageAdapter.get('company-profile');
+    if(raw){
+      const p = JSON.parse(raw);
+      Object.assign(state.company, p.company||{});
+      Object.assign(state.payment, p.payment||{});
+    }
+  }catch(e){ /* no saved profile yet */ }
+
+  // reflect into form fields
+  $('co_name').value = state.company.name;
+  $('co_tagline').value = state.company.tagline;
+  $('co_nit').value = state.company.nit;
+  $('co_phone').value = state.company.phone;
+  $('co_email').value = state.company.email;
+  $('co_website').value = state.company.website;
+  $('co_address').value = state.company.address;
+  if(state.company.logo){
+    $('logoPreview').src = state.company.logo;
+    $('logoPreview').style.display='inline-block';
+    $('logoPlaceholder').style.display='none';
+  }
+
+  reflectPaymentToForm();
+}
+
+function reflectPaymentToForm(){
+  $('pm_transfer_chk').checked = state.payment.transfer.enabled;
+  $('pm_transfer').classList.toggle('on', state.payment.transfer.enabled);
+  $('pm_transfer_bank').value = state.payment.transfer.bank;
+  $('pm_transfer_type').value = state.payment.transfer.type;
+  $('pm_transfer_number').value = state.payment.transfer.number;
+  $('pm_transfer_holder').value = state.payment.transfer.holder;
+  $('pm_transfer_holderid').value = state.payment.transfer.holderId;
+
+  $('pm_pse_chk').checked = state.payment.pse.enabled; $('pm_pse').classList.toggle('on', state.payment.pse.enabled);
+  $('pm_pse_note').value = state.payment.pse.note;
+  $('pm_nequi_chk').checked = state.payment.nequi.enabled; $('pm_nequi').classList.toggle('on', state.payment.nequi.enabled);
+  $('pm_nequi_number').value = state.payment.nequi.number;
+  $('pm_daviplata_chk').checked = state.payment.daviplata.enabled; $('pm_daviplata').classList.toggle('on', state.payment.daviplata.enabled);
+  $('pm_daviplata_number').value = state.payment.daviplata.number;
+  $('pm_brebb_chk').checked = state.payment.brebb.enabled; $('pm_brebb').classList.toggle('on', state.payment.brebb.enabled);
+  $('pm_brebb_key').value = state.payment.brebb.key;
+  $('pm_brebb_bank').value = state.payment.brebb.bank;
+  $('pm_card_chk').checked = state.payment.card.enabled; $('pm_card').classList.toggle('on', state.payment.card.enabled);
+  $('pm_card_note').value = state.payment.card.note;
+  $('pm_cash_chk').checked = state.payment.cash.enabled; $('pm_cash').classList.toggle('on', state.payment.cash.enabled);
+  $('pm_cash_note').value = state.payment.cash.note;
+}
+
+
+async function saveProfile(silent){
+  try{
+    const payload = JSON.stringify({company:state.company, payment:state.payment});
+    const res = await storageAdapter.set('company-profile', payload);
+    if(!silent){
+      $('profileStatus').textContent = res ? '✓ Datos guardados. Se cargarán automáticamente la próxima vez que abras esta página.' : 'No se pudo guardar.';
+      $('profileStatus').className = res ? 'status ok' : 'status';
+    }
+  }catch(e){
+    if(!silent){ $('profileStatus').textContent = 'No se pudo guardar (' + e + ')'; }
+  }
+}
+$('saveProfileBtn').addEventListener('click', ()=>saveProfile(false));
+$('saveBankBtn').addEventListener('click', async ()=>{
+  await saveProfile(true);
+  $('saveBankStatus').textContent = '✓ Medios de pago guardados junto con el perfil de tu empresa.';
+});
+
+async function nextQuoteNumber(){
+  let n = 1;
+  try{
+    const stored = await storageAdapter.get('quote-counter');
+    if(stored) n = Number(stored)+1;
+  }catch(e){}
+  try{ await storageAdapter.set('quote-counter', String(n)); }catch(e){}
+  const year = new Date().getFullYear();
+  return `COT-${year}-${String(n).padStart(4,'0')}`;
+}
+
+/* ---------- SAVE / RESUME DRAFT QUOTES ---------- */
+async function getDraftIndex(){
+  try{
+    const raw = await storageAdapter.get('draft-index');
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+async function setDraftIndex(index){
+  try{ await storageAdapter.set('draft-index', JSON.stringify(index)); }catch(e){}
+}
+
+function draftLabel(d){
+  const dateStr = d.date ? new Date(d.date+'T00:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+  return `${d.number || '(sin número)'} · ${d.clientName || '(sin cliente)'} · ${dateStr} · ${formatCOP(d.total)}`;
+}
+
+async function renderDraftsList(){
+  const index = await getDraftIndex();
+  const sel = $('draftSelect');
+  const prevValue = sel.value;
+  sel.innerHTML = '<option value="">— Selecciona una cotización guardada —</option>' +
+    index.map(d=>`<option value="${escapeAttr(d.key)}">${escapeHtml(draftLabel(d))}</option>`).join('');
+  if(index.some(d=>d.key===prevValue)) sel.value = prevValue;
+}
+
+async function saveDraft(){
+  if(!state.meta.number){ $('draftStatus').textContent = 'Asigna primero un número de cotización.'; return; }
+  const t = computeTotals();
+  const key = 'draft:' + state.meta.number;
+  const data = {
+    client: state.client, meta: state.meta, items: state.items,
+    ivaPercent: state.ivaPercent, discount: state.discount, conditions: state.conditions,
+    payment: state.payment, bankCert: state.bankCert
+  };
+  const ok = await storageAdapter.set(key, JSON.stringify(data));
+  if(ok){
+    let index = await getDraftIndex();
+    index = index.filter(d=>d.key!==key);
+    index.unshift({key, number:state.meta.number, clientName:state.client.name||'', date:state.meta.date, total:t.total, savedAt:new Date().toISOString()});
+    index = index.slice(0,50);
+    await setDraftIndex(index);
+    await renderDraftsList();
+    $('draftSelect').value = key;
+    $('draftStatus').textContent = '✓ Avance guardado como "'+state.meta.number+'". Puedes retomarlo cuando quieras.';
+    $('draftStatus').className = 'status ok';
+  }else{
+    $('draftStatus').textContent = 'No se pudo guardar el avance.';
+    $('draftStatus').className = 'status';
+  }
+}
+
+function reflectClientMetaMiscToForm(){
+  $('cl_name').value = state.client.name || '';
+  $('cl_id').value = state.client.id || '';
+  $('cl_phone').value = state.client.phone || '';
+  $('cl_email').value = state.client.email || '';
+  $('cl_address').value = state.client.address || '';
+  $('q_number').value = state.meta.number || '';
+  $('q_date').value = state.meta.date || '';
+  $('q_validity').value = state.meta.validity || 15;
+  $('ivaPercent').value = state.ivaPercent;
+  $('discount').value = state.discount;
+  $('conditions').value = state.conditions;
+  reflectPaymentToForm();
+  $('certPlaceholder').textContent = state.bankCert.fileName
+    ? state.bankCert.fileName + (state.bankCert.isImage ? ' ✓ se incluirá como página final del PDF' : ' — es un PDF, adjúntalo manualmente al compartir')
+    : 'Adjunta una imagen (JPG/PNG) de la certificación';
+}
+
+async function loadDraft(key){
+  if(!key) return;
+  const raw = await storageAdapter.get(key);
+  if(!raw){ $('draftStatus').textContent = 'No se encontró esa cotización guardada.'; return; }
+  const data = JSON.parse(raw);
+  Object.assign(state.client, data.client||{});
+  Object.assign(state.meta, data.meta||{});
+  state.items = (data.items && data.items.length) ? data.items : [{desc:'',qty:1,price:0}];
+  state.ivaPercent = (data.ivaPercent !== undefined) ? data.ivaPercent : state.ivaPercent;
+  state.discount = (data.discount !== undefined) ? data.discount : state.discount;
+  state.conditions = data.conditions || state.conditions;
+  Object.assign(state.payment, data.payment||{});
+  state.bankCert = data.bankCert || {dataUrl:null, isImage:false, fileName:''};
+
+  reflectClientMetaMiscToForm();
+  renderItemsForm();
+  renderPreview();
+  $('draftStatus').textContent = '✓ Cotización "'+state.meta.number+'" cargada. Puedes seguir editándola.';
+  $('draftStatus').className = 'status ok';
+}
+
+async function deleteDraft(key){
+  if(!key) return;
+  const index = await getDraftIndex();
+  const item = index.find(d=>d.key===key);
+  const label = item ? draftLabel(item) : key;
+  if(!window.confirm('¿Eliminar la cotización guardada "'+label+'"? Esta acción no se puede deshacer.')) return;
+  await storageAdapter.delete(key);
+  const newIndex = index.filter(d=>d.key!==key);
+  await setDraftIndex(newIndex);
+  await renderDraftsList();
+  $('draftStatus').textContent = 'Cotización eliminada.';
+  $('draftStatus').className = 'status';
+}
+
+$('saveDraftBtn').addEventListener('click', saveDraft);
+$('loadDraftBtn').addEventListener('click', ()=> loadDraft($('draftSelect').value));
+$('deleteDraftBtn').addEventListener('click', ()=> deleteDraft($('draftSelect').value));
+
+/* ---------- PDF GENERATION ---------- */
+function getImageFormat(dataUrl){
+  if(dataUrl.startsWith('data:image/png')) return 'PNG';
+  if(dataUrl.startsWith('data:image/webp')) return 'WEBP';
+  return 'JPEG';
+}
+function loadImageDims(dataUrl){
+  return new Promise(res=>{
+    const img = new Image();
+    img.onload = ()=>res({w:img.naturalWidth,h:img.naturalHeight});
+    img.onerror = ()=>res({w:1,h:1});
+    img.src = dataUrl;
+  });
+}
+
+function fitFontSize(doc, text, maxWidth, startSize, minSize){
+  let size = startSize;
+  doc.setFontSize(size);
+  while(size > minSize && doc.getTextWidth(text) > maxWidth){
+    size -= 0.5;
+    doc.setFontSize(size);
+  }
+  return size;
+}
+
+async function generatePDF(){
+  $('genStatus').textContent = 'Generando PDF…';
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4'});
+  const pageW = 210, pageH = 297, margin = 15;
+  let y = margin;
+
+  const TRACE = [27,122,94];
+  const INK = [28,37,33];
+  const INKSOFT = [90,102,95];
+  const LINE = [220,213,196];
+
+  // header
+  let headTop = y;
+  let textX = margin;
+  let logoBottom = headTop;
+  if(state.company.logo){
+    try{
+      const dims = await loadImageDims(state.company.logo);
+      const boxW = 26, boxH = 26;
+      let w = boxW, h = boxH;
+      if(dims.w && dims.h){
+        const ratio = dims.w/dims.h;
+        if(ratio>1){ h = boxW/ratio; } else { w = boxH*ratio; }
+      }
+      doc.addImage(state.company.logo, getImageFormat(state.company.logo), margin, headTop, w, h);
+      textX = margin + boxW + 6;
+      logoBottom = headTop + h;
+    }catch(e){ /* skip logo if it fails */ }
+  }
+
+  // Reserve a fixed-width column on the right for the quote number/date/validity box,
+  // so the company name/tagline/meta text on the left never runs underneath it.
+  const rightColWidth = 72;
+  const rx = pageW - margin;
+  const leftMaxWidth = Math.max(40, (rx - rightColWidth) - textX - 4);
+
+  doc.setFont('helvetica','bold'); doc.setTextColor(...INK);
+  const companyName = state.company.name || 'Tu empresa';
+  const nameSize = fitFontSize(doc, companyName, leftMaxWidth, 15, 9.5);
+  doc.setFontSize(nameSize);
+  doc.text(companyName, textX, headTop+6);
+  let curY = headTop + 11;
+
+  if(state.company.tagline){
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...INKSOFT);
+    const taglineLines = doc.splitTextToSize(state.company.tagline, leftMaxWidth).slice(0,2);
+    doc.text(taglineLines, textX, curY);
+    curY += taglineLines.length*3.6 + 1.5;
+  }
+
+  const contactLines = [
+    state.company.nit ? 'NIT: '+state.company.nit : '',
+    state.company.address || '',
+    state.company.phone ? 'Tel: '+state.company.phone : '',
+    state.company.email || '',
+    state.company.website || ''
+  ].filter(Boolean);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(...INKSOFT);
+  contactLines.forEach(line=>{
+    const wrapped = doc.splitTextToSize(line, leftMaxWidth);
+    doc.text(wrapped, textX, curY);
+    curY += wrapped.length*3.2;
+  });
+  const leftBottom = Math.max(curY, logoBottom);
+
+  // quote info box (right)
+  doc.setFont('courier','bold'); doc.setFontSize(9); doc.setTextColor(...TRACE);
+  doc.text('COTIZACIÓN', rx, headTop+2, {align:'right'});
+  doc.setFont('courier','normal'); doc.setFontSize(9); doc.setTextColor(...INK);
+  doc.text(state.meta.number || '', rx, headTop+7, {align:'right'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...INKSOFT);
+  const dateStr = state.meta.date ? new Date(state.meta.date+'T00:00:00').toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'}) : '';
+  doc.text('Fecha: '+dateStr, rx, headTop+12, {align:'right'});
+  let validText = '';
+  if(state.meta.date && state.meta.validity){
+    const d = new Date(state.meta.date+'T00:00:00');
+    d.setDate(d.getDate()+Number(state.meta.validity));
+    validText = 'Válida hasta: '+d.toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  }
+  doc.text(validText, rx, headTop+17, {align:'right'});
+  const rightBottom = headTop + 20;
+
+  y = Math.max(leftBottom, rightBottom) + 6;
+  doc.setDrawColor(...TRACE); doc.setLineWidth(0.6);
+  doc.line(margin, y, pageW-margin, y);
+  y += 8;
+
+  // client section
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...TRACE);
+  doc.text('CLIENTE', margin, y);
+  y += 5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...INK);
+  const clientLines = [
+    'Cliente: '+(state.client.name||'—')+'    NIT/CC: '+(state.client.id||'—'),
+    'Teléfono: '+(state.client.phone||'—')+'    Correo: '+(state.client.email||'—'),
+    'Dirección: '+(state.client.address||'—')
+  ];
+  clientLines.forEach(l=>{ doc.text(l, margin, y); y+=5; });
+  y += 3;
+
+  // items table header
+  function drawTableHeader(){
+    doc.setFillColor(...INK);
+    doc.rect(margin, y, pageW-2*margin, 7, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(255,255,255);
+    doc.text('#', margin+2, y+4.7);
+    doc.text('DESCRIPCIÓN', margin+12, y+4.7);
+    doc.text('CANT.', pageW-margin-42, y+4.7, {align:'right'});
+    doc.text('VLR. UNIT.', pageW-margin-22, y+4.7, {align:'right'});
+    doc.text('VLR. TOTAL', pageW-margin-2, y+4.7, {align:'right'});
+    y += 7;
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...TRACE);
+  doc.text('DETALLE DE LA COTIZACIÓN', margin, y);
+  y += 5;
+  drawTableHeader();
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...INK);
+  state.items.forEach((it,i)=>{
+    const descLines = doc.splitTextToSize(it.desc||'—', 110);
+    const rowH = Math.max(6, descLines.length*4.2+2);
+    if(y+rowH > pageH-55){
+      doc.addPage(); y = margin;
+      drawTableHeader();
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...INK);
+    }
+    if(i%2===1){ doc.setFillColor(251,250,247); doc.rect(margin, y, pageW-2*margin, rowH, 'F'); }
+    doc.text(String(i+1), margin+2, y+4.5);
+    doc.text(descLines, margin+12, y+4.5);
+    doc.text(String(it.qty||0), pageW-margin-42, y+4.5, {align:'right'});
+    doc.text(formatCOP(it.price), pageW-margin-22, y+4.5, {align:'right'});
+    doc.text(formatCOP((it.qty||0)*(it.price||0)), pageW-margin-2, y+4.5, {align:'right'});
+    doc.setDrawColor(...LINE); doc.setLineWidth(0.2);
+    doc.line(margin, y+rowH, pageW-margin, y+rowH);
+    y += rowH;
+  });
+  y += 4;
+
+  // totals
+  const t = computeTotals();
+  if(y+35 > pageH-20){ doc.addPage(); y = margin; }
+  const boxX = pageW-margin-70;
+  doc.setFont('courier','normal'); doc.setFontSize(9); doc.setTextColor(...INKSOFT);
+  doc.text('Subtotal', boxX, y); doc.text(formatCOP(t.subtotal), pageW-margin, y, {align:'right'}); y+=5;
+  if(t.discount>0){ doc.text('Descuento', boxX, y); doc.text('-'+formatCOP(t.discount), pageW-margin, y, {align:'right'}); y+=5; }
+  doc.text('IVA ('+t.ivaPercent+'%)', boxX, y); doc.text(formatCOP(t.iva), pageW-margin, y, {align:'right'}); y+=6;
+  doc.setDrawColor(...TRACE); doc.setLineWidth(0.5);
+  doc.line(boxX, y-4, pageW-margin, y-4);
+  doc.setFont('courier','bold'); doc.setFontSize(12); doc.setTextColor(...TRACE);
+  doc.text('TOTAL', boxX, y+2); doc.text(formatCOP(t.total), pageW-margin, y+2, {align:'right'});
+  y += 12;
+
+  // conditions
+  if(y+30 > pageH-20){ doc.addPage(); y = margin; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...TRACE);
+  doc.text('CONDICIONES COMERCIALES', margin, y); y+=5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.3); doc.setTextColor(...INK);
+  const condLines = doc.splitTextToSize(state.conditions, pageW-2*margin);
+  condLines.forEach(l=>{
+    if(y>pageH-20){ doc.addPage(); y=margin; }
+    doc.text(l, margin, y); y+=4.2;
+  });
+  y+=4;
+
+  // payment
+  if(y+40 > pageH-20){ doc.addPage(); y = margin; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...TRACE);
+  doc.text('MEDIOS DE PAGO DISPONIBLES', margin, y); y+=5.5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...INK);
+  const pay = state.payment;
+  const payLines = [];
+  if(pay.transfer.enabled) payLines.push(['Transferencia bancaria', `${pay.transfer.bank||'Banco'} · Cta. ${pay.transfer.type} N.° ${pay.transfer.number||'—'} · Titular: ${pay.transfer.holder}${pay.transfer.holderId? ' ('+pay.transfer.holderId+')':''}`]);
+  if(pay.pse.enabled) payLines.push(['PSE', pay.pse.note || 'Disponible']);
+  if(pay.nequi.enabled) payLines.push(['Nequi', pay.nequi.number || '—']);
+  if(pay.daviplata.enabled) payLines.push(['Daviplata', pay.daviplata.number || '—']);
+  if(pay.brebb.enabled) payLines.push(['Llave Bre-B', (pay.brebb.key||'—') + (pay.brebb.bank? ' · '+pay.brebb.bank:'')]);
+  if(pay.card.enabled) payLines.push(['Tarjeta débito/crédito', pay.card.note]);
+  if(pay.cash.enabled) payLines.push(['Efectivo', pay.cash.note]);
+  payLines.forEach(([label,val])=>{
+    if(y>pageH-20){ doc.addPage(); y=margin; }
+    doc.setFont('helvetica','bold'); doc.text('• '+label+':', margin, y);
+    doc.setFont('helvetica','normal');
+    const wrapped = doc.splitTextToSize(val, pageW-2*margin-4);
+    doc.text(wrapped, margin+4, y+4.2);
+    y += 4.2*wrapped.length + 3;
+  });
+
+  // footer on every page
+  const pageCount = doc.internal.getNumberOfPages();
+  for(let p=1;p<=pageCount;p++){
+    doc.setPage(p);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(...INKSOFT);
+    doc.text(`${state.company.name} · ${state.company.website}`, margin, pageH-10);
+    doc.text(`Página ${p} de ${pageCount}`, pageW-margin, pageH-10, {align:'right'});
+  }
+
+  // bank certification as final page
+  if(state.bankCert.dataUrl && state.bankCert.isImage){
+    doc.addPage();
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...TRACE);
+    doc.text('CERTIFICACIÓN BANCARIA', margin, margin);
+    const dims = await loadImageDims(state.bankCert.dataUrl);
+    const maxW = pageW-2*margin, maxH = pageH-2*margin-10;
+    let w = maxW, h = maxW*(dims.h/dims.w);
+    if(h>maxH){ h = maxH; w = maxH*(dims.w/dims.h); }
+    doc.addImage(state.bankCert.dataUrl, getImageFormat(state.bankCert.dataUrl), margin, margin+8, w, h);
+  }
+
+  const clientSlug = (state.client.name||'cliente').toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,30);
+  lastPdfName = `Cotizacion_${state.meta.number||'sinnumero'}_${clientSlug}.pdf`;
+  lastPdfBlob = doc.output('blob');
+  doc.save(lastPdfName);
+
+  $('genStatus').textContent = '✓ PDF descargado como "'+lastPdfName+'". Ya puedes compartirlo.';
+  $('genStatus').className = 'status ok';
+  $('waBtn').disabled = false;
+  $('mailBtn').disabled = false;
+
+  if(state.bankCert.dataUrl && !state.bankCert.isImage){
+    $('genStatus').textContent += ' Recuerda adjuntar también tu certificación bancaria en PDF por separado.';
+  }
+}
+
+$('generateBtn').addEventListener('click', async ()=>{
+  $('generateBtn').disabled = true;
+  try{ await generatePDF(); }
+  catch(e){ $('genStatus').textContent = 'Ocurrió un error generando el PDF: '+e; }
+  $('generateBtn').disabled = false;
+});
+
+$('waBtn').addEventListener('click', ()=>{
+  const t = computeTotals();
+  const msg = `Hola${state.client.name? ' '+state.client.name:''}, te comparto la cotización ${state.meta.number} de ${state.company.name} por un total de ${formatCOP(t.total)}. Adjunto el PDF con el detalle, condiciones comerciales y medios de pago. Quedo atento(a) a tu confirmación.`;
+  const phoneDigits = (state.client.phone||'').replace(/\D/g,'');
+  const url = phoneDigits ? `https://wa.me/57${phoneDigits.replace(/^57/,'')}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+});
+
+$('mailBtn').addEventListener('click', ()=>{
+  const t = computeTotals();
+  const subject = `Cotización ${state.meta.number} - ${state.company.name}`;
+  const body = `Hola${state.client.name? ' '+state.client.name:''},\n\nAdjunto la cotización ${state.meta.number} por un total de ${formatCOP(t.total)}, con el detalle de productos/servicios, condiciones comerciales y medios de pago disponibles.\n\nRecuerda adjuntar el archivo PDF descargado a este correo antes de enviarlo.\n\nSaludos,\n${state.company.name}\n${state.company.website}`;
+  const url = `mailto:${state.client.email||''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = url;
+});
+
+/* ---------- INIT ---------- */
+(async function init(){
+  $('q_date').value = new Date().toISOString().slice(0,10);
+  state.meta.date = $('q_date').value;
+  state.meta.number = await nextQuoteNumber();
+  $('q_number').value = state.meta.number;
+  $('conditions').value = state.conditions;
+
+  await loadProfile();
+  await renderDraftsList();
+  renderItemsForm();
+  renderPreview();
+})();
+</script>
+</body>
+</html>
