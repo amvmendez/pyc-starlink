@@ -976,9 +976,9 @@ async function generatePDF(){
 
   // Reserve a fixed-width column on the right for the quote number/date/validity box,
   // so the company name/tagline/meta text on the left never runs underneath it.
-  const rightColWidth = 62;
+  const rightColWidth = 72;
   const rx = pageW - margin;
-  const leftMaxWidth = Math.max(45, (rx - rightColWidth) - textX - 4);
+  const leftMaxWidth = Math.max(40, (rx - rightColWidth) - textX - 4);
 
   doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(...INK);
   const nameLines = doc.splitTextToSize(state.company.name || 'Tu empresa', leftMaxWidth);
@@ -1008,7 +1008,7 @@ async function generatePDF(){
   doc.text('COTIZACIÓN', rx, headTop+2, {align:'right'});
   doc.setFont('courier','normal'); doc.setFontSize(9); doc.setTextColor(...INK);
   doc.text(state.meta.number || '', rx, headTop+7, {align:'right'});
-  doc.setFontSize(8); doc.setTextColor(...INKSOFT);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...INKSOFT);
   const dateStr = state.meta.date ? new Date(state.meta.date+'T00:00:00').toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'}) : '';
   doc.text('Fecha: '+dateStr, rx, headTop+12, {align:'right'});
   let validText = '';
