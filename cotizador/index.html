@@ -958,6 +958,7 @@ async function generatePDF(){
   // header
   let headTop = y;
   let textX = margin;
+  let logoBottom = headTop;
   if(state.company.logo){
     try{
       const dims = await loadImageDims(state.company.logo);
@@ -969,12 +970,26 @@ async function generatePDF(){
       }
       doc.addImage(state.company.logo, getImageFormat(state.company.logo), margin, headTop, w, h);
       textX = margin + boxW + 6;
+      logoBottom = headTop + h;
     }catch(e){ /* skip logo if it fails */ }
   }
+
+  // Reserve a fixed-width column on the right for the quote number/date/validity box,
+  // so the company name/tagline/meta text on the left never runs underneath it.
+  const rightColWidth = 62;
+  const rx = pageW - margin;
+  const leftMaxWidth = Math.max(45, (rx - rightColWidth) - textX - 4);
+
   doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(...INK);
-  doc.text(state.company.name || 'Tu empresa', textX, headTop+6);
+  const nameLines = doc.splitTextToSize(state.company.name || 'Tu empresa', leftMaxWidth);
+  doc.text(nameLines, textX, headTop+6);
+  let curY = headTop + 6 + (nameLines.length-1)*5.5 + 5.5;
+
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...INKSOFT);
-  doc.text(state.company.tagline || '', textX, headTop+11.5);
+  const taglineLines = state.company.tagline ? doc.splitTextToSize(state.company.tagline, leftMaxWidth) : [];
+  doc.text(taglineLines, textX, curY);
+  curY += taglineLines.length ? taglineLines.length*4 + 2 : 2;
+
   const metaLine = [
     state.company.nit ? 'NIT '+state.company.nit : '',
     state.company.address || '',
@@ -983,11 +998,12 @@ async function generatePDF(){
     state.company.website || ''
   ].filter(Boolean).join('  ·  ');
   doc.setFontSize(8);
-  const metaLines = doc.splitTextToSize(metaLine, 105);
-  doc.text(metaLines, textX, headTop+16);
+  const metaLines = doc.splitTextToSize(metaLine, leftMaxWidth);
+  doc.text(metaLines, textX, curY);
+  curY += metaLines.length*3.6;
+  const leftBottom = Math.max(curY, logoBottom);
 
   // quote info box (right)
-  const rx = pageW-margin;
   doc.setFont('courier','bold'); doc.setFontSize(9); doc.setTextColor(...TRACE);
   doc.text('COTIZACIÓN', rx, headTop+2, {align:'right'});
   doc.setFont('courier','normal'); doc.setFontSize(9); doc.setTextColor(...INK);
@@ -1002,8 +1018,9 @@ async function generatePDF(){
     validText = 'Válida hasta: '+d.toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
   }
   doc.text(validText, rx, headTop+17, {align:'right'});
+  const rightBottom = headTop + 20;
 
-  y = headTop + 30;
+  y = Math.max(leftBottom, rightBottom) + 6;
   doc.setDrawColor(...TRACE); doc.setLineWidth(0.6);
   doc.line(margin, y, pageW-margin, y);
   y += 8;
