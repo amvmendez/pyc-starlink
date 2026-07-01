@@ -252,12 +252,12 @@
 
     <div class="card">
       <h2>Datos de tu empresa</h2>
-      <div class="filebtn" id="logoDrop">
+      <label class="filebtn" for="logoInput">
         <img id="logoPreview" src="" style="display:none;">
         <span id="logoPlaceholder">Sin logo cargado</span>
         <span class="btnlabel">Subir logo</span>
         <input type="file" id="logoInput" accept="image/*">
-      </div>
+      </label>
       <label>Nombre comercial</label>
       <input type="text" id="co_name" value="Partes y Computadores">
       <label>Eslogan / actividad (opcional)</label>
@@ -346,6 +346,16 @@
         <div class="detail"><label>Enlace o instrucción</label><input type="text" id="pm_pse_note" placeholder="Ej: enlace de pago enviado por correo"></div>
       </div>
 
+      <div class="pmethod" id="pm_brebb">
+        <div class="head"><input type="checkbox" id="pm_brebb_chk"><span>Llave Bre-B</span></div>
+        <div class="detail">
+          <label>Llave (celular, correo o llave alfanumérica)</label>
+          <input type="text" id="pm_brebb_key" placeholder="Ej: 300 000 0000">
+          <label>Banco o entidad asociada (opcional)</label>
+          <input type="text" id="pm_brebb_bank" placeholder="Ej: Bancolombia">
+        </div>
+      </div>
+
       <div class="pmethod" id="pm_nequi">
         <div class="head"><input type="checkbox" id="pm_nequi_chk"><span>Nequi</span></div>
         <div class="detail"><label>Número Nequi</label><input type="tel" id="pm_nequi_number"></div>
@@ -372,12 +382,25 @@
 
     <div class="card">
       <h2>Certificación bancaria</h2>
-      <div class="filebtn" id="certDrop">
+      <label class="filebtn" for="certInput">
         <span id="certPlaceholder">Adjunta una imagen (JPG/PNG) de la certificación</span>
         <span class="btnlabel">Subir</span>
         <input type="file" id="certInput" accept="image/*,application/pdf">
-      </div>
+      </label>
       <div class="note" id="certNote">Se agregará como página adicional al final del PDF. Si tu certificación es un PDF, adjúntala manualmente junto con la cotización al escribir por WhatsApp o correo — el navegador no puede fusionar dos PDF automáticamente.</div>
+    </div>
+
+    <div class="card">
+      <h2>Guardar y retomar cotización</h2>
+      <button class="btn btn-outline" id="saveDraftBtn">💾 Guardar avance de esta cotización</button>
+      <div class="status" id="draftStatus"></div>
+      <label>Cotizaciones guardadas</label>
+      <select id="draftSelect"><option value="">— Selecciona una cotización guardada —</option></select>
+      <div class="actions" style="flex-direction:row;">
+        <button class="btn btn-secondary" id="loadDraftBtn" style="flex:1;">↩️ Retomar</button>
+        <button class="btn btn-outline" id="deleteDraftBtn" style="flex:1;">🗑️ Eliminar</button>
+      </div>
+      <div class="note">Se guarda en este mismo lugar (tu cuenta de Claude, o este navegador si lo usas desde GitHub Pages), identificada por su número de cotización.</div>
     </div>
 
     <div class="card">
@@ -461,6 +484,7 @@ Garantía sujeta a las políticas del fabricante y/o de Partes y Computadores.`,
     pse:{enabled:false, note:''},
     nequi:{enabled:false, number:''},
     daviplata:{enabled:false, number:''},
+    brebb:{enabled:false, key:'', bank:''},
     card:{enabled:false, note:'Datáfono disponible en punto de venta o link de pago.'},
     cash:{enabled:false, note:'Pago contra entrega, sujeto a disponibilidad.'}
   },
@@ -485,6 +509,13 @@ const storageAdapter = {
       catch(e){ return false; }
     }
     try{ localStorage.setItem(key, value); return true; }catch(e){ return false; }
+  },
+  async delete(key){
+    if(typeof window.storage !== 'undefined' && window.storage){
+      try{ await window.storage.delete(key, false); return true; }
+      catch(e){ return false; }
+    }
+    try{ localStorage.removeItem(key); return true; }catch(e){ return false; }
   }
 };
 
@@ -603,6 +634,7 @@ wirePayMethod('transfer','pm_transfer',[{id:'bank',state:'bank'},{id:'type',stat
 wirePayMethod('pse','pm_pse',[{id:'note',state:'note'}]);
 wirePayMethod('nequi','pm_nequi',[{id:'number',state:'number'}]);
 wirePayMethod('daviplata','pm_daviplata',[{id:'number',state:'number'}]);
+wirePayMethod('brebb','pm_brebb',[{id:'key',state:'key'},{id:'bank',state:'bank'}]);
 wirePayMethod('card','pm_card',[{id:'note',state:'note'}]);
 wirePayMethod('cash','pm_cash',[{id:'note',state:'note'}]);
 $('pm_transfer_type').addEventListener('change', e=>{ state.payment.transfer.type = e.target.value; renderPreview(); });
@@ -698,6 +730,7 @@ function renderPreview(){
   if(pay.pse.enabled) payHtml += `<div class="pitem"><b>PSE:</b> ${escapeHtml(pay.pse.note)||'Disponible'}</div>`;
   if(pay.nequi.enabled) payHtml += `<div class="pitem"><b>Nequi:</b> ${escapeHtml(pay.nequi.number)||'—'}</div>`;
   if(pay.daviplata.enabled) payHtml += `<div class="pitem"><b>Daviplata:</b> ${escapeHtml(pay.daviplata.number)||'—'}</div>`;
+  if(pay.brebb.enabled) payHtml += `<div class="pitem"><b>Llave Bre-B:</b> ${escapeHtml(pay.brebb.key)||'—'}${pay.brebb.bank? ' · '+escapeHtml(pay.brebb.bank):''}</div>`;
   if(pay.card.enabled) payHtml += `<div class="pitem"><b>Tarjeta débito/crédito:</b> ${escapeHtml(pay.card.note)}</div>`;
   if(pay.cash.enabled) payHtml += `<div class="pitem"><b>Efectivo:</b> ${escapeHtml(pay.cash.note)}</div>`;
   $('pv_payment').innerHTML = payHtml || '<div class="pitem" style="color:#B3462C;">Selecciona al menos un medio de pago.</div>';
@@ -730,6 +763,10 @@ async function loadProfile(){
     $('logoPlaceholder').style.display='none';
   }
 
+  reflectPaymentToForm();
+}
+
+function reflectPaymentToForm(){
   $('pm_transfer_chk').checked = state.payment.transfer.enabled;
   $('pm_transfer').classList.toggle('on', state.payment.transfer.enabled);
   $('pm_transfer_bank').value = state.payment.transfer.bank;
@@ -744,11 +781,15 @@ async function loadProfile(){
   $('pm_nequi_number').value = state.payment.nequi.number;
   $('pm_daviplata_chk').checked = state.payment.daviplata.enabled; $('pm_daviplata').classList.toggle('on', state.payment.daviplata.enabled);
   $('pm_daviplata_number').value = state.payment.daviplata.number;
+  $('pm_brebb_chk').checked = state.payment.brebb.enabled; $('pm_brebb').classList.toggle('on', state.payment.brebb.enabled);
+  $('pm_brebb_key').value = state.payment.brebb.key;
+  $('pm_brebb_bank').value = state.payment.brebb.bank;
   $('pm_card_chk').checked = state.payment.card.enabled; $('pm_card').classList.toggle('on', state.payment.card.enabled);
   $('pm_card_note').value = state.payment.card.note;
   $('pm_cash_chk').checked = state.payment.cash.enabled; $('pm_cash').classList.toggle('on', state.payment.cash.enabled);
   $('pm_cash_note').value = state.payment.cash.note;
 }
+
 
 async function saveProfile(silent){
   try{
@@ -778,6 +819,114 @@ async function nextQuoteNumber(){
   const year = new Date().getFullYear();
   return `COT-${year}-${String(n).padStart(4,'0')}`;
 }
+
+/* ---------- SAVE / RESUME DRAFT QUOTES ---------- */
+async function getDraftIndex(){
+  try{
+    const raw = await storageAdapter.get('draft-index');
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+async function setDraftIndex(index){
+  try{ await storageAdapter.set('draft-index', JSON.stringify(index)); }catch(e){}
+}
+
+function draftLabel(d){
+  const dateStr = d.date ? new Date(d.date+'T00:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+  return `${d.number || '(sin número)'} · ${d.clientName || '(sin cliente)'} · ${dateStr} · ${formatCOP(d.total)}`;
+}
+
+async function renderDraftsList(){
+  const index = await getDraftIndex();
+  const sel = $('draftSelect');
+  const prevValue = sel.value;
+  sel.innerHTML = '<option value="">— Selecciona una cotización guardada —</option>' +
+    index.map(d=>`<option value="${escapeAttr(d.key)}">${escapeHtml(draftLabel(d))}</option>`).join('');
+  if(index.some(d=>d.key===prevValue)) sel.value = prevValue;
+}
+
+async function saveDraft(){
+  if(!state.meta.number){ $('draftStatus').textContent = 'Asigna primero un número de cotización.'; return; }
+  const t = computeTotals();
+  const key = 'draft:' + state.meta.number;
+  const data = {
+    client: state.client, meta: state.meta, items: state.items,
+    ivaPercent: state.ivaPercent, discount: state.discount, conditions: state.conditions,
+    payment: state.payment, bankCert: state.bankCert
+  };
+  const ok = await storageAdapter.set(key, JSON.stringify(data));
+  if(ok){
+    let index = await getDraftIndex();
+    index = index.filter(d=>d.key!==key);
+    index.unshift({key, number:state.meta.number, clientName:state.client.name||'', date:state.meta.date, total:t.total, savedAt:new Date().toISOString()});
+    index = index.slice(0,50);
+    await setDraftIndex(index);
+    await renderDraftsList();
+    $('draftSelect').value = key;
+    $('draftStatus').textContent = '✓ Avance guardado como "'+state.meta.number+'". Puedes retomarlo cuando quieras.';
+    $('draftStatus').className = 'status ok';
+  }else{
+    $('draftStatus').textContent = 'No se pudo guardar el avance.';
+    $('draftStatus').className = 'status';
+  }
+}
+
+function reflectClientMetaMiscToForm(){
+  $('cl_name').value = state.client.name || '';
+  $('cl_id').value = state.client.id || '';
+  $('cl_phone').value = state.client.phone || '';
+  $('cl_email').value = state.client.email || '';
+  $('cl_address').value = state.client.address || '';
+  $('q_number').value = state.meta.number || '';
+  $('q_date').value = state.meta.date || '';
+  $('q_validity').value = state.meta.validity || 15;
+  $('ivaPercent').value = state.ivaPercent;
+  $('discount').value = state.discount;
+  $('conditions').value = state.conditions;
+  reflectPaymentToForm();
+  $('certPlaceholder').textContent = state.bankCert.fileName
+    ? state.bankCert.fileName + (state.bankCert.isImage ? ' ✓ se incluirá como página final del PDF' : ' — es un PDF, adjúntalo manualmente al compartir')
+    : 'Adjunta una imagen (JPG/PNG) de la certificación';
+}
+
+async function loadDraft(key){
+  if(!key) return;
+  const raw = await storageAdapter.get(key);
+  if(!raw){ $('draftStatus').textContent = 'No se encontró esa cotización guardada.'; return; }
+  const data = JSON.parse(raw);
+  Object.assign(state.client, data.client||{});
+  Object.assign(state.meta, data.meta||{});
+  state.items = (data.items && data.items.length) ? data.items : [{desc:'',qty:1,price:0}];
+  state.ivaPercent = (data.ivaPercent !== undefined) ? data.ivaPercent : state.ivaPercent;
+  state.discount = (data.discount !== undefined) ? data.discount : state.discount;
+  state.conditions = data.conditions || state.conditions;
+  Object.assign(state.payment, data.payment||{});
+  state.bankCert = data.bankCert || {dataUrl:null, isImage:false, fileName:''};
+
+  reflectClientMetaMiscToForm();
+  renderItemsForm();
+  renderPreview();
+  $('draftStatus').textContent = '✓ Cotización "'+state.meta.number+'" cargada. Puedes seguir editándola.';
+  $('draftStatus').className = 'status ok';
+}
+
+async function deleteDraft(key){
+  if(!key) return;
+  const index = await getDraftIndex();
+  const item = index.find(d=>d.key===key);
+  const label = item ? draftLabel(item) : key;
+  if(!window.confirm('¿Eliminar la cotización guardada "'+label+'"? Esta acción no se puede deshacer.')) return;
+  await storageAdapter.delete(key);
+  const newIndex = index.filter(d=>d.key!==key);
+  await setDraftIndex(newIndex);
+  await renderDraftsList();
+  $('draftStatus').textContent = 'Cotización eliminada.';
+  $('draftStatus').className = 'status';
+}
+
+$('saveDraftBtn').addEventListener('click', saveDraft);
+$('loadDraftBtn').addEventListener('click', ()=> loadDraft($('draftSelect').value));
+$('deleteDraftBtn').addEventListener('click', ()=> deleteDraft($('draftSelect').value));
 
 /* ---------- PDF GENERATION ---------- */
 function getImageFormat(dataUrl){
@@ -947,6 +1096,7 @@ async function generatePDF(){
   if(pay.pse.enabled) payLines.push(['PSE', pay.pse.note || 'Disponible']);
   if(pay.nequi.enabled) payLines.push(['Nequi', pay.nequi.number || '—']);
   if(pay.daviplata.enabled) payLines.push(['Daviplata', pay.daviplata.number || '—']);
+  if(pay.brebb.enabled) payLines.push(['Llave Bre-B', (pay.brebb.key||'—') + (pay.brebb.bank? ' · '+pay.brebb.bank:'')]);
   if(pay.card.enabled) payLines.push(['Tarjeta débito/crédito', pay.card.note]);
   if(pay.cash.enabled) payLines.push(['Efectivo', pay.cash.note]);
   payLines.forEach(([label,val])=>{
@@ -1026,6 +1176,7 @@ $('mailBtn').addEventListener('click', ()=>{
   $('conditions').value = state.conditions;
 
   await loadProfile();
+  await renderDraftsList();
   renderItemsForm();
   renderPreview();
 })();
