@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin · Catálogo Partes y Computadores</title>
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0d0f16; --panel:#151824; --panel-2:#1b1f2e; --line:#272c3d;
+    --text:#eceef4; --muted:#8d93a6; --muted-2:#5d6377;
+    --c-orange:#ff7a45; --c-pink:#e8425f; --c-purple:#8b3fd6;
+    --grad: linear-gradient(90deg, var(--c-orange), var(--c-pink) 55%, var(--c-purple));
+    --ok:#7ce0a8; --err:#ff6b6b;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--ink); color:var(--text); font-family:'IBM Plex Sans',sans-serif; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3{ font-family:'Chakra Petch',sans-serif; margin:0; }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+  .wrap{ max-width:760px; margin:0 auto; padding:0 16px 90px; }
+  input,select,textarea{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    font-family:'IBM Plex Sans',sans-serif; font-size:14.5px; padding:10px 12px; border-radius:9px;
+  }
+  input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--c-orange); }
+  label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:14px 0 6px; }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:7px;
+    padding:11px 16px; border-radius:10px; font-weight:600; font-size:14px;
+    border:1px solid transparent; cursor:pointer; text-decoration:none;
+  }
+  .btn-grad{ background:var(--grad); color:#fff; }
+  .btn-ghost{ background:var(--panel); border-color:var(--line); color:var(--text); }
+  .btn-danger{ background:transparent; border-color:rgba(255,107,107,.4); color:var(--err); }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .btn-block{ width:100%; }
+
+  header.topbar{ position:sticky; top:0; z-index:10; background:rgba(13,15,22,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); padding:14px 16px; display:flex; align-items:center; gap:10px; }
+  header.topbar img{ height:30px; }
+  header.topbar h1{ font-size:15px; }
+  header.topbar .sub{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted-2); }
+  header.topbar .spacer{ flex:1; }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-top:18px; }
+  .card h2{ font-size:16px; margin-bottom:4px; }
+  .card .hint{ color:var(--muted); font-size:13px; line-height:1.6; margin:8px 0 0; }
+  .card ol{ color:var(--muted); font-size:13.5px; line-height:1.75; padding-left:20px; margin:10px 0; }
+  .card ol a{ color:var(--c-orange); }
+
+  .status{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:10px 12px; border-radius:9px; margin-top:12px; display:none; }
+  .status.show{ display:block; }
+  .status.ok{ background:rgba(124,224,168,.1); border:1px solid rgba(124,224,168,.3); color:var(--ok); }
+  .status.err{ background:rgba(255,107,107,.1); border:1px solid rgba(255,107,107,.3); color:var(--err); }
+  .status.pending{ background:var(--panel-2); border:1px solid var(--line); color:var(--muted); }
+
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:480px){ .row2{ grid-template-columns:1fr; } }
+
+  .product-list{ margin-top:8px; display:flex; flex-direction:column; gap:8px; }
+  .prow{ display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:8px 10px; }
+  .prow .thumb{ width:42px; height:42px; border-radius:7px; object-fit:cover; background:var(--panel); flex:0 0 auto; }
+  .prow .meta{ flex:1; min-width:0; }
+  .prow .meta .n{ font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .prow .meta .c{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted-2); }
+  .prow .actions{ display:flex; gap:6px; }
+  .icon-btn{ width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:var(--panel); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); }
+  .icon-btn:hover{ color:var(--text); border-color:var(--muted-2); }
+  .icon-btn svg{ width:15px; height:15px; }
+
+  .imgpreview{ margin-top:10px; display:flex; align-items:center; gap:10px; }
+  .imgpreview img{ width:64px; height:64px; border-radius:9px; object-fit:cover; border:1px solid var(--line); background:var(--panel-2); }
+  .imgpreview .txt{ font-size:12px; color:var(--muted); }
+
+  .hidden{ display:none !important; }
+  .logout{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted-2); background:none; border:none; cursor:pointer; text-decoration:underline; }
+  .form-actions{ display:flex; gap:10px; margin-top:16px; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <img src="assets/logo-transparente.png" alt="">
+  <div>
+    <h1>Admin del catálogo</h1>
+    <div class="sub">amvmendez/pyc-starlink</div>
+  </div>
+  <div class="spacer"></div>
+  <button class="logout hidden" id="logoutBtn">cerrar sesión</button>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== PANTALLA 1: TOKEN ===== -->
+  <div id="setupScreen" class="card">
+    <h2>Conectar con GitHub</h2>
+    <p class="hint">Este panel guarda los productos directo en tu repositorio. Para eso necesita un token personal de GitHub (funciona como una contraseña solo para este panel — no se comparte con nadie, se queda guardado únicamente en este celular/navegador).</p>
+    <ol>
+      <li>Abre <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a></li>
+      <li>En "Repository access" elige <strong>Only select repositories</strong> → selecciona <strong>pyc-starlink</strong></li>
+      <li>En "Permissions" → "Repository permissions" busca <strong>Contents</strong> y ponlo en <strong>Read and write</strong></li>
+      <li>Toca "Generate token" y copia el código que empieza por <span class="mono">github_pat_...</span></li>
+      <li>Pégalo abajo (solo lo harás una vez por dispositivo)</li>
+    </ol>
+    <label for="tokenInput">Token de GitHub</label>
+    <input id="tokenInput" type="password" placeholder="github_pat_..." autocomplete="off">
+    <div class="form-actions">
+      <button class="btn btn-grad btn-block" id="saveTokenBtn">Guardar y entrar</button>
+    </div>
+    <div class="status" id="setupStatus"></div>
+  </div>
+
+  <!-- ===== PANTALLA 2: PANEL ===== -->
+  <div id="panelScreen" class="hidden">
+
+    <div class="card">
+      <h2>Productos (<span id="prodCount">0</span>)</h2>
+      <p class="hint">Toca ✎ para editar, 🗑 para borrar. Los cambios tardan 1-2 minutos en verse en la tienda.</p>
+      <div class="product-list" id="productList"></div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-block" id="reloadBtn">↻ Recargar lista</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 id="formTitle">Agregar producto</h2>
+      <input type="hidden" id="editingId" value="">
+
+      <label for="fName">Nombre</label>
+      <input id="fName" type="text" placeholder="Ej: Cargador universal 90W">
+
+      <div class="row2">
+        <div>
+          <label for="fCategory">Categoría</label>
+          <input id="fCategory" list="catList" type="text" placeholder="Ej: Cargadores">
+          <datalist id="catList"></datalist>
+        </div>
+        <div>
+          <label for="fSku">Referencia (SKU)</label>
+          <input id="fSku" type="text" placeholder="Ej: CAR-UNIV-90W">
+        </div>
+      </div>
+
+      <div class="row2">
+        <div>
+          <label for="fPrice">Precio (COP)</label>
+          <input id="fPrice" type="number" placeholder="Ej: 60000">
+        </div>
+        <div>
+          <label for="fBadge">Etiqueta</label>
+          <select id="fBadge">
+            <option value="">Ninguna</option>
+            <option value="Nuevo">Nuevo</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="fDesc">Descripción corta</label>
+      <textarea id="fDesc" rows="2" placeholder="Una línea que ayude a decidir"></textarea>
+
+      <label for="fImage">Foto del producto</label>
+      <input id="fImage" type="file" accept="image/*">
+      <div class="imgpreview" id="imgPreviewWrap" style="display:none;">
+        <img id="imgPreview" src="" alt="">
+        <span class="txt" id="imgPreviewTxt"></span>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-grad btn-block" id="saveProductBtn">Guardar producto</button>
+        <button class="btn btn-ghost hidden" id="cancelEditBtn">Cancelar</button>
+      </div>
+      <div class="status" id="formStatus"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const OWNER = "amvmendez";
+const REPO = "pyc-starlink";
+const BRANCH = "main";
+const PRODUCTS_PATH = "data/products.json";
+const IMAGES_DIR = "productos";
+const TOKEN_KEY = "pyc_admin_gh_token";
+
+const $ = (id) => document.getElementById(id);
+
+// ---------------------------------------------------------------- helpers
+function utf8ToB64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function slugify(str) {
+  return str.toString().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 40);
+}
+function setStatus(el, type, msg) {
+  el.className = "status show " + type;
+  el.textContent = msg;
+}
+function clearStatus(el) {
+  el.className = "status";
+  el.textContent = "";
+}
+
+async function ghFetch(path, options = {}) {
+  const token = localStorage.getItem(TOKEN_KEY);
+  return fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+    ...options,
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Accept": "application/vnd.github+json",
+      ...(options.headers || {})
+    }
+  });
+}
+
+async function ghGetFile(path) {
+  const res = await ghFetch(`${path}?ref=${BRANCH}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GitHub respondió ${res.status} al leer ${path}`);
+  const data = await res.json();
+  return { sha: data.sha, content: decodeURIComponent(escape(atob(data.content.replace(/\n/g, "")))) };
+}
+
+async function ghPutFile(path, base64Content, message, sha) {
+  const body = { message, content: base64Content, branch: BRANCH };
+  if (sha) body.sha = sha;
+  const res = await ghFetch(path, { method: "PUT", body: JSON.stringify(body) });
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.message || `GitHub respondió ${res.status} al guardar ${path}`);
+  }
+  return res.json();
+}
+
+function resizeImageToJpegBase64(file, maxDim = 1600, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (e) => { img.src = e.target.result; };
+    reader.onerror = reject;
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+        else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width; canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", quality);
+      resolve(dataUrl.split(",")[1]);
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ---------------------------------------------------------------- auth screen
+function showPanel() {
+  $("setupScreen").classList.add("hidden");
+  $("panelScreen").classList.remove("hidden");
+  $("logoutBtn").classList.remove("hidden");
+  loadProducts();
+}
+function showSetup() {
+  $("panelScreen").classList.add("hidden");
+  $("setupScreen").classList.remove("hidden");
+  $("logoutBtn").classList.add("hidden");
+}
+
+$("saveTokenBtn").addEventListener("click", async () => {
+  const token = $("tokenInput").value.trim();
+  const statusEl = $("setupStatus");
+  if (!token) { setStatus(statusEl, "err", "Pega el token primero."); return; }
+  setStatus(statusEl, "pending", "Verificando acceso al repositorio…");
+  localStorage.setItem(TOKEN_KEY, token);
+  try {
+    const file = await ghGetFile(PRODUCTS_PATH);
+    if (!file) throw new Error("No se encontró data/products.json en el repo.");
+    setStatus(statusEl, "ok", "Conectado correctamente.");
+    setTimeout(showPanel, 400);
+  } catch (err) {
+    localStorage.removeItem(TOKEN_KEY);
+    setStatus(statusEl, "err", "No se pudo conectar: " + err.message + " — revisa que el token tenga permiso 'Contents: Read and write' sobre pyc-starlink.");
+  }
+});
+
+$("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem(TOKEN_KEY);
+  showSetup();
+});
+
+// ---------------------------------------------------------------- product list
+let currentProducts = [];
+let currentSha = null;
+
+async function loadProducts() {
+  const listEl = $("productList");
+  listEl.innerHTML = `<div class="status show pending">Cargando…</div>`;
+  try {
+    const file = await ghGetFile(PRODUCTS_PATH);
+    currentSha = file.sha;
+    currentProducts = JSON.parse(file.content);
+    renderList();
+    renderCategoryOptions();
+  } catch (err) {
+    listEl.innerHTML = `<div class="status show err">No se pudo cargar la lista: ${err.message}</div>`;
+  }
+}
+
+function renderList() {
+  $("prodCount").textContent = currentProducts.length;
+  const listEl = $("productList");
+  if (!currentProducts.length) {
+    listEl.innerHTML = `<div class="status show pending">Todavía no hay productos.</div>`;
+    return;
+  }
+  listEl.innerHTML = currentProducts.map((p, i) => `
+    <div class="prow">
+      ${p.image
+        ? `<img class="thumb" src="${p.image}" alt="" onerror="this.style.visibility='hidden'">`
+        : `<div class="thumb"></div>`}
+      <div class="meta">
+        <div class="n">${p.name}</div>
+        <div class="c">${p.category} · ${p.price ? "$" + Number(p.price).toLocaleString("es-CO") : "Consultar"}</div>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" data-edit="${i}" aria-label="Editar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        </button>
+        <button class="icon-btn" data-del="${i}" aria-label="Borrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join("");
+
+  listEl.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => startEdit(+b.dataset.edit)));
+  listEl.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => deleteProduct(+b.dataset.del)));
+}
+
+function renderCategoryOptions() {
+  const cats = [...new Set(currentProducts.map(p => p.category))];
+  $("catList").innerHTML = cats.map(c => `<option value="${c}">`).join("");
+}
+
+$("reloadBtn").addEventListener("click", loadProducts);
+
+// ---------------------------------------------------------------- form
+let pendingImageBase64 = null;
+let pendingImageExt = "jpg";
+
+$("fImage").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const wrap = $("imgPreviewWrap");
+  $("imgPreviewTxt").textContent = "Optimizando imagen…";
+  wrap.style.display = "flex";
+  try {
+    pendingImageBase64 = await resizeImageToJpegBase64(file);
+    pendingImageExt = "jpg";
+    $("imgPreview").src = "data:image/jpeg;base64," + pendingImageBase64;
+    const sizeKb = Math.round((pendingImageBase64.length * 0.75) / 1024);
+    $("imgPreviewTxt").textContent = `Lista para subir (~${sizeKb} KB)`;
+  } catch (err) {
+    $("imgPreviewTxt").textContent = "No se pudo procesar la imagen.";
+  }
+});
+
+function resetForm() {
+  $("editingId").value = "";
+  $("fName").value = "";
+  $("fCategory").value = "";
+  $("fSku").value = "";
+  $("fPrice").value = "";
+  $("fBadge").value = "";
+  $("fDesc").value = "";
+  $("fImage").value = "";
+  $("imgPreviewWrap").style.display = "none";
+  pendingImageBase64 = null;
+  $("formTitle").textContent = "Agregar producto";
+  $("cancelEditBtn").classList.add("hidden");
+  clearStatus($("formStatus"));
+}
+
+function startEdit(index) {
+  const p = currentProducts[index];
+  $("editingId").value = index;
+  $("fName").value = p.name || "";
+  $("fCategory").value = p.category || "";
+  $("fSku").value = p.sku || "";
+  $("fPrice").value = p.price || "";
+  $("fBadge").value = p.badge === "Nuevo" ? "Nuevo" : "";
+  $("fDesc").value = p.desc || "";
+  $("fImage").value = "";
+  pendingImageBase64 = null;
+  if (p.image) {
+    $("imgPreviewWrap").style.display = "flex";
+    $("imgPreview").src = p.image;
+    $("imgPreviewTxt").textContent = "Foto actual — elige otra arriba solo si quieres reemplazarla.";
+  } else {
+    $("imgPreviewWrap").style.display = "none";
+  }
+  $("formTitle").textContent = "Editar producto";
+  $("cancelEditBtn").classList.remove("hidden");
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+}
+
+$("cancelEditBtn").addEventListener("click", resetForm);
+
+async function deleteProduct(index) {
+  const p = currentProducts[index];
+  if (!confirm(`¿Borrar "${p.name}" del catálogo?`)) return;
+  const statusEl = $("formStatus");
+  setStatus(statusEl, "pending", "Borrando…");
+  try {
+    const updated = currentProducts.filter((_, i) => i !== index);
+    await ghPutFile(
+      PRODUCTS_PATH,
+      utf8ToB64(JSON.stringify(updated, null, 2)),
+      `Eliminar producto: ${p.name}`,
+      currentSha
+    );
+    setStatus(statusEl, "ok", "Producto eliminado. Se verá en la tienda en 1-2 min.");
+    await loadProducts();
+  } catch (err) {
+    setStatus(statusEl, "err", "No se pudo borrar: " + err.message);
+  }
+}
+
+$("saveProductBtn").addEventListener("click", async () => {
+  const statusEl = $("formStatus");
+  const name = $("fName").value.trim();
+  const category = $("fCategory").value.trim();
+  if (!name || !category) {
+    setStatus(statusEl, "err", "Nombre y categoría son obligatorios.");
+    return;
+  }
+  const editingIndex = $("editingId").value !== "" ? +$("editingId").value : null;
+  const existing = editingIndex !== null ? currentProducts[editingIndex] : null;
+
+  const product = {
+    id: existing ? existing.id : (slugify(name) + "-" + Date.now().toString(36)),
+    name,
+    category,
+    price: Number($("fPrice").value) || 0,
+    sku: $("fSku").value.trim() || slugify(name).toUpperCase(),
+    desc: $("fDesc").value.trim(),
+    image: existing ? existing.image : "",
+    badge: $("fBadge").value || null
+  };
+
+  $("saveProductBtn").disabled = true;
+  try {
+    if (pendingImageBase64) {
+      setStatus(statusEl, "pending", "Subiendo foto…");
+      const filename = `${IMAGES_DIR}/${slugify(name)}-${Date.now().toString(36)}.${pendingImageExt}`;
+      await ghPutFile(filename, pendingImageBase64, `Foto de producto: ${name}`);
+      product.image = filename;
+    }
+
+    setStatus(statusEl, "pending", "Guardando en el catálogo…");
+    let updated;
+    if (editingIndex !== null) {
+      updated = [...currentProducts];
+      updated[editingIndex] = product;
+    } else {
+      updated = [...currentProducts, product];
+    }
+
+    await ghPutFile(
+      PRODUCTS_PATH,
+      utf8ToB64(JSON.stringify(updated, null, 2)),
+      editingIndex !== null ? `Editar producto: ${name}` : `Agregar producto: ${name}`,
+      currentSha
+    );
+
+    setStatus(statusEl, "ok", "Guardado. Se verá en la tienda en 1-2 min.");
+    resetForm();
+    await loadProducts();
+  } catch (err) {
+    setStatus(statusEl, "err", "No se pudo guardar: " + err.message);
+  } finally {
+    $("saveProductBtn").disabled = false;
+  }
+});
+
+// ---------------------------------------------------------------- boot
+if (localStorage.getItem(TOKEN_KEY)) {
+  showPanel();
+} else {
+  showSetup();
+}
+</script>
+</body>
+</html>
