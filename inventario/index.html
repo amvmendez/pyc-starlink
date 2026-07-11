@@ -345,7 +345,7 @@
     --doc-trace-dark:#125940;
     --doc-trace-soft:#E4F2EC;
   }
-  #tab-cotizador *{box-sizing:border-box;}
+  #tab-cotizador *{box-sizing:border-box; min-width:0;}
   #tab-cotizador{
     margin:0;
     background:var(--paper);
@@ -413,13 +413,14 @@
     gap:0;
     max-width:1400px;
     margin:0 auto;
+    min-width:0;
   }
   @media(min-width:980px){
     #tab-cotizador .layout{grid-template-columns:minmax(360px,460px) 1fr;align-items:start;}
   }
 
-  #tab-cotizador .formcol{padding:14px;}
-  #tab-cotizador .previewcol{padding:14px;position:sticky;top:0;}
+  #tab-cotizador .formcol{padding:14px; min-width:0;}
+  #tab-cotizador .previewcol{padding:14px;position:sticky;top:0; min-width:0;}
   @media(min-width:980px){
     #tab-cotizador .previewcol{position:sticky;top:0;height:100vh;overflow-y:auto;}
   }
@@ -459,6 +460,7 @@
   #tab-cotizador label:first-child{margin-top:0;}
   #tab-cotizador input[type=text], #tab-cotizador input[type=email], #tab-cotizador input[type=tel], #tab-cotizador input[type=number], #tab-cotizador input[type=date], #tab-cotizador textarea, #tab-cotizador select{
     width:100%;
+    min-width:0;
     padding:8px 10px;
     border:1px solid var(--line);
     border-radius:7px;
@@ -473,8 +475,9 @@
     box-shadow:0 0 0 3px rgba(0,224,255,0.12);
   }
   #tab-cotizador textarea{resize:vertical;min-height:64px;line-height:1.4;}
-  #tab-cotizador .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  #tab-cotizador .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  #tab-cotizador .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0;}
+  #tab-cotizador .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;min-width:0;}
+  #tab-cotizador .row2 > *, #tab-cotizador .row3 > *{min-width:0;}
 
   #tab-cotizador .filebtn{
     display:flex;align-items:center;gap:10px;
@@ -523,7 +526,7 @@
   #tab-cotizador .pmethod.on .detail{display:block;}
   #tab-cotizador .pmethod.on{border-color:var(--trace);}
 
-  #tab-cotizador .totalsgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  #tab-cotizador .totalsgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0;}
 
   #tab-cotizador .actions{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
   #tab-cotizador .btn{
