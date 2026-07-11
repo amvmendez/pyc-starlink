@@ -128,15 +128,5 @@
     "desc": "M.2 PCIe Gen3, lectura hasta 3500MB/s. Ideal para actualizar equipos lentos.",
     "image": "productos/ssd-1tb.jpg",
     "badge": null
-  },
-  {
-    "id": "ram-16gb",
-    "name": "Memoria RAM 16GB DDR4 3200MHz",
-    "category": "Partes de computador",
-    "price": 180000,
-    "sku": "RAM-16-3200",
-    "desc": "Kit single stick, disipador bajo perfil, compatible con la mayoría de placas.",
-    "image": "productos/ram-16gb.jpg",
-    "badge": null
   }
 ]
