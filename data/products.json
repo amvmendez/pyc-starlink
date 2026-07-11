@@ -1,1 +1,142 @@
-
+[
+  {
+    "id": "kit-standard",
+    "name": "Kit Starlink Standard (antena + router)",
+    "category": "Productos Starlink",
+    "price": 2300000,
+    "sku": "SL-KIT-STD",
+    "desc": "Kit completo listo para instalar. Incluye antena, router y cables.",
+    "image": "productos/starlink-standard.jpg",
+    "badge": null
+  },
+  {
+    "id": "kit-mini",
+    "name": "Kit Starlink Mini",
+    "category": "Productos Starlink",
+    "price": 1600000,
+    "sku": "SL-KIT-MINI",
+    "desc": "Versión compacta y portátil, ideal para viajes o uso temporal.",
+    "image": "productos/starlink-mini.jpg",
+    "badge": "Nuevo"
+  },
+  {
+    "id": "svc-garantia",
+    "name": "Trámite de garantía Starlink",
+    "category": "Servicios Starlink",
+    "price": 0,
+    "sku": "SVC-GARANTIA",
+    "desc": "Gestión de garantía ante Starlink por antena o router defectuoso.",
+    "image": "",
+    "badge": null
+  },
+  {
+    "id": "svc-recuperacion",
+    "name": "Recuperación de cuenta Starlink",
+    "category": "Servicios Starlink",
+    "price": 80000,
+    "sku": "SVC-RECUP-CTA",
+    "desc": "Recuperamos el acceso a tu cuenta cuando perdiste el usuario o contraseña.",
+    "image": "",
+    "badge": null
+  },
+  {
+    "id": "svc-reubicacion",
+    "name": "Reubicación de servicio Starlink",
+    "category": "Servicios Starlink",
+    "price": 60000,
+    "sku": "SVC-REUBICACION",
+    "desc": "Cambio de dirección de servicio o de zona de cobertura.",
+    "image": "",
+    "badge": null
+  },
+  {
+    "id": "sup-formateo",
+    "name": "Formateo remoto",
+    "category": "Soporte remoto",
+    "price": 50000,
+    "sku": "SUP-FORMATEO",
+    "desc": "Formateo completo de tu equipo por conexión remota, con respaldo previo.",
+    "image": "",
+    "badge": null
+  },
+  {
+    "id": "sup-optimizacion",
+    "name": "Optimización de equipo",
+    "category": "Soporte remoto",
+    "price": 40000,
+    "sku": "SUP-OPTIMIZA",
+    "desc": "Limpieza de archivos, arranque e inicio para que tu PC vuelva a rendir.",
+    "image": "",
+    "badge": null
+  },
+  {
+    "id": "sup-instalacion",
+    "name": "Instalación remota de programas",
+    "category": "Soporte remoto",
+    "price": 30000,
+    "sku": "SUP-INSTALA",
+    "desc": "Instalamos y configuramos los programas que necesites, sin salir de casa.",
+    "image": "",
+    "badge": null
+  },
+  {
+    "id": "win-11-oem",
+    "name": "Windows 11 Pro OEM",
+    "category": "Licencias y suscripciones",
+    "price": 260000,
+    "sku": "LIC-WIN11-OEM",
+    "desc": "Licencia digital original, activación vinculada al equipo.",
+    "image": "productos/windows11.jpg",
+    "badge": null
+  },
+  {
+    "id": "office-hb-2024",
+    "name": "Office Home & Business 2024",
+    "category": "Licencias y suscripciones",
+    "price": 420000,
+    "sku": "LIC-OFC-HB24",
+    "desc": "Word, Excel, PowerPoint, Outlook. Licencia de por vida para 1 equipo.",
+    "image": "productos/office-2024.jpg",
+    "badge": null
+  },
+  {
+    "id": "mcafee-tot-1a",
+    "name": "McAfee Total Protection · 1 año",
+    "category": "Licencias y suscripciones",
+    "price": 90000,
+    "sku": "LIC-MCAFEE-1A",
+    "desc": "Antivirus + VPN + gestor de contraseñas, hasta 5 dispositivos.",
+    "image": "productos/mcafee.jpg",
+    "badge": null
+  },
+  {
+    "id": "cargador-universal",
+    "name": "Cargador universal para portátil 90W",
+    "category": "Cargadores",
+    "price": 60000,
+    "sku": "CAR-UNIV-90W",
+    "desc": "Incluye varias puntas intercambiables, compatible con la mayoría de marcas.",
+    "image": "productos/cargador-universal.jpg",
+    "badge": null
+  },
+  {
+    "id": "ssd-1tb",
+    "name": "SSD NVMe 1TB",
+    "category": "Partes de computador",
+    "price": 250000,
+    "sku": "SSD-NVME-1TB",
+    "desc": "M.2 PCIe Gen3, lectura hasta 3500MB/s. Ideal para actualizar equipos lentos.",
+    "image": "productos/ssd-1tb.jpg",
+    "badge": null
+  },
+  {
+    "id": "ram-16gb",
+    "name": "Memoria RAM 16GB DDR4 3200MHz",
+    "category": "Partes de computador",
+    "price": 180000,
+    "sku": "RAM-16-3200",
+    "desc": "Kit single stick, disipador bajo perfil, compatible con la mayoría de placas.",
+    "image": "productos/ram-16gb.jpg",
+    "badge": null
+  }
+]
