@@ -227,6 +227,14 @@
     background:none; border:none; color:var(--cyan); font-size:10.5px; font-weight:600;
     text-decoration:underline; padding:2px 0; margin-top:2px;
   }
+  .btn-warn-noaffect{
+    display:flex; align-items:center; gap:5px;
+    background:rgba(255,93,108,0.14); border:1.5px solid var(--red); color:var(--red);
+    font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.3px;
+    padding:6px 10px; border-radius:7px; margin-top:6px; width:100%;
+    text-decoration:none;
+  }
+  .btn-warn-noaffect:active{background:rgba(255,93,108,0.25);}
   .price-input{width:110px; padding:7px 8px; font-size:13px;}
   .mono{font-family:var(--mono);}
   .cop{color:var(--green); font-weight:600;}
@@ -642,6 +650,10 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-2V6l5 2m0 12l6-2m-6 2V8m6 10l5 2V8l-5-2m0 12V6m0 0L9 8"/></svg>
     Instalaciones
   </button>
+  <button class="tab-btn" data-tab="servicios">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 0-5 5c0 1.5.6 2.5 1.5 3.5L4 15l1 1 5-3.5c1 .8 2 1.5 2 1.5s1-.7 2-1.5L19 16l1-1-4.5-4.5C16.4 9.5 17 8.5 17 7a5 5 0 0 0-5-5z"/></svg>
+    Servicios
+  </button>
   <button class="tab-btn" data-tab="accesorios">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
     Inventario Accesorios
@@ -695,6 +707,14 @@
         </div>
         <div class="home-card-title">Instalaciones</div>
         <div class="home-card-desc">Despliegues en campo, cobros y activación</div>
+      </button>
+
+      <button class="home-card" data-tab="servicios">
+        <div class="home-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 0-5 5c0 1.5.6 2.5 1.5 3.5L4 15l1 1 5-3.5c1 .8 2 1.5 2 1.5s1-.7 2-1.5L19 16l1-1-4.5-4.5C16.4 9.5 17 8.5 17 7a5 5 0 0 0-5-5z"/></svg>
+        </div>
+        <div class="home-card-title">Servicios</div>
+        <div class="home-card-desc">Garantías, soporte y trámites de cuenta Starlink</div>
       </button>
 
       <button class="home-card" data-tab="accesorios">
@@ -1052,6 +1072,108 @@
     </div>
   </section>
 
+  <!-- ================= TAB: SERVICIOS ================= -->
+  <section class="tab-content" id="tab-servicios">
+    <div class="panel">
+      <div class="kpi-row" id="kpiServicios"></div>
+
+      <h2 class="section-title">Registrar servicio prestado</h2>
+      <div class="form-grid">
+        <div class="field" style="grid-column:1/-1;">
+          <label>Servicio</label>
+          <select id="servTipo">
+            <option value="Trámite de garantía">Trámite de garantía</option>
+            <option value="Recuperación de Cuenta Starlink">Recuperación de Cuenta Starlink</option>
+            <option value="Reubicación de Servicio Starlink">Reubicación de Servicio Starlink</option>
+            <option value="Traspaso de Cuenta">Traspaso de Cuenta</option>
+            <option value="Cambio de Datos de Contacto de la cuenta">Cambio de Datos de Contacto de la cuenta</option>
+            <option value="Activación de Antena Starlink en Zona con Recargo">Activación de Antena Starlink en Zona con Recargo</option>
+            <option value="Pago de Saldo Pendiente / Mensualidad">Pago de Saldo Pendiente / Mensualidad</option>
+            <option value="Otro">Otro (especificar)</option>
+          </select>
+        </div>
+        <div class="field" id="servOtroWrap" style="grid-column:1/-1; display:none;">
+          <label>¿Cuál servicio?</label>
+          <input type="text" id="servOtroTexto" placeholder="Describe el servicio">
+        </div>
+        <div class="field">
+          <label>País</label>
+          <select id="servPais">
+            <option value="Colombia">Colombia</option>
+            <option value="Venezuela">Venezuela</option>
+            <option value="Ecuador">Ecuador</option>
+            <option value="Perú">Perú</option>
+            <option value="Panamá">Panamá</option>
+            <option value="México">México</option>
+            <option value="República Dominicana">República Dominicana</option>
+            <option value="Costa Rica">Costa Rica</option>
+            <option value="Guatemala">Guatemala</option>
+            <option value="Honduras">Honduras</option>
+            <option value="El Salvador">El Salvador</option>
+            <option value="Nicaragua">Nicaragua</option>
+            <option value="Bolivia">Bolivia</option>
+            <option value="Paraguay">Paraguay</option>
+            <option value="Chile">Chile</option>
+            <option value="Argentina">Argentina</option>
+            <option value="Otro">Otro (especificar)</option>
+          </select>
+        </div>
+        <div class="field" id="servPaisOtroWrap" style="display:none;">
+          <label>¿Cuál país?</label>
+          <input type="text" id="servPaisOtroTexto" placeholder="Nombre del país">
+        </div>
+        <div class="field">
+          <label>Cliente (opcional)</label>
+          <input type="text" id="servCliente" placeholder="Nombre del cliente">
+        </div>
+        <div class="field">
+          <label>Valor cobrado (COP)</label>
+          <input type="number" min="0" step="1000" id="servValor" placeholder="0">
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="servFecha">
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btnAddServicio">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        Registrar servicio
+      </button>
+
+      <div class="divider"></div>
+      <h2 class="section-title">Servicios prestados</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Servicio</th><th>País</th><th>Cliente</th><th>Valor</th><th></th></tr></thead>
+          <tbody id="serviciosBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="serviciosEmpty" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>
+        <div>Sin servicios registrados todavía.</div>
+      </div>
+
+      <div class="divider"></div>
+      <h2 class="section-title">Informe por país (histórico completo)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>País</th><th>N.° servicios</th><th>Valor total</th></tr></thead>
+          <tbody id="servPaisesBody"></tbody>
+        </table>
+      </div>
+      <small class="hint">Este informe no se filtra por mes — muestra el acumulado histórico completo, para que veas de dónde te contratan más en general.</small>
+
+      <div class="divider"></div>
+      <h2 class="section-title">Informe por tipo de servicio (histórico completo)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Servicio</th><th>N.° veces</th><th>Valor total</th></tr></thead>
+          <tbody id="servTiposBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- ================= TAB: LICENCIAMIENTO ================= -->
   <section class="tab-content" id="tab-licencias">
     <div class="panel">
@@ -1197,6 +1319,19 @@
         <div>No hay ventas confirmadas en este mes.</div>
       </div>
       <small class="hint">Se registra solo: (1) al generar un <b>recibo de caja</b> en Cotizaciones — para abonos parciales de envíos o encargos — o (2) al marcar una <b>cuenta de cobro como pagada</b> — para pagos completos e inmediatos. Generar la cotización o la cuenta de cobro por sí solas NO afecta Finanzas, porque no siempre se concretan. Si un pago se devuelve, puedes eliminarlo aquí manualmente.</small>
+
+      <div class="divider"></div>
+      <h2 class="section-title">Ingresos por servicios del mes</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Servicio</th><th>País</th><th>Cliente</th><th>Valor</th></tr></thead>
+          <tbody id="finServiciosBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="finServiciosEmpty" style="display:none;">
+        <div>No hay servicios registrados en este mes.</div>
+      </div>
+      <small class="hint">Se registra automáticamente al guardar un servicio en la pestaña Servicios (garantías, soporte, activaciones, etc.).</small>
 
       <div class="divider"></div>
       <h2 class="section-title">Utilidad por accesorios de arriendo del mes</h2>
@@ -1663,6 +1798,19 @@
     { id:"soporte_pared_mini",      nombre:"Soporte de pared | Mini",                      precio:41000, precioCompra:0,  stock:0, custom:false },
     // --- Varios ---
     { id:"soporte_varios", nombre:"Soporte / trípode (otros)",                  precio:0, precioCompra:0,       stock:0, custom:false },
+    // --- Kits con activación y accesorios importados/complementarios ---
+    { id:"kit_std4_activacion",       nombre:"Kit Antena Starlink Estándar V4 + Activación y Configuración", precio:1900000, precioCompra:0, stock:0, custom:false },
+    { id:"kit_mini_activacion",       nombre:"Kit Antena Starlink Mini + Activación y Configuración",        precio:1100000, precioCompra:0, stock:0, custom:false },
+    { id:"protector_acrilico_std4",   nombre:"Protector Acrílico de Antena Starlink Estándar V4",            precio:380000,  precioCompra:0, stock:0, custom:false },
+    { id:"adaptador_poe_v4",          nombre:"Adaptador PoE para Starlink V4 12V a 57V (Importado)",         precio:380000,  precioCompra:0, stock:0, custom:false },
+    { id:"maletin_camuflado",         nombre:"Maletín Camuflado de Transporte para Starlink",                precio:300000,  precioCompra:0, stock:0, custom:false },
+    { id:"soporte_acrilico_router3",  nombre:"Soporte Acrílico para Router Gen 3",                           precio:260000,  precioCompra:0, stock:0, custom:false },
+    { id:"radio_enlace_ptp",          nombre:"Radio Enlace Punto a Punto (1 KM de Alcance - Importado)",     precio:580000,  precioCompra:0, stock:0, custom:false },
+    { id:"soporte_pared_compat_v4",   nombre:"Soporte / Base de Pared Compatible V4",                        precio:280000,  precioCompra:0, stock:0, custom:false },
+    { id:"kit_mini_base_techo_carro", nombre:"Kit Starlink Mini para base de techo de carro",                precio:195000,  precioCompra:0, stock:0, custom:false },
+    { id:"cable_3puntas_mini",        nombre:"Cable de 3 puntas para Antena Starlink Mini",                  precio:195000,  precioCompra:0, stock:0, custom:false },
+    { id:"cable_generico_cigarrera",  nombre:"Cable genérico para conectar Antena en Cigarrera",             precio:185000,  precioCompra:0, stock:0, custom:false },
+    { id:"maletin_rigido_mini_imp",   nombre:"Maletín Rígido para Starlink Mini (Importado)",                precio:280000,  precioCompra:0, stock:0, custom:false },
   ];
 
   // Ítems que SOLO se alquilan, no se venden — independientes del catálogo de accesorios de inventario
@@ -1717,7 +1865,8 @@
     licencias: JSON.parse(JSON.stringify(CATALOGO_LICENCIAS)),
     movimientosLicencias: [],
     tareas: [],
-    ingresosVentas: []
+    ingresosVentas: [],
+    servicios: []
   };
 
   let syncTimer = null;
@@ -1795,6 +1944,7 @@
         state.movimientosLicencias = parsed.movimientosLicencias || [];
         state.tareas = parsed.tareas || [];
         state.ingresosVentas = parsed.ingresosVentas || [];
+        state.servicios = parsed.servicios || [];
         if(Array.isArray(parsed.accesorios) && parsed.accesorios.length){
           state.accesorios = mergeCatalogoConGuardado(CATALOGO_BASE, parsed.accesorios);
         }
@@ -1914,6 +2064,7 @@
         state.movimientosLicencias = Array.isArray(data.movimientosLicencias) ? data.movimientosLicencias : [];
         state.tareas = Array.isArray(data.tareas) ? data.tareas : [];
         state.ingresosVentas = Array.isArray(data.ingresosVentas) ? data.ingresosVentas : [];
+        state.servicios = Array.isArray(data.servicios) ? data.servicios : [];
         if(Array.isArray(data.accesorios) && data.accesorios.length){
           state.accesorios = mergeCatalogoConGuardado(CATALOGO_BASE, data.accesorios);
         }
@@ -2301,9 +2452,22 @@
         if(!ant) return;
         const anterior = ant.estado;
         ant.estado = e.target.value;
-        logHistorial("Cambio de estado", `Antena ${ant.serial}: ${anterior} → ${ant.estado}`);
+        let msg = `Antena ${ant.serial}: ${anterior} → ${ant.estado}`;
+
+        // Regla de negocio: una antena nunca queda "Disponible" sin haber
+        // devuelto el depósito de seguridad — así que al marcarla disponible,
+        // el depósito se marca como devuelto automáticamente (si no lo estaba
+        // ya), sin que tengas que tocar los dos controles por separado.
+        if(ant.estado === "Disponible" && (ant.depositoValor||0) > 0 && (ant.depositoEstado||"Retenido") === "Retenido"){
+          ant.depositoEstado = "Devuelto";
+          ant.depositoFecha = new Date().toISOString().slice(0,10);
+          msg += ` — depósito de ${formatCOP(ant.depositoValor)} marcado como devuelto automáticamente`;
+        }
+
+        logHistorial("Cambio de estado", msg);
         renderAntenas();
         renderHistorial();
+        renderFinanzas();
         scheduleSync();
       });
     });
@@ -2441,7 +2605,8 @@
             <input type="number" min="0" step="1" class="qty-input acc-stock" data-id="${a.id}" value="${Number(a.stock)||0}">
             <button class="qty-btn plus" data-qty-plus="${a.id}" title="Sumar 1 al costo promedio actual (entrada)">+</button>
           </div>
-          <button class="link-btn" data-entrada-precio="${a.id}">+ Entrada con precio</button>
+          <button class="link-btn" data-entrada-precio="${a.id}">+ Entrada con precio</button><br>
+          <button class="btn-warn-noaffect" data-ajuste-sin-fin="${a.id}">⚠️ Ajustar SIN afectar Finanzas</button>
         </td>
         <td class="cop">${formatCOP((Number(a.stock)||0) * (Number(a.precioCompra)||0))}</td>
         <td>
@@ -2504,6 +2669,10 @@
 
     $all("[data-entrada-precio]").forEach(btn => {
       btn.addEventListener("click", (e) => registrarEntradaConPrecioLote(e.currentTarget.dataset.entradaPrecio));
+    });
+
+    $all("[data-ajuste-sin-fin]").forEach(btn => {
+      btn.addEventListener("click", (e) => ajustarStockAccesorioSinFinanzas(e.currentTarget.dataset.ajusteSinFin));
     });
 
     $all("[data-del-accesorio]").forEach(btn => {
@@ -2596,6 +2765,31 @@
     toast(`Entrada registrada. Costo promedio actualizado a ${formatCOP(nuevoCostoPromedio)}`);
   }
 
+  // Ajusta el número de stock directamente, SIN registrar entrada ni salida en
+  // Finanzas. Úsalo cuando la venta ya quedó contabilizada por otro medio (una
+  // cuenta de cobro marcada como pagada, o un recibo de caja) y solo necesitas
+  // que el conteo de unidades en el inventario quede correcto, sin duplicar el
+  // ingreso que ya registraste.
+  function ajustarStockAccesorioSinFinanzas(accId){
+    const acc = state.accesorios.find(x => x.id === accId);
+    if(!acc) return;
+    const nuevoStr = prompt(
+      `Nuevo stock de "${acc.nombre}" (actual: ${acc.stock}).\n\nEste cambio NO se registra en Finanzas — úsalo cuando el ingreso de esa venta ya quedó contabilizado por una cuenta de cobro marcada como pagada o un recibo de caja.`,
+      String(Number(acc.stock) || 0)
+    );
+    if(nuevoStr === null) return;
+    const nuevo = Math.max(0, Math.round(Number(nuevoStr)) || 0);
+    const anterior = Number(acc.stock) || 0;
+    if(nuevo === anterior) return;
+    acc.stock = nuevo;
+    logHistorial("Ajuste de inventario (sin Finanzas)",
+      `${acc.nombre}: ${anterior} → ${nuevo} — venta ya facturada por cuenta de cobro/recibo, no se duplica el ingreso`);
+    renderAccesorios();
+    renderHistorial();
+    scheduleSync();
+    toast("Stock ajustado sin afectar Finanzas");
+  }
+
   function addAccesorio(){
     const nombre = $("#newAccNombre").value.trim();
     const precioCompra = Number($("#newAccPrecioCompra").value) || 0;
@@ -2681,6 +2875,7 @@
             <input type="number" min="0" step="1" class="qty-input lic-stock" data-id="${l.id}" value="${Number(l.stock)||0}">
             <button class="qty-btn plus" data-lic-qty-plus="${l.id}" title="Sumar 1 (entrada)">+</button>
           </div>
+          <button class="btn-warn-noaffect" data-lic-ajuste-sin-fin="${l.id}">⚠️ Ajustar SIN afectar Finanzas</button>
         </td>
         <td class="cop">${formatCOP((Number(l.stock)||0) * (Number(l.precioCompra)||0))}</td>
         <td>
@@ -2741,6 +2936,10 @@
       });
     });
 
+    $all("[data-lic-ajuste-sin-fin]").forEach(btn => {
+      btn.addEventListener("click", (e) => ajustarStockLicenciaSinFinanzas(e.currentTarget.dataset.licAjusteSinFin));
+    });
+
     $all("[data-del-licencia]").forEach(btn => {
       btn.addEventListener("click", (e) => {
         const id = e.currentTarget.dataset.delLicencia;
@@ -2779,6 +2978,29 @@
     renderLicencias();
     renderFinanzas();
     scheduleSync();
+  }
+
+  // Igual que ajustarStockAccesorioSinFinanzas: cambia el número de stock sin
+  // registrar entrada ni salida en Finanzas — para cuando la venta ya quedó
+  // contabilizada por una cuenta de cobro pagada o un recibo de caja.
+  function ajustarStockLicenciaSinFinanzas(licId){
+    const lic = state.licencias.find(x => x.id === licId);
+    if(!lic) return;
+    const nuevoStr = prompt(
+      `Nuevo stock de "${lic.nombre}" (actual: ${lic.stock}).\n\nEste cambio NO se registra en Finanzas — úsalo cuando el ingreso de esa venta ya quedó contabilizado por una cuenta de cobro marcada como pagada o un recibo de caja.`,
+      String(Number(lic.stock) || 0)
+    );
+    if(nuevoStr === null) return;
+    const nuevo = Math.max(0, Math.round(Number(nuevoStr)) || 0);
+    const anterior = Number(lic.stock) || 0;
+    if(nuevo === anterior) return;
+    lic.stock = nuevo;
+    logHistorial("Ajuste de inventario (sin Finanzas)",
+      `${lic.nombre}: ${anterior} → ${nuevo} — venta ya facturada por cuenta de cobro/recibo, no se duplica el ingreso`);
+    renderLicencias();
+    renderHistorial();
+    scheduleSync();
+    toast("Stock ajustado sin afectar Finanzas");
   }
 
   function updateLicenciaRowTotal(lic){
@@ -2830,6 +3052,151 @@
     renderFinanzas();
     scheduleSync();
     toast("Licencia agregada");
+  }
+
+  /* ============================================================
+     RENDER — SERVICIOS
+  ============================================================ */
+  function renderKpiServicios(){
+    const total = state.servicios.length;
+    const valorTotal = state.servicios.reduce((s,x) => s + (Number(x.valor)||0), 0);
+    const paises = new Set(state.servicios.map(x => x.pais)).size;
+    let paisLider = "—";
+    if(state.servicios.length){
+      const porPais = {};
+      state.servicios.forEach(x => { porPais[x.pais] = (porPais[x.pais]||0) + (Number(x.valor)||0); });
+      paisLider = Object.entries(porPais).sort((a,b) => b[1]-a[1])[0][0];
+    }
+    $("#kpiServicios").innerHTML = `
+      <div class="kpi accent"><div class="n">${total}</div><div class="l">Servicios prestados</div></div>
+      <div class="kpi"><div class="n cop" style="font-size:14px">${formatCOP(valorTotal)}</div><div class="l">Valor total</div></div>
+      <div class="kpi"><div class="n">${paises}</div><div class="l">Países atendidos</div></div>
+      <div class="kpi"><div class="n" style="font-size:14px;">${escapeHtml(paisLider)}</div><div class="l">País líder</div></div>
+    `;
+  }
+
+  function renderServicios(){
+    renderKpiServicios();
+    const body = $("#serviciosBody");
+    const empty = $("#serviciosEmpty");
+    if(!state.servicios.length){
+      body.innerHTML = "";
+      empty.style.display = "block";
+    } else {
+      empty.style.display = "none";
+      body.innerHTML = state.servicios.map(s => `
+        <tr>
+          <td class="mono">${s.fechaISO ? s.fechaISO.slice(0,10) : "—"}</td>
+          <td>${escapeHtml(s.servicio)}</td>
+          <td>${escapeHtml(s.pais)}</td>
+          <td>${escapeHtml(s.cliente || "—")}</td>
+          <td class="cop">${formatCOP(s.valor)}</td>
+          <td>
+            <button class="icon-btn del" data-del-servicio="${s.id}" title="Eliminar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
+            </button>
+          </td>
+        </tr>
+      `).join("");
+      $all("[data-del-servicio]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const id = e.currentTarget.dataset.delServicio;
+          const s = state.servicios.find(x => x.id === id);
+          if(!s) return;
+          if(!confirm(`¿Eliminar el registro de "${s.servicio}" (${s.pais})?`)) return;
+          state.servicios = state.servicios.filter(x => x.id !== id);
+          logHistorial("Servicio eliminado", `${s.servicio} — ${s.pais} — ${formatCOP(s.valor)}`);
+          renderServicios();
+          renderInformesServicios();
+          renderHistorial();
+          renderFinanzas();
+          scheduleSync();
+        });
+      });
+    }
+    renderInformesServicios();
+  }
+
+  function renderInformesServicios(){
+    // Informe por país (acumulado histórico, no se filtra por mes)
+    const porPais = {};
+    state.servicios.forEach(s => {
+      if(!porPais[s.pais]) porPais[s.pais] = { cantidad:0, valor:0 };
+      porPais[s.pais].cantidad++;
+      porPais[s.pais].valor += Number(s.valor)||0;
+    });
+    const paisesOrdenados = Object.entries(porPais).sort((a,b) => b[1].valor - a[1].valor);
+    const paisesBody = $("#servPaisesBody");
+    paisesBody.innerHTML = paisesOrdenados.length ? paisesOrdenados.map(([pais, d]) => `
+      <tr>
+        <td>${escapeHtml(pais)}</td>
+        <td>${d.cantidad}</td>
+        <td class="cop">${formatCOP(d.valor)}</td>
+      </tr>
+    `).join("") : `<tr><td colspan="3" style="text-align:center; color:var(--tx-2);">Sin datos todavía</td></tr>`;
+
+    // Informe por tipo de servicio (acumulado histórico)
+    const porTipo = {};
+    state.servicios.forEach(s => {
+      if(!porTipo[s.servicio]) porTipo[s.servicio] = { cantidad:0, valor:0 };
+      porTipo[s.servicio].cantidad++;
+      porTipo[s.servicio].valor += Number(s.valor)||0;
+    });
+    const tiposOrdenados = Object.entries(porTipo).sort((a,b) => b[1].valor - a[1].valor);
+    const tiposBody = $("#servTiposBody");
+    tiposBody.innerHTML = tiposOrdenados.length ? tiposOrdenados.map(([tipo, d]) => `
+      <tr>
+        <td>${escapeHtml(tipo)}</td>
+        <td>${d.cantidad}</td>
+        <td class="cop">${formatCOP(d.valor)}</td>
+      </tr>
+    `).join("") : `<tr><td colspan="3" style="text-align:center; color:var(--tx-2);">Sin datos todavía</td></tr>`;
+  }
+
+  function addServicio(){
+    const tipoSel = $("#servTipo").value;
+    const servicio = tipoSel === "Otro" ? $("#servOtroTexto").value.trim() : tipoSel;
+    const paisSel = $("#servPais").value;
+    const pais = paisSel === "Otro" ? $("#servPaisOtroTexto").value.trim() : paisSel;
+    const cliente = $("#servCliente").value.trim();
+    const valor = Number($("#servValor").value) || 0;
+    const fecha = $("#servFecha").value || new Date().toISOString().slice(0,10);
+
+    if(!servicio){
+      toast("Especifica el servicio prestado");
+      return;
+    }
+    if(!pais){
+      toast("Especifica el país");
+      return;
+    }
+    if(!valor){
+      toast("Ingresa el valor cobrado");
+      $("#servValor").focus();
+      return;
+    }
+
+    state.servicios.unshift({
+      id: uid("serv"), servicio, pais, cliente, valor,
+      fechaISO: fecha + "T00:00:00.000Z", fecha: nowLabel()
+    });
+    logHistorial("Servicio registrado", `${servicio} — ${pais} — ${formatCOP(valor)}` + (cliente ? ` (${cliente})` : ""));
+
+    $("#servOtroTexto").value = "";
+    $("#servPaisOtroTexto").value = "";
+    $("#servCliente").value = "";
+    $("#servValor").value = "";
+    $("#servFecha").value = new Date().toISOString().slice(0,10);
+    $("#servTipo").value = "Trámite de garantía";
+    $("#servPais").value = "Colombia";
+    $("#servOtroWrap").style.display = "none";
+    $("#servPaisOtroWrap").style.display = "none";
+
+    renderServicios();
+    renderHistorial();
+    renderFinanzas();
+    scheduleSync();
+    toast("Servicio registrado");
   }
 
   /* ============================================================
@@ -3202,6 +3569,7 @@
     // incluso en antenas de Alejandra (donde no se le liquidan a ella).
     const antenasMes = state.antenas.filter(a => estaEnMes(a.fechaInicio, mes));
     const ventasMes = state.ingresosVentas.filter(c => estaEnMes(c.fechaISO, mes));
+    const serviciosMes = state.servicios.filter(s => estaEnMes(s.fechaISO, mes));
 
     const ingresosInstalaciones = desplieguesMes.reduce((s,d) => s + calcTotalCliente(d), 0);
     const egresosInstalador = desplieguesMes.reduce((s,d) => s + (Number(d.valorInstalador)||0), 0);
@@ -3212,7 +3580,8 @@
     const ingresosArriendosAccesorios = antenasMes.reduce((s,a) => s + calcLiquidacionAntena(a).subElementos, 0);
     const ingresosAdministracion = ADMIN_FEE_ALEJANDRA;
     const ingresosVentasMes = ventasMes.reduce((s,c) => s + (Number(c.valor)||0), 0);
-    const ingresosTotales = ingresosInstalaciones + ingresosAccesorios + ingresosLicencias + ingresosArriendosAccesorios + ingresosAdministracion + ingresosVentasMes;
+    const ingresosServiciosMes = serviciosMes.reduce((s,x) => s + (Number(x.valor)||0), 0);
+    const ingresosTotales = ingresosInstalaciones + ingresosAccesorios + ingresosLicencias + ingresosArriendosAccesorios + ingresosAdministracion + ingresosVentasMes + ingresosServiciosMes;
     const egresosTotales = egresosInstalador + egresosLicencias + egresosAccesorios;
     const utilidad = ingresosTotales - egresosTotales;
 
@@ -3223,6 +3592,7 @@
       <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosArriendosAccesorios)}</div><div class="l">Utilidad accesorios de arriendo</div></div>
       <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosAdministracion)}</div><div class="l">Administración Alejandra</div></div>
       <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosVentasMes)}</div><div class="l">Ventas confirmadas (${ventasMes.length})</div></div>
+      <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosServiciosMes)}</div><div class="l">Servicios (${serviciosMes.length})</div></div>
     `;
 
     const instBody = $("#finInstalacionesBody");
@@ -3325,6 +3695,24 @@
       });
     }
 
+    const finServBody = $("#finServiciosBody");
+    const finServEmpty = $("#finServiciosEmpty");
+    if(!serviciosMes.length){
+      finServBody.innerHTML = "";
+      finServEmpty.style.display = "block";
+    } else {
+      finServEmpty.style.display = "none";
+      finServBody.innerHTML = serviciosMes.map(s => `
+        <tr>
+          <td class="mono">${s.fechaISO ? s.fechaISO.slice(0,10) : "—"}</td>
+          <td>${escapeHtml(s.servicio)}</td>
+          <td>${escapeHtml(s.pais)}</td>
+          <td>${escapeHtml(s.cliente || "—")}</td>
+          <td class="cop">${formatCOP(s.valor)}</td>
+        </tr>
+      `).join("");
+    }
+
     const antenasConAcc = antenasMes.filter(a => calcLiquidacionAntena(a).subElementos > 0);
     const arrAccBody = $("#finArriendoAccBody");
     const arrAccEmpty = $("#finArriendoAccEmpty");
@@ -3425,6 +3813,7 @@
     renderAntenas();
     renderAccesorios();
     renderDespliegues();
+    renderServicios();
     renderLicencias();
     renderHistorial();
     renderFinanzas();
@@ -3444,6 +3833,14 @@
     $("#btnAddAccesorio").addEventListener("click", addAccesorio);
     $("#btnAddLicencia").addEventListener("click", addLicencia);
     $("#btnAddDespliegue").addEventListener("click", addDespliegue);
+    $("#btnAddServicio").addEventListener("click", addServicio);
+    $("#servTipo").addEventListener("change", (e) => {
+      $("#servOtroWrap").style.display = e.target.value === "Otro" ? "block" : "none";
+    });
+    $("#servPais").addEventListener("change", (e) => {
+      $("#servPaisOtroWrap").style.display = e.target.value === "Otro" ? "block" : "none";
+    });
+    $("#servFecha").value = new Date().toISOString().slice(0,10);
     $("#btnClearHistorial").addEventListener("click", clearHistorial);
     $("#btnForceSync").addEventListener("click", forceSync);
     $("#btnPullCloud").addEventListener("click", pullFromCloudManual);
