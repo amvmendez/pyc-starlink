@@ -242,6 +242,8 @@
   .badge-fin{background:rgba(108,122,143,0.18); color:var(--tx-1);}
   .badge-activada{background:rgba(46,230,166,0.14); color:var(--green);}
   .badge-pendiente-act{background:rgba(255,93,108,0.14); color:var(--red);}
+  .badge-deposito-retenido{background:rgba(255,181,71,0.16); color:var(--amber);}
+  .badge-deposito-devuelto{background:rgba(46,230,166,0.14); color:var(--green);}
 
   .checklist-box{
     border:1px solid var(--line); border-radius:10px; background:var(--bg-1);
@@ -350,6 +352,8 @@
     color:var(--ink);
     font-family:'IBM Plex Sans',sans-serif;
     -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    max-width:100%;
   }
   #tab-cotizador .topbar{
     background:var(--bg-3);
@@ -373,6 +377,36 @@
   #tab-cotizador .topbar h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.2px;}
   #tab-cotizador .topbar p{margin:2px 0 0;font-size:12.5px;color:var(--tx-1);}
 
+  /* ---------- SUB-NAVEGACIÓN INTERNA (para no perderse entre secciones) ---------- */
+  #tab-cotizador .cz-subnav{
+    position:sticky; top:0; z-index:20;
+    display:flex; gap:8px; overflow-x:auto;
+    padding:10px 12px; background:var(--bg-1);
+    border-bottom:1px solid var(--line);
+    scrollbar-width:none;
+  }
+  #tab-cotizador .cz-subnav::-webkit-scrollbar{display:none;}
+  #tab-cotizador .cz-subnav-btn{
+    flex:none; display:inline-flex; align-items:center; gap:6px;
+    padding:8px 13px; border-radius:20px; font-size:12.5px; font-weight:700;
+    text-decoration:none; border:1.5px solid; white-space:nowrap;
+  }
+  #tab-cotizador .cz-c-datos{border-color:var(--tx-2); color:var(--tx-1); background:rgba(255,255,255,0.03);}
+  #tab-cotizador .cz-c-cotizacion{border-color:var(--cyan); color:var(--cyan); background:rgba(0,224,255,0.08);}
+  #tab-cotizador .cz-c-cuentacobro{border-color:var(--amber); color:var(--amber); background:rgba(255,181,71,0.08);}
+  #tab-cotizador .cz-c-recibo{border-color:var(--green); color:var(--green); background:rgba(46,230,166,0.08);}
+
+  /* ---------- BANNERS DE SECCIÓN ---------- */
+  #tab-cotizador .cz-group-banner{
+    font-size:12px; font-weight:800; letter-spacing:.3px;
+    padding:11px 14px; border-radius:9px; margin:18px 0 12px;
+    color:#05131c;
+  }
+  #tab-cotizador .cz-group-banner.cz-c-datos{background:var(--tx-2); color:#05131c; border:none;}
+  #tab-cotizador .cz-group-banner.cz-c-cotizacion{background:linear-gradient(90deg,var(--cyan),var(--blue));}
+  #tab-cotizador .cz-group-banner.cz-c-cuentacobro{background:var(--amber);}
+  #tab-cotizador .cz-group-banner.cz-c-recibo{background:var(--green);}
+
   #tab-cotizador .layout{
     display:grid;
     grid-template-columns:1fr;
@@ -384,8 +418,8 @@
     #tab-cotizador .layout{grid-template-columns:minmax(360px,460px) 1fr;align-items:start;}
   }
 
-  #tab-cotizador .formcol{padding:20px;}
-  #tab-cotizador .previewcol{padding:20px;position:sticky;top:0;}
+  #tab-cotizador .formcol{padding:14px;}
+  #tab-cotizador .previewcol{padding:14px;position:sticky;top:0;}
   @media(min-width:980px){
     #tab-cotizador .previewcol{position:sticky;top:0;height:100vh;overflow-y:auto;}
   }
@@ -517,17 +551,18 @@
     width:100%;
     max-width:720px;
     margin:0 auto;
-    padding:34px 32px;
+    padding:18px 16px;
     font-family:'IBM Plex Sans',sans-serif;
     box-shadow:0 8px 24px rgba(0,0,0,.35);
+    overflow-x:hidden;
   }
-  #tab-cotizador .sheet-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:2px solid var(--doc-trace);padding-bottom:14px;}
-  #tab-cotizador .sheet-head .co{display:flex;gap:12px;align-items:center;}
-  #tab-cotizador .sheet-head .co img{height:44px;max-width:80px;object-fit:contain;}
-  #tab-cotizador .sheet-head .co-name{font-size:18px;font-weight:700;color:var(--doc-ink);}
+  #tab-cotizador .sheet-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:2px solid var(--doc-trace);padding-bottom:14px;}
+  #tab-cotizador .sheet-head .co{display:flex;gap:10px;align-items:center;min-width:0;}
+  #tab-cotizador .sheet-head .co img{height:38px;max-width:64px;object-fit:contain;flex-shrink:0;}
+  #tab-cotizador .sheet-head .co-name{font-size:16px;font-weight:700;color:var(--doc-ink);}
   #tab-cotizador .sheet-head .co-sub{font-size:11px;color:var(--doc-ink-soft);margin-top:2px;}
   #tab-cotizador .sheet-head .co-meta{font-size:9.5px;color:var(--doc-ink-soft);margin-top:4px;line-height:1.65;}
-  #tab-cotizador .sheet-head .quoteinfo{text-align:right;font-size:11.5px;color:var(--doc-ink-soft);min-width:160px;}
+  #tab-cotizador .sheet-head .quoteinfo{text-align:right;font-size:11.5px;color:var(--doc-ink-soft);min-width:0;flex:1 1 130px;}
   #tab-cotizador .sheet-head .quoteinfo .tag{
     font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;
     color:var(--doc-trace-dark);background:var(--doc-trace-soft);padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:4px;
@@ -550,7 +585,7 @@
   #tab-cotizador table.items td{padding:6px 8px;border-bottom:1px solid var(--doc-line);vertical-align:top;color:var(--doc-ink);}
   #tab-cotizador table.items tr:nth-child(even) td{background:#FBFAF7;}
 
-  #tab-cotizador .totalsbox{margin-top:8px;margin-left:auto;width:230px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--doc-ink);}
+  #tab-cotizador .totalsbox{margin-top:8px;margin-left:auto;width:100%;max-width:230px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--doc-ink);}
   #tab-cotizador .totalsbox div{display:flex;justify-content:space-between;padding:3px 0;}
   #tab-cotizador .totalsbox .grand{
     border-top:2px solid var(--doc-trace);margin-top:4px;padding-top:6px;font-weight:700;font-size:13.5px;color:var(--doc-trace-dark);
@@ -786,6 +821,26 @@
       </div>
       <small class="hint" style="margin:-6px 0 10px;">Esto calcula cuánto se le debe liquidar al propietario por los días de arriendo + los accesorios opcionales que marques abajo.</small>
 
+      <h2 class="section-title" style="margin-top:4px;">Depósito de seguridad</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label>Valor del depósito (COP)</label>
+          <input type="number" min="0" step="1000" id="antDepositoValor" placeholder="500000" value="500000">
+        </div>
+        <div class="field">
+          <label>Estado del depósito</label>
+          <select id="antDepositoEstado">
+            <option value="Retenido">Retenido (aún no se devuelve)</option>
+            <option value="Devuelto">Ya devuelto al cliente</option>
+          </select>
+        </div>
+        <div class="field" id="antDepositoFechaWrap" style="grid-column:1/-1; display:none;">
+          <label>Fecha de devolución</label>
+          <input type="date" id="antDepositoFecha">
+        </div>
+      </div>
+      <small class="hint" style="margin:-6px 0 10px;">No es un ingreso tuyo — es dinero del cliente que tienes en custodia. Se muestra aparte en Finanzas, sin sumar a tu utilidad.</small>
+
       <div class="field" style="margin-bottom:10px;">
         <label>Maletín asignado a esta antena</label>
         <select id="antMaletin">
@@ -833,7 +888,7 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Serial</th><th>Tipo</th><th>Estado</th><th>Propietario</th><th>Cliente/Evento</th><th>Ubicación</th><th>Inicio</th><th>Fin</th><th>Días</th><th>Tarifa/día</th><th>Maletín</th><th>Opcionales</th><th>Corte plan</th><th>Plan</th><th>A liquidar</th><th></th>
+            <th>Serial</th><th>Tipo</th><th>Estado</th><th>Propietario</th><th>Cliente/Evento</th><th>Ubicación</th><th>Inicio</th><th>Fin</th><th>Días</th><th>Tarifa/día</th><th>Maletín</th><th>Opcionales</th><th>Corte plan</th><th>Plan</th><th>Depósito</th><th>A liquidar</th><th></th>
           </tr></thead>
           <tbody id="antenasBody"></tbody>
         </table>
@@ -948,10 +1003,6 @@
         <div class="field">
           <label>Valor instalación (COP)</label>
           <input type="number" min="0" step="1000" id="depValorInstalacion" placeholder="0">
-        </div>
-        <div class="field">
-          <label>Valor arriendo antena (COP)</label>
-          <input type="number" min="0" step="1000" id="depValorArriendo" placeholder="0">
         </div>
         <div class="field" style="grid-column:1/-1;">
           <label>Valor transporte (COP)</label>
@@ -1132,6 +1183,19 @@
       <small class="hint">Las <b>entradas</b> (compra de licencias) se restan como egreso; las <b>salidas</b> (venta) se suman como ingreso.</small>
 
       <div class="divider"></div>
+      <h2 class="section-title">Ingresos por ventas confirmadas del mes</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo</th><th>N.° documento</th><th>Cliente</th><th>Referencia</th><th>Fecha</th><th>Valor</th><th></th></tr></thead>
+          <tbody id="finVentasBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="finVentasEmpty" style="display:none;">
+        <div>No hay ventas confirmadas en este mes.</div>
+      </div>
+      <small class="hint">Se registra solo: (1) al generar un <b>recibo de caja</b> en Cotizaciones — para abonos parciales de envíos o encargos — o (2) al marcar una <b>cuenta de cobro como pagada</b> — para pagos completos e inmediatos. Generar la cotización o la cuenta de cobro por sí solas NO afecta Finanzas, porque no siempre se concretan. Si un pago se devuelve, puedes eliminarlo aquí manualmente.</small>
+
+      <div class="divider"></div>
       <h2 class="section-title">Utilidad por accesorios de arriendo del mes</h2>
       <div class="table-wrap">
         <table>
@@ -1143,6 +1207,20 @@
         <div>No hay accesorios opcionales de arriendo este mes.</div>
       </div>
       <small class="hint">El trípode, cable UTP y router mini de arriendo son propiedad de partesycomputadores.com.co — su valor cuenta como ingreso de la empresa aunque la antena sea de Alejandra, ya que a ella solo se le liquida el valor del arriendo de la antena.</small>
+
+      <div class="divider"></div>
+      <h2 class="section-title">Depósitos de seguridad</h2>
+      <small class="hint" style="margin-top:-4px;">Esto NO es ingreso tuyo — es dinero del cliente que tienes en custodia hasta que devuelva el equipo. Por eso se muestra aparte y no suma a Ingresos, Egresos ni Utilidad de arriba.</small>
+      <div class="kpi-row" id="kpiDepositos" style="margin-top:10px;"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Antena</th><th>Cliente</th><th>Estado</th><th>Fecha devolución</th><th>Valor</th></tr></thead>
+          <tbody id="finDepositosBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="finDepositosEmpty" style="display:none;">
+        <div>No hay depósitos de seguridad registrados.</div>
+      </div>
     </div>
   </section>
 
@@ -1185,8 +1263,17 @@
   </div>
 </div>
 
+<div class="cz-subnav">
+  <a href="#cz-grupo-datos" class="cz-subnav-btn cz-c-datos">⚙️ Datos</a>
+  <a href="#cz-grupo-cotizacion" class="cz-subnav-btn cz-c-cotizacion">📝 Cotización</a>
+  <a href="#cz-grupo-cuentacobro" class="cz-subnav-btn cz-c-cuentacobro">🧾 Cta. de cobro</a>
+  <a href="#cz-grupo-recibo" class="cz-subnav-btn cz-c-recibo">💵 Recibo</a>
+</div>
+
 <div class="layout">
   <div class="formcol">
+
+    <div id="cz-grupo-datos" class="cz-group-banner cz-c-datos">⚙️ DATOS BASE — se usan en los 3 documentos</div>
 
     <div class="card">
       <h2>Datos de tu empresa</h2>
@@ -1243,6 +1330,8 @@
       <input type="text" id="cl_address" placeholder="Ciudad">
     </div>
 
+    <div id="cz-grupo-cotizacion" class="cz-group-banner cz-c-cotizacion">📝 COTIZACIÓN — propuesta para el cliente, no afecta Finanzas</div>
+
     <div class="card">
       <h2>Cotización</h2>
       <div class="row3">
@@ -1256,11 +1345,8 @@
       <h2>Productos o servicios</h2>
       <div id="itemsContainer"></div>
       <button class="additem" id="addItemBtn">+ Agregar ítem</button>
-      <div class="row3" style="margin-top:12px;">
-        <div><label>IVA (%)</label><input type="number" id="ivaPercent" value="19" min="0"></div>
-        <div><label>Descuento (COP)</label><input type="number" id="discount" value="0" min="0"></div>
-        <div></div>
-      </div>
+      <label style="margin-top:12px;">Descuento (COP)</label>
+      <input type="number" id="discount" value="0" min="0">
     </div>
 
     <div class="card">
@@ -1365,6 +1451,8 @@
       <div class="note">Al compartir por WhatsApp o correo se abrirá el chat/borrador con un mensaje listo — como los navegadores no permiten adjuntar archivos automáticamente, deberás adjuntar el PDF ya descargado en esa misma ventana.</div>
     </div>
 
+    <div id="cz-grupo-cuentacobro" class="cz-group-banner cz-c-cuentacobro">🧾 CUENTA DE COBRO — la factura; márcala pagada cuando te paguen todo de una vez</div>
+
     <div class="card">
       <h2>Cuenta de cobro</h2>
       <div class="note">Cuando el cliente apruebe esta cotización, genera la cuenta de cobro correspondiente con un clic: toma el cliente, el total y el número de cotización automáticamente.</div>
@@ -1388,6 +1476,10 @@
       </div>
       <div class="status" id="ccGenStatus"></div>
 
+      <div class="note" id="ccPagadaEstado" style="margin-top:10px;">Estado: sin marcar como pagada.</div>
+      <button class="btn btn-primary" id="ccMarcarPagadaBtn" style="margin-top:6px;">💰 Marcar como pagada (registra el ingreso en Finanzas)</button>
+      <div class="note">Úsalo solo cuando el cliente pague todo de una sola vez. Si el pago es por abonos (envíos, encargos), usa el Recibo de Caja para cada abono en vez de este botón — no uses ambos para la misma venta o el ingreso quedaría contado dos veces.</div>
+
       <label style="margin-top:14px;">Cuentas de cobro guardadas</label>
       <select id="ccDraftSelect"><option value="">— Selecciona una cuenta de cobro guardada —</option></select>
       <div class="actions" style="flex-direction:row;">
@@ -1396,6 +1488,8 @@
         <button class="btn btn-outline" id="ccDeleteBtn" style="flex:1;">🗑️ Eliminar</button>
       </div>
     </div>
+
+    <div id="cz-grupo-recibo" class="cz-group-banner cz-c-recibo">💵 RECIBO DE CAJA — prueba de pago recibido (abonos parciales de envíos/encargos)</div>
 
     <div class="card">
       <h2>Recibo de caja</h2>
@@ -1477,10 +1571,12 @@
 
       <div class="sheet-section">
         <h3>Detalle de la cotización</h3>
-        <table class="items">
-          <thead><tr><th>Ítem</th><th>Descripción</th><th>Cant.</th><th>Vlr. unit.</th><th>Vlr. total</th></tr></thead>
-          <tbody id="pv_items"></tbody>
-        </table>
+        <div style="overflow-x:auto;">
+          <table class="items">
+            <thead><tr><th>Ítem</th><th>Descripción</th><th>Cant.</th><th>Vlr. unit.</th><th>Vlr. total</th></tr></thead>
+            <tbody id="pv_items"></tbody>
+          </table>
+        </div>
         <div class="totalsbox" id="pv_totals"></div>
       </div>
 
@@ -1617,7 +1713,8 @@
     entradasAccesorios: [],
     licencias: JSON.parse(JSON.stringify(CATALOGO_LICENCIAS)),
     movimientosLicencias: [],
-    tareas: []
+    tareas: [],
+    ingresosVentas: []
   };
 
   let syncTimer = null;
@@ -1694,6 +1791,7 @@
         state.entradasAccesorios = parsed.entradasAccesorios || [];
         state.movimientosLicencias = parsed.movimientosLicencias || [];
         state.tareas = parsed.tareas || [];
+        state.ingresosVentas = parsed.ingresosVentas || [];
         if(Array.isArray(parsed.accesorios) && parsed.accesorios.length){
           state.accesorios = mergeCatalogoConGuardado(CATALOGO_BASE, parsed.accesorios);
         }
@@ -1812,6 +1910,7 @@
         state.entradasAccesorios = Array.isArray(data.entradasAccesorios) ? data.entradasAccesorios : [];
         state.movimientosLicencias = Array.isArray(data.movimientosLicencias) ? data.movimientosLicencias : [];
         state.tareas = Array.isArray(data.tareas) ? data.tareas : [];
+        state.ingresosVentas = Array.isArray(data.ingresosVentas) ? data.ingresosVentas : [];
         if(Array.isArray(data.accesorios) && data.accesorios.length){
           state.accesorios = mergeCatalogoConGuardado(CATALOGO_BASE, data.accesorios);
         }
@@ -2155,6 +2254,13 @@
         <td style="white-space:normal; max-width:170px;">${elementosTags}</td>
         <td class="mono">${escapeHtml(a.fechaCorte || "—")}</td>
         <td><span class="badge ${badgePlan}">${planEstado === "Corriendo" ? "Corriendo" : "Standby"}</span></td>
+        <td>
+          <select class="ant-deposito-select" data-id="${a.id}">
+            <option value="Retenido" ${(a.depositoEstado||"Retenido")==="Retenido"?"selected":""}>Retenido</option>
+            <option value="Devuelto" ${a.depositoEstado==="Devuelto"?"selected":""}>Devuelto</option>
+          </select>
+          <div class="cop" style="font-size:11px; margin-top:3px;">${formatCOP(a.depositoValor)}</div>
+        </td>
         <td class="cop">${formatCOP(liq.totalPropietario)}</td>
         <td>
           <div class="row-actions">
@@ -2165,6 +2271,25 @@
         </td>
       </tr>
     `;}).join("");
+
+    $all(".ant-deposito-select").forEach(sel => {
+      sel.addEventListener("change", (e) => {
+        const id = e.target.dataset.id;
+        const ant = state.antenas.find(x => x.id === id);
+        if(!ant) return;
+        const anterior = ant.depositoEstado || "Retenido";
+        ant.depositoEstado = e.target.value;
+        if(ant.depositoEstado === "Devuelto" && !ant.depositoFecha){
+          ant.depositoFecha = new Date().toISOString().slice(0,10);
+        }
+        logHistorial("Depósito de seguridad", `Antena ${ant.serial}: ${anterior} → ${ant.depositoEstado} (${formatCOP(ant.depositoValor)})` +
+          (ant.depositoEstado === "Devuelto" ? ` el ${ant.depositoFecha}` : ""));
+        renderAntenas();
+        renderHistorial();
+        renderFinanzas();
+        scheduleSync();
+      });
+    });
 
     $all(".ant-estado-select").forEach(sel => {
       sel.addEventListener("change", (e) => {
@@ -2224,6 +2349,9 @@
     const planEstado = $("#antPlanEstado").value;
     const maletin = $("#antMaletin").value;
     const elementos = getElementosSeleccionados();
+    const depositoValor = Number($("#antDepositoValor").value) || 0;
+    const depositoEstado = $("#antDepositoEstado").value;
+    const depositoFecha = $("#antDepositoFecha").value || (depositoEstado === "Devuelto" ? new Date().toISOString().slice(0,10) : "");
 
     if(!serial){
       toast("Ingresa el ID / Serial de la antena");
@@ -2240,13 +2368,15 @@
 
     state.antenas.unshift({
       id: uid("ant"), serial, tipo, estado, propietario, cliente, ubicacion, fecha,
-      fechaInicio, fechaFin, tarifaDia, fechaCorte, planEstado, maletin, elementos
+      fechaInicio, fechaFin, tarifaDia, fechaCorte, planEstado, maletin, elementos,
+      depositoValor, depositoEstado, depositoFecha
     });
 
     const liq = calcLiquidacionAntena({ fechaInicio, fechaFin, tarifaDia, elementos, propietario });
     logHistorial("Antena agregada", `${serial} (${tipo}) — ${estado} — propietario: ${propietario}` +
       (liq.dias ? ` — ${liq.dias} días, a liquidar a ${propietario}: ${formatCOP(liq.totalPropietario)}` +
-        (liq.subElementos > 0 && propietario === "Alejandra" ? ` (accesorios ${formatCOP(liq.subElementos)} quedan como utilidad de la empresa)` : "") : ""));
+        (liq.subElementos > 0 && propietario === "Alejandra" ? ` (accesorios ${formatCOP(liq.subElementos)} quedan como utilidad de la empresa)` : "") : "") +
+      (depositoValor > 0 ? ` — depósito de seguridad ${formatCOP(depositoValor)} (${depositoEstado})` : ""));
 
     $("#antSerial").value = "";
     $("#antCliente").value = "";
@@ -2261,6 +2391,10 @@
     $("#antTipo").value = "Standard V4";
     $("#antEstado").value = "Disponible";
     $("#antPropietario").value = "Alejandra";
+    $("#antDepositoValor").value = "500000";
+    $("#antDepositoEstado").value = "Retenido";
+    $("#antDepositoFecha").value = "";
+    $("#antDepositoFechaWrap").style.display = "none";
     renderElementosChecklist();
     updateAntLiquidacionPreview();
 
@@ -2784,6 +2918,56 @@
   }
 
   /* ============================================================
+     PUENTE CON EL MÓDULO DE COTIZACIONES
+     El cotizador vive en su propia función aislada (otro <script>),
+     así que no comparte "state" con el inventario. Esta función se
+     expone en window y se usa desde DOS puntos distintos del
+     cotizador, según cómo se concreta el pago:
+       - tipo "recibo": al generar un recibo de caja (abonos parciales,
+         típico de envíos o encargos — no todas las ventas usan esto).
+       - tipo "cuenta_cobro": al marcar una cuenta de cobro como
+         "Pagada" cuando el cliente paga todo de una sola vez y no
+         hace falta un recibo de caja aparte.
+     Cada número (RC-xxxx o CC-xxxx) es único, así que nunca se
+     duplica el mismo ingreso aunque se vuelva a generar/marcar.
+  ============================================================ */
+  function registrarIngresoVenta(tipo, numero, cliente, valor, fechaISO, refDoc){
+    if(!numero || !(Number(valor) > 0)) return;
+    const existente = state.ingresosVentas.find(x => x.numero === numero);
+    if(existente){
+      // Si se vuelve a generar/marcar el mismo documento, se actualiza en vez de duplicar.
+      existente.cliente = cliente || existente.cliente;
+      existente.valor = Number(valor) || 0;
+      existente.refDoc = refDoc || existente.refDoc;
+      existente.fechaISO = fechaISO || existente.fechaISO;
+      logHistorial("Ingreso de venta actualizado", `${numero} — ${cliente||"cliente"} — ${formatCOP(valor)}`);
+    } else {
+      state.ingresosVentas.unshift({
+        id: uid("iv"), tipo, numero, cliente: cliente || "", refDoc: refDoc || "",
+        valor: Number(valor) || 0, fechaISO: fechaISO || new Date().toISOString(), fecha: nowLabel()
+      });
+      logHistorial("Ingreso por venta confirmada",
+        `${tipo === "recibo" ? "Recibo de caja" : "Cuenta de cobro pagada"} ${numero} — ${cliente||"cliente"} — ${formatCOP(valor)}` +
+        (refDoc ? ` (abono a ${refDoc})` : ""));
+    }
+    renderHistorial();
+    renderFinanzas();
+    scheduleSync();
+  }
+  window.registrarIngresoVenta = registrarIngresoVenta;
+
+  function eliminarIngresoVenta(id){
+    const item = state.ingresosVentas.find(x => x.id === id);
+    if(!item) return;
+    if(!confirm(`¿Eliminar el ingreso "${item.numero}" por ${formatCOP(item.valor)}? Úsalo solo si hubo una devolución o fue un error.`)) return;
+    state.ingresosVentas = state.ingresosVentas.filter(x => x.id !== id);
+    logHistorial("Ingreso de venta eliminado", `${item.numero} — ${formatCOP(item.valor)}`);
+    renderHistorial();
+    renderFinanzas();
+    scheduleSync();
+  }
+
+  /* ============================================================
      RENDER — DESPLIEGUES
   ============================================================ */
   const DESPLIEGUE_BADGE = {
@@ -2804,7 +2988,7 @@
   function calcTotalCliente(d){
     const recogeAntena = !!(d.recoger && d.recoger.antena);
     const valorEquipo = recogeAntena ? (Number(d.valorEquipo) || 0) : 0;
-    return (Number(d.valorInstalacion) || 0) + (Number(d.valorArriendo) || 0) + (Number(d.valorTransporte) || 0) + valorEquipo;
+    return (Number(d.valorInstalacion) || 0) + (Number(d.valorTransporte) || 0) + valorEquipo;
   }
 
   function calcMargenInstalacion(d){
@@ -2815,14 +2999,12 @@
     const box = $("#depTotalPreview");
     if(!box) return;
     const instalacion = Number($("#depValorInstalacion").value) || 0;
-    const arriendo = Number($("#depValorArriendo").value) || 0;
     const transporte = Number($("#depValorTransporte").value) || 0;
     const recogeAntena = $("#depRecogeAntena").checked;
     const valorEquipo = recogeAntena ? (Number($("#depValorEquipo").value) || 0) : 0;
-    const total = instalacion + arriendo + transporte + valorEquipo;
+    const total = instalacion + transporte + valorEquipo;
     box.innerHTML = `
       <div class="row"><span>Instalación</span><span class="cop">${formatCOP(instalacion)}</span></div>
-      <div class="row"><span>Arriendo antena</span><span class="cop">${formatCOP(arriendo)}</span></div>
       <div class="row"><span>Transporte</span><span class="cop">${formatCOP(transporte)}</span></div>
       ${recogeAntena ? `<div class="row"><span>Valor del equipo (antena vendida)</span><span class="cop">${formatCOP(valorEquipo)}</span></div>` : ""}
       <div class="row total"><span>Total a cobrar al cliente</span><span class="cop">${formatCOP(total)}</span></div>
@@ -2948,7 +3130,6 @@
       adaptador: $("#depRecogeAdaptador").checked
     };
     const valorInstalacion = Number($("#depValorInstalacion").value) || 0;
-    const valorArriendo = Number($("#depValorArriendo").value) || 0;
     const valorTransporte = Number($("#depValorTransporte").value) || 0;
     const valorInstalador = Number($("#depValorInstalador").value) || 0;
     const valorEquipo = Number($("#depValorEquipo").value) || 0;
@@ -2961,7 +3142,7 @@
 
     const nuevo = {
       id: uid("dep"), nombre, instalador, ubicacion, estado, activacion, notas,
-      recoger, valorInstalacion, valorArriendo, valorTransporte, valorInstalador, valorEquipo,
+      recoger, valorInstalacion, valorTransporte, valorInstalador, valorEquipo,
       fechaISO: new Date().toISOString()
     };
     state.despliegues.unshift(nuevo);
@@ -2978,7 +3159,6 @@
     $("#depRecogeBase").checked = false;
     $("#depRecogeAdaptador").checked = false;
     $("#depValorInstalacion").value = "";
-    $("#depValorArriendo").value = "";
     $("#depValorTransporte").value = "";
     $("#depValorInstalador").value = "";
     $("#depValorEquipo").value = "";
@@ -3018,6 +3198,7 @@
     // la antena, así que su valor cuenta como utilidad de los arrendamientos aquí,
     // incluso en antenas de Alejandra (donde no se le liquidan a ella).
     const antenasMes = state.antenas.filter(a => estaEnMes(a.fechaInicio, mes));
+    const ventasMes = state.ingresosVentas.filter(c => estaEnMes(c.fechaISO, mes));
 
     const ingresosInstalaciones = desplieguesMes.reduce((s,d) => s + calcTotalCliente(d), 0);
     const egresosInstalador = desplieguesMes.reduce((s,d) => s + (Number(d.valorInstalador)||0), 0);
@@ -3027,7 +3208,8 @@
     const egresosLicencias = movLicMes.filter(m => m.tipo === "entrada").reduce((s,m) => s + m.valorTotal, 0);
     const ingresosArriendosAccesorios = antenasMes.reduce((s,a) => s + calcLiquidacionAntena(a).subElementos, 0);
     const ingresosAdministracion = ADMIN_FEE_ALEJANDRA;
-    const ingresosTotales = ingresosInstalaciones + ingresosAccesorios + ingresosLicencias + ingresosArriendosAccesorios + ingresosAdministracion;
+    const ingresosVentasMes = ventasMes.reduce((s,c) => s + (Number(c.valor)||0), 0);
+    const ingresosTotales = ingresosInstalaciones + ingresosAccesorios + ingresosLicencias + ingresosArriendosAccesorios + ingresosAdministracion + ingresosVentasMes;
     const egresosTotales = egresosInstalador + egresosLicencias + egresosAccesorios;
     const utilidad = ingresosTotales - egresosTotales;
 
@@ -3037,6 +3219,7 @@
       <div class="kpi"><div class="n" style="font-size:15px; color:${utilidad>=0?'var(--green)':'var(--red)'}">${formatCOP(utilidad)}</div><div class="l">Utilidad del mes</div></div>
       <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosArriendosAccesorios)}</div><div class="l">Utilidad accesorios de arriendo</div></div>
       <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosAdministracion)}</div><div class="l">Administración Alejandra</div></div>
+      <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosVentasMes)}</div><div class="l">Ventas confirmadas (${ventasMes.length})</div></div>
     `;
 
     const instBody = $("#finInstalacionesBody");
@@ -3112,6 +3295,33 @@
       `).join("");
     }
 
+    const ventasBody = $("#finVentasBody");
+    const ventasEmpty = $("#finVentasEmpty");
+    if(!ventasMes.length){
+      ventasBody.innerHTML = "";
+      ventasEmpty.style.display = "block";
+    } else {
+      ventasEmpty.style.display = "none";
+      ventasBody.innerHTML = ventasMes.map(c => `
+        <tr>
+          <td><span class="badge ${c.tipo==='recibo'?'badge-alq':'badge-op'}">${c.tipo==='recibo'?'Recibo':'Cta. cobro'}</span></td>
+          <td class="mono">${escapeHtml(c.numero)}</td>
+          <td>${escapeHtml(c.cliente || "—")}</td>
+          <td class="mono">${escapeHtml(c.refDoc || "—")}</td>
+          <td class="mono">${c.fechaISO ? c.fechaISO.slice(0,10) : "—"}</td>
+          <td class="cop">${formatCOP(c.valor)}</td>
+          <td>
+            <button class="icon-btn del" data-del-ingreso-venta="${c.id}" title="Eliminar (ej. si hubo devolución)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
+            </button>
+          </td>
+        </tr>
+      `).join("");
+      $all("[data-del-ingreso-venta]").forEach(btn => {
+        btn.addEventListener("click", (e) => eliminarIngresoVenta(e.currentTarget.dataset.delIngresoVenta));
+      });
+    }
+
     const antenasConAcc = antenasMes.filter(a => calcLiquidacionAntena(a).subElementos > 0);
     const arrAccBody = $("#finArriendoAccBody");
     const arrAccEmpty = $("#finArriendoAccEmpty");
@@ -3130,6 +3340,47 @@
           <td class="mono">${escapeHtml(a.fechaInicio || "—")}</td>
           <td style="white-space:normal; max-width:170px;">${escapeHtml(nombresElementos)}</td>
           <td class="cop">${formatCOP(liq.subElementos)}</td>
+        </tr>
+      `;}).join("");
+    }
+
+    // Depósitos de seguridad: se muestran SIN filtrar por mes (es un saldo de
+    // custodia que se debe poder ver siempre completo, no solo lo del mes),
+    // salvo los dos KPIs de "recibidos este mes" / "devueltos este mes".
+    const antenasConDeposito = state.antenas.filter(a => (Number(a.depositoValor)||0) > 0);
+    const depositosRecibidosMes = antenasConDeposito
+      .filter(a => estaEnMes(a.fechaInicio, mes))
+      .reduce((s,a) => s + (Number(a.depositoValor)||0), 0);
+    const depositosDevueltosMes = antenasConDeposito
+      .filter(a => a.depositoEstado === "Devuelto" && estaEnMes(a.depositoFecha, mes))
+      .reduce((s,a) => s + (Number(a.depositoValor)||0), 0);
+    const depositosRetenidos = antenasConDeposito
+      .filter(a => (a.depositoEstado || "Retenido") === "Retenido")
+      .reduce((s,a) => s + (Number(a.depositoValor)||0), 0);
+
+    $("#kpiDepositos").innerHTML = `
+      <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(depositosRecibidosMes)}</div><div class="l">Recibidos este mes</div></div>
+      <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(depositosDevueltosMes)}</div><div class="l">Devueltos este mes</div></div>
+      <div class="kpi accent"><div class="n" style="font-size:14px;">${formatCOP(depositosRetenidos)}</div><div class="l">Retenidos ahora mismo (todos)</div></div>
+    `;
+
+    const depBody = $("#finDepositosBody");
+    const depEmpty = $("#finDepositosEmpty");
+    if(!antenasConDeposito.length){
+      depBody.innerHTML = "";
+      depEmpty.style.display = "block";
+    } else {
+      depEmpty.style.display = "none";
+      depBody.innerHTML = antenasConDeposito.map(a => {
+        const estado = a.depositoEstado || "Retenido";
+        const badge = estado === "Devuelto" ? "badge-deposito-devuelto" : "badge-deposito-retenido";
+        return `
+        <tr>
+          <td class="mono">${escapeHtml(a.serial)}</td>
+          <td>${escapeHtml(a.cliente || "—")}</td>
+          <td><span class="badge ${badge}">${estado}</span></td>
+          <td class="mono">${escapeHtml(a.depositoFecha || "—")}</td>
+          <td class="cop">${formatCOP(a.depositoValor)}</td>
         </tr>
       `;}).join("");
     }
@@ -3206,7 +3457,10 @@
       $("#"+id).addEventListener("input", updateAntLiquidacionPreview);
       $("#"+id).addEventListener("change", updateAntLiquidacionPreview);
     });
-    ["depValorInstalacion","depValorArriendo","depValorTransporte","depValorEquipo"].forEach(id => {
+    $("#antDepositoEstado").addEventListener("change", (e) => {
+      $("#antDepositoFechaWrap").style.display = e.target.value === "Devuelto" ? "block" : "none";
+    });
+    ["depValorInstalacion","depValorTransporte","depValorEquipo"].forEach(id => {
       $("#"+id).addEventListener("input", updateDepTotalPreview);
     });
     $("#depRecogeAntena").addEventListener("change", updateDepTotalPreview);
@@ -3253,7 +3507,6 @@ const state = {
   client:{name:'', id:'', phone:'', email:'', address:''},
   meta:{number:'', date:'', validity:15},
   items:[{desc:'', qty:1, price:0}],
-  ivaPercent:19,
   discount:0,
   conditions:`Precios expresados en pesos colombianos (COP).
 Esta cotización tiene una validez de 15 días calendario a partir de la fecha de emisión.
@@ -3270,7 +3523,7 @@ Garantía sujeta a las políticas del fabricante y/o de partesycomputadores.com.
     cash:{enabled:false, note:'Pago contra entrega, sujeto a disponibilidad.'}
   },
   bankCert:{dataUrl:null, isImage:false, fileName:''},
-  cc:{number:'', date:'', refQuote:'', concept:'', total:0, items:[]},
+  cc:{number:'', date:'', refQuote:'', concept:'', total:0, items:[], pagada:false},
   recibo:{number:'', date:'', payerName:'', payerId:'', refDoc:'', concept:'', amount:0, method:'Efectivo', totalDoc:0}
 };
 
@@ -3310,9 +3563,8 @@ function formatCOP(n){
 function computeTotals(){
   const subtotal = state.items.reduce((s,it)=> s + (Number(it.qty)||0)*(Number(it.price)||0), 0);
   const afterDiscount = Math.max(subtotal - (Number(state.discount)||0), 0);
-  const iva = afterDiscount * ((Number(state.ivaPercent)||0)/100);
-  const total = afterDiscount + iva;
-  return {subtotal, discount:Number(state.discount)||0, iva, total, ivaPercent:Number(state.ivaPercent)||0};
+  const total = afterDiscount;
+  return {subtotal, discount:Number(state.discount)||0, total};
 }
 
 /* ---------- ITEM ROWS ---------- */
@@ -3393,7 +3645,6 @@ bind('q_number', v=>state.meta.number=v);
 bind('q_date', v=>state.meta.date=v);
 bind('q_validity', v=>state.meta.validity=v);
 
-bind('ivaPercent', v=>state.ivaPercent=v);
 bind('discount', v=>state.discount=v);
 bind('conditions', v=>state.conditions=v);
 
@@ -3537,7 +3788,6 @@ function renderPreview(){
   const t = computeTotals();
   let totalsHtml = `<div><span>Subtotal</span><span>${formatCOP(t.subtotal)}</span></div>`;
   if(t.discount>0) totalsHtml += `<div><span>Descuento</span><span>-${formatCOP(t.discount)}</span></div>`;
-  totalsHtml += `<div><span>IVA (${t.ivaPercent}%)</span><span>${formatCOP(t.iva)}</span></div>`;
   totalsHtml += `<div class="grand"><span>Total</span><span>${formatCOP(t.total)}</span></div>`;
   $('pv_totals').innerHTML = totalsHtml;
 
@@ -3679,7 +3929,7 @@ async function saveDraft(){
   const key = 'draft:' + state.meta.number;
   const data = {
     client: state.client, meta: state.meta, items: state.items,
-    ivaPercent: state.ivaPercent, discount: state.discount, conditions: state.conditions,
+    discount: state.discount, conditions: state.conditions,
     payment: state.payment, bankCert: state.bankCert
   };
   const ok = await storageAdapter.set(key, JSON.stringify(data));
@@ -3708,7 +3958,6 @@ function reflectClientMetaMiscToForm(){
   $('q_number').value = state.meta.number || '';
   $('q_date').value = state.meta.date || '';
   $('q_validity').value = state.meta.validity || 15;
-  $('ivaPercent').value = state.ivaPercent;
   $('discount').value = state.discount;
   $('conditions').value = state.conditions;
   reflectPaymentToForm();
@@ -3725,7 +3974,6 @@ async function loadDraft(key){
   Object.assign(state.client, data.client||{});
   Object.assign(state.meta, data.meta||{});
   state.items = (data.items && data.items.length) ? data.items : [{desc:'',qty:1,price:0}];
-  state.ivaPercent = (data.ivaPercent !== undefined) ? data.ivaPercent : state.ivaPercent;
   state.discount = (data.discount !== undefined) ? data.discount : state.discount;
   state.conditions = data.conditions || state.conditions;
   Object.assign(state.payment, data.payment||{});
@@ -3774,6 +4022,21 @@ function reflectCcToForm(){
   $('cc_refquote').value = state.cc.refQuote || '';
   $('cc_concept').value = state.cc.concept || '';
   $('cc_total').value = state.cc.total || 0;
+  actualizarEstadoPagadaCC();
+}
+
+function actualizarEstadoPagadaCC(){
+  const nota = $('ccPagadaEstado');
+  if(!nota) return;
+  if(state.cc.pagada){
+    nota.textContent = '✓ Estado: marcada como pagada — el ingreso ya quedó registrado en Finanzas.';
+    nota.className = 'note';
+    nota.style.color = 'var(--trace)';
+  } else {
+    nota.textContent = 'Estado: sin marcar como pagada.';
+    nota.className = 'note';
+    nota.style.color = '';
+  }
 }
 
 $('ccFromQuoteBtn').addEventListener('click', async ()=>{
@@ -3784,6 +4047,7 @@ $('ccFromQuoteBtn').addEventListener('click', async ()=>{
   state.cc.items = state.items.filter(it=>it.desc && it.desc.trim()).map(it=>({desc:it.desc, qty:it.qty, price:it.price}));
   state.cc.concept = '';
   state.cc.total = t.total;
+  state.cc.pagada = false;
   reflectCcToForm();
   $('ccGenStatus').textContent = '✓ Datos tomados de la cotización '+(state.meta.number||'')+'.';
   $('ccGenStatus').className = 'status ok';
@@ -4238,7 +4502,7 @@ async function generatePDF(){
   doc.setFont('courier','normal'); doc.setFontSize(9); doc.setTextColor(...INKSOFT);
   doc.text('Subtotal', boxX, y); doc.text(formatCOP(t.subtotal), pageW-margin, y, {align:'right'}); y+=5;
   if(t.discount>0){ doc.text('Descuento', boxX, y); doc.text('-'+formatCOP(t.discount), pageW-margin, y, {align:'right'}); y+=5; }
-  doc.text('IVA ('+t.ivaPercent+'%)', boxX, y); doc.text(formatCOP(t.iva), pageW-margin, y, {align:'right'}); y+=6;
+  y+=6;
   doc.setDrawColor(...TRACE); doc.setLineWidth(0.5);
   doc.line(boxX, y-4, pageW-margin, y-4);
   doc.setFont('courier','bold'); doc.setFontSize(12); doc.setTextColor(...TRACE);
@@ -4557,7 +4821,13 @@ $('reciboGenerateBtn').addEventListener('click', async ()=>{
   try{
     await generateReciboPDF();
     await saveReciboDraft();
-    $('rcGenStatus').textContent = '✓ PDF descargado como "'+lastRcPdfName+'" y guardado como "'+state.recibo.number+'".';
+    // Puente con el módulo de inventario: el recibo de caja es la prueba de que
+    // el dinero efectivamente entró (a diferencia de la cuenta de cobro, que es
+    // solo la factura) — por eso el ingreso en Finanzas se registra aquí.
+    if(typeof window.registrarIngresoVenta === 'function'){
+      window.registrarIngresoVenta('recibo', state.recibo.number, state.recibo.payerName, state.recibo.amount, new Date().toISOString(), state.recibo.refDoc);
+    }
+    $('rcGenStatus').textContent = '✓ PDF descargado como "'+lastRcPdfName+'", guardado como "'+state.recibo.number+'" y registrado como ingreso en Finanzas.';
     $('rcGenStatus').className = 'status ok';
   }
   catch(e){ $('rcGenStatus').textContent = 'Ocurrió un error generando el PDF: '+e; }
@@ -4583,11 +4853,37 @@ $('ccGenerateBtn').addEventListener('click', async ()=>{
   try{
     await generateCuentaCobroPDF();
     await saveCcDraft(); // autoguardado: soluciona que las cuentas de cobro generadas se perdieran
-    $('ccGenStatus').textContent = '✓ PDF descargado como "'+lastCcPdfName+'" y guardado como "'+state.cc.number+'". Puedes retomarla cuando quieras.';
+    // La cuenta de cobro es solo la factura/solicitud de pago — NO registra
+    // ingreso en Finanzas por sí sola. El ingreso se registra cuando el cliente
+    // efectivamente paga: con el botón "Marcar como pagada" (pago completo) o
+    // generando un recibo de caja (abonos parciales).
+    $('ccGenStatus').textContent = '✓ PDF descargado como "'+lastCcPdfName+'" y guardado como "'+state.cc.number+'". Cuando te paguen, márcala como pagada o genera un recibo de caja.';
     $('ccGenStatus').className = 'status ok';
   }
   catch(e){ $('ccGenStatus').textContent = 'Ocurrió un error generando el PDF: '+e; }
   $('ccGenerateBtn').disabled = false;
+});
+
+$('ccMarcarPagadaBtn').addEventListener('click', async ()=>{
+  if(!state.cc.number){
+    $('ccGenStatus').textContent = 'Primero genera o carga una cuenta de cobro con número asignado.';
+    return;
+  }
+  if(!(Number(state.cc.total) > 0)){
+    $('ccGenStatus').textContent = 'Esta cuenta de cobro no tiene un valor total válido.';
+    return;
+  }
+  if(state.cc.pagada){
+    if(!window.confirm('Esta cuenta de cobro ya estaba marcada como pagada. ¿Quieres actualizar igual el ingreso en Finanzas (por ejemplo, si cambió el valor)?')) return;
+  }
+  state.cc.pagada = true;
+  if(typeof window.registrarIngresoVenta === 'function'){
+    window.registrarIngresoVenta('cuenta_cobro', state.cc.number, state.client.name, state.cc.total, new Date().toISOString(), state.cc.refQuote);
+  }
+  await saveCcDraft();
+  actualizarEstadoPagadaCC();
+  $('ccGenStatus').textContent = '✓ Cuenta de cobro "'+state.cc.number+'" marcada como pagada — ingreso de '+formatCOP(state.cc.total)+' registrado en Finanzas.';
+  $('ccGenStatus').className = 'status ok';
 });
 
 $('ccWaBtn').addEventListener('click', ()=>{
@@ -4618,6 +4914,7 @@ $('ccMailBtn').addEventListener('click', ()=>{
   await renderReciboList();
   renderItemsForm();
   renderPreview();
+  actualizarEstadoPagadaCC();
 })();
 
 })();
