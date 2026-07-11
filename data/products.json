@@ -118,15 +118,5 @@
     "desc": "Incluye varias puntas intercambiables, compatible con la mayoría de marcas.",
     "image": "productos/cargador-universal.jpg",
     "badge": null
-  },
-  {
-    "id": "ssd-1tb",
-    "name": "SSD NVMe 1TB",
-    "category": "Partes de computador",
-    "price": 250000,
-    "sku": "SSD-NVME-1TB",
-    "desc": "M.2 PCIe Gen3, lectura hasta 3500MB/s. Ideal para actualizar equipos lentos.",
-    "image": "productos/ssd-1tb.jpg",
-    "badge": null
   }
 ]
