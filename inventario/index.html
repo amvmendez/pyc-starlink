@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-<title>Inventario Starlink · PyC</title>
+<title>Centro de Operaciones · partesycomputadores.com.co</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --bg-0:#070b12;
@@ -147,6 +150,24 @@
   .fab-back.visible{display:flex;}
   .fab-back:active{transform:scale(0.93);}
   .fab-back svg{width:22px; height:22px;}
+
+  /* ---------- TAREAS PENDIENTES ---------- */
+  .task-item{
+    display:flex; align-items:center; gap:10px; padding:13px 4px;
+    border-bottom:1px solid var(--line);
+  }
+  .task-item:last-child{border-bottom:none;}
+  .task-status-badge{
+    flex:none; border:none; border-radius:20px; padding:8px 12px;
+    font-size:11px; font-weight:700; white-space:nowrap;
+  }
+  .task-status-badge.pendiente{background:rgba(255,181,71,0.16); color:var(--amber);}
+  .task-status-badge.transito{background:rgba(47,125,250,0.18); color:#6fa4ff;}
+  .task-status-badge.completada{background:rgba(46,230,166,0.14); color:var(--green);}
+  .task-name{flex:1; font-size:14px; color:var(--tx-0); line-height:1.3;}
+  .task-item.completada .task-name{color:var(--tx-2); text-decoration:line-through;}
+  .task-del{flex:none; background:transparent; border:none; color:var(--tx-2); width:32px; height:32px; display:flex; align-items:center; justify-content:center;}
+  .task-del svg{width:16px; height:16px;}
   .tab-content.active{display:block;}
 
   h2.section-title{
@@ -192,6 +213,20 @@
   tbody td{padding:10px 12px; border-top:1px solid var(--line); color:var(--tx-1); white-space:nowrap;}
   tbody tr:hover{background:rgba(0,224,255,0.03);}
   .num-input{width:72px; padding:7px 8px; font-size:13px;}
+  .qty-group{display:flex; align-items:center; gap:5px;}
+  .qty-btn{
+    flex:none; width:28px; height:28px; border-radius:8px;
+    background:var(--bg-3); border:1px solid var(--line); color:var(--tx-0);
+    font-size:15px; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .qty-btn:active{transform:scale(0.9);}
+  .qty-btn.minus{color:var(--red);}
+  .qty-btn.plus{color:var(--cyan);}
+  .qty-input{width:46px; padding:6px 4px; font-size:13px; text-align:center;}
+  .link-btn{
+    background:none; border:none; color:var(--cyan); font-size:10.5px; font-weight:600;
+    text-decoration:underline; padding:2px 0; margin-top:2px;
+  }
   .price-input{width:110px; padding:7px 8px; font-size:13px;}
   .mono{font-family:var(--mono);}
   .cop{color:var(--green); font-weight:600;}
@@ -277,6 +312,256 @@
   .toast svg{width:16px; height:16px; color:var(--cyan); flex:none;}
 
   small.hint{color:var(--tx-2); font-size:11px; display:block; margin-top:6px;}
+
+  /* ============================================================
+     MÓDULO COTIZACIONES (aislado bajo #tab-cotizador para no chocar
+     con el resto de la app — variables, tipografía y componentes
+     propios de ese módulo)
+  ============================================================ */
+  #tab-cotizador{
+    /* Interfaz (formularios/botones) tomada del tema oscuro de la app */
+    --paper:var(--bg-0);
+    --panel:var(--bg-2);
+    --ink:var(--tx-0);
+    --ink-soft:var(--tx-1);
+    --ink-faint:var(--tx-2);
+    --trace:var(--cyan);
+    --trace-dark:var(--blue);
+    --trace-soft:rgba(0,224,255,0.14);
+    --copper:var(--red);
+    --copper-soft:rgba(255,93,108,0.14);
+    --danger:var(--red);
+    /* Documento/vista previa: se queda en "papel" claro a propósito,
+       porque así se ve el PDF real que se descarga — cambiarlo aquí
+       confundiría sobre el resultado final. */
+    --doc-paper:#F6F4EE;
+    --doc-ink:#1C2521;
+    --doc-ink-soft:#5B665F;
+    --doc-ink-faint:#8B9490;
+    --doc-line:#DCD6C7;
+    --doc-trace:#1B7A5E;
+    --doc-trace-dark:#125940;
+    --doc-trace-soft:#E4F2EC;
+  }
+  #tab-cotizador *{box-sizing:border-box;}
+  #tab-cotizador{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #tab-cotizador .topbar{
+    background:var(--bg-3);
+    color:var(--tx-0);
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    border-bottom:3px solid var(--trace);
+    border-radius:var(--radius) var(--radius) 0 0;
+  }
+  #tab-cotizador .topbar .mark{
+    width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(135deg,var(--trace),var(--trace-dark));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;
+    color:#05131c;
+    flex-shrink:0;
+    box-shadow:0 0 14px rgba(0,224,255,0.3);
+  }
+  #tab-cotizador .topbar h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.2px;}
+  #tab-cotizador .topbar p{margin:2px 0 0;font-size:12.5px;color:var(--tx-1);}
+
+  #tab-cotizador .layout{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:0;
+    max-width:1400px;
+    margin:0 auto;
+  }
+  @media(min-width:980px){
+    #tab-cotizador .layout{grid-template-columns:minmax(360px,460px) 1fr;align-items:start;}
+  }
+
+  #tab-cotizador .formcol{padding:20px;}
+  #tab-cotizador .previewcol{padding:20px;position:sticky;top:0;}
+  @media(min-width:980px){
+    #tab-cotizador .previewcol{position:sticky;top:0;height:100vh;overflow-y:auto;}
+  }
+
+  #tab-cotizador .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 16px 18px;
+    margin-bottom:14px;
+  }
+  #tab-cotizador .card h2{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--trace-dark);
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  #tab-cotizador .card h2::before{
+    content:"";
+    width:8px;height:8px;
+    border:2px solid var(--trace);
+    border-radius:2px;
+    background:var(--trace-soft);
+    flex-shrink:0;
+  }
+  #tab-cotizador label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:10px 0 4px;
+    font-weight:500;
+  }
+  #tab-cotizador label:first-child{margin-top:0;}
+  #tab-cotizador input[type=text], #tab-cotizador input[type=email], #tab-cotizador input[type=tel], #tab-cotizador input[type=number], #tab-cotizador input[type=date], #tab-cotizador textarea, #tab-cotizador select{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    font-family:inherit;
+    font-size:13.5px;
+    color:var(--ink);
+    background:var(--bg-1);
+  }
+  #tab-cotizador input:focus, #tab-cotizador textarea:focus, #tab-cotizador select:focus{
+    outline:none;
+    border-color:var(--trace);
+    box-shadow:0 0 0 3px rgba(0,224,255,0.12);
+  }
+  #tab-cotizador textarea{resize:vertical;min-height:64px;line-height:1.4;}
+  #tab-cotizador .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  #tab-cotizador .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+  #tab-cotizador .filebtn{
+    display:flex;align-items:center;gap:10px;
+    border:1px dashed var(--line);
+    border-radius:7px;
+    padding:8px 10px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    background:var(--bg-1);
+  }
+  #tab-cotizador .filebtn input{display:none;}
+  #tab-cotizador .filebtn img{height:32px;border-radius:4px;object-fit:contain;background:#fff;border:1px solid var(--line);}
+  #tab-cotizador .filebtn .btnlabel{
+    background:var(--bg-3);color:var(--tx-0);padding:5px 10px;border-radius:6px;font-size:12px;flex-shrink:0;
+  }
+
+  #tab-cotizador .item-row{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    margin-bottom:8px;
+    position:relative;
+    background:var(--bg-1);
+  }
+  #tab-cotizador .item-row .del{
+    position:absolute;top:6px;right:6px;
+    width:20px;height:20px;border-radius:5px;
+    border:none;background:var(--copper-soft);color:var(--copper);
+    font-size:13px;cursor:pointer;line-height:1;
+  }
+  #tab-cotizador .item-row .row3{margin-top:8px;}
+  #tab-cotizador .additem{
+    width:100%;padding:9px;border:1px dashed var(--trace);
+    background:var(--trace-soft);color:var(--trace-dark);
+    border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;
+  }
+
+  #tab-cotizador .pmethod{
+    border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--bg-1);
+  }
+  #tab-cotizador .pmethod .head{display:flex;align-items:center;gap:8px;}
+  #tab-cotizador .pmethod .head input[type=checkbox]{width:16px;height:16px;accent-color:var(--trace);}
+  #tab-cotizador .pmethod .head span{font-size:13.5px;font-weight:600;}
+  #tab-cotizador .pmethod .detail{margin-top:8px;display:none;}
+  #tab-cotizador .pmethod.on .detail{display:block;}
+  #tab-cotizador .pmethod.on{border-color:var(--trace);}
+
+  #tab-cotizador .totalsgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  #tab-cotizador .actions{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+  #tab-cotizador .btn{
+    border:none;border-radius:8px;padding:11px 14px;font-size:14px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+    font-family:inherit;
+  }
+  #tab-cotizador .btn-primary{background:linear-gradient(135deg,var(--cyan),var(--blue));color:#05131c;box-shadow:0 4px 18px rgba(0,224,255,0.25);}
+  #tab-cotizador .btn-primary:hover{filter:brightness(1.08);}
+  #tab-cotizador .btn-secondary{background:var(--bg-3);color:var(--tx-0);border:1px solid var(--line);}
+  #tab-cotizador .btn-outline{background:var(--bg-1);border:1px solid var(--line);color:var(--tx-1);}
+  #tab-cotizador .btn:disabled{opacity:.5;cursor:not-allowed;}
+  #tab-cotizador .status{font-size:12px;color:var(--ink-soft);margin-top:2px;min-height:16px;}
+  #tab-cotizador .status.ok{color:var(--green);}
+  #tab-cotizador .note{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:6px;}
+
+  /* PREVIEW SHEET — se mantiene con look de papel/documento a propósito */
+  #tab-cotizador .sheet, #tab-cotizador .sheet *{
+    color:var(--doc-ink);
+  }
+  #tab-cotizador .sheet{
+    background:#fff;
+    border:1px solid var(--doc-line);
+    border-radius:6px;
+    width:100%;
+    max-width:720px;
+    margin:0 auto;
+    padding:34px 32px;
+    font-family:'IBM Plex Sans',sans-serif;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);
+  }
+  #tab-cotizador .sheet-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:2px solid var(--doc-trace);padding-bottom:14px;}
+  #tab-cotizador .sheet-head .co{display:flex;gap:12px;align-items:center;}
+  #tab-cotizador .sheet-head .co img{height:44px;max-width:80px;object-fit:contain;}
+  #tab-cotizador .sheet-head .co-name{font-size:18px;font-weight:700;color:var(--doc-ink);}
+  #tab-cotizador .sheet-head .co-sub{font-size:11px;color:var(--doc-ink-soft);margin-top:2px;}
+  #tab-cotizador .sheet-head .co-meta{font-size:9.5px;color:var(--doc-ink-soft);margin-top:4px;line-height:1.65;}
+  #tab-cotizador .sheet-head .quoteinfo{text-align:right;font-size:11.5px;color:var(--doc-ink-soft);min-width:160px;}
+  #tab-cotizador .sheet-head .quoteinfo .tag{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;
+    color:var(--doc-trace-dark);background:var(--doc-trace-soft);padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:4px;
+  }
+  #tab-cotizador .sheet-head .quoteinfo .num{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--doc-ink);font-size:13px;}
+
+  #tab-cotizador .sheet-section{margin-top:18px;}
+  #tab-cotizador .sheet-section h3{
+    font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--doc-trace-dark);
+    margin:0 0 8px;border-bottom:1px solid var(--doc-line);padding-bottom:4px;
+  }
+  #tab-cotizador .clientgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 20px;font-size:12px;color:var(--doc-ink);}
+  #tab-cotizador .clientgrid b{color:var(--doc-ink-soft);font-weight:500;}
+
+  #tab-cotizador table.items{width:100%;border-collapse:collapse;margin-top:6px;font-size:11.5px;}
+  #tab-cotizador table.items th{
+    background:var(--doc-ink);color:#fff;text-align:left;padding:6px 8px;font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;
+  }
+  #tab-cotizador table.items th:last-child, #tab-cotizador table.items td:last-child, #tab-cotizador table.items th:nth-child(3), #tab-cotizador table.items td:nth-child(3), #tab-cotizador table.items th:nth-child(4), #tab-cotizador table.items td:nth-child(4){text-align:right;}
+  #tab-cotizador table.items td{padding:6px 8px;border-bottom:1px solid var(--doc-line);vertical-align:top;color:var(--doc-ink);}
+  #tab-cotizador table.items tr:nth-child(even) td{background:#FBFAF7;}
+
+  #tab-cotizador .totalsbox{margin-top:8px;margin-left:auto;width:230px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--doc-ink);}
+  #tab-cotizador .totalsbox div{display:flex;justify-content:space-between;padding:3px 0;}
+  #tab-cotizador .totalsbox .grand{
+    border-top:2px solid var(--doc-trace);margin-top:4px;padding-top:6px;font-weight:700;font-size:13.5px;color:var(--doc-trace-dark);
+  }
+
+  #tab-cotizador .sheet-section p{font-size:11px;color:var(--doc-ink-soft);line-height:1.6;white-space:pre-wrap;margin:0;}
+  #tab-cotizador .paylist{font-size:11.5px;line-height:1.7;}
+  #tab-cotizador .paylist .pitem{margin-bottom:6px;}
+  #tab-cotizador .paylist .pitem b{color:var(--doc-ink);}
+  #tab-cotizador .sheet-foot{margin-top:22px;padding-top:10px;border-top:1px solid var(--doc-line);font-size:9.5px;color:var(--doc-ink-faint);text-align:center;}
+
 </style>
 </head>
 <body>
@@ -288,7 +573,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="#05131c" stroke-width="2.4" stroke-linecap="round"><path d="M2 12c5-5 15-5 20 0M5 15.5c3.5-3.5 10.5-3.5 14 0M9 19c1.5-1.5 4.5-1.5 6 0"/><circle cx="12" cy="6" r="1.4" fill="#05131c"/></svg>
       </div>
       <div>
-        <h1>Inventario Starlink</h1>
+        <h1>Centro de Operaciones</h1>
         <span>partesycomputadores.com.co</span>
       </div>
     </div>
@@ -313,27 +598,35 @@
 <nav class="tabs hidden" id="tabNav">
   <button class="tab-btn" data-tab="antenas">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M6 8l6-6 6 6M4 14c4-3 12-3 16 0"/></svg>
-    Antenas
-  </button>
-  <button class="tab-btn" data-tab="accesorios">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-    Accesorios
+    Alquiler de Antenas
   </button>
   <button class="tab-btn" data-tab="despliegues">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-2V6l5 2m0 12l6-2m-6 2V8m6 10l5 2V8l-5-2m0 12V6m0 0L9 8"/></svg>
     Instalaciones
   </button>
+  <button class="tab-btn" data-tab="accesorios">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+    Inventario Accesorios
+  </button>
   <button class="tab-btn" data-tab="licencias">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 7a4 4 0 1 0-4.9 3.9L4 17v3h3l6.1-6.1A4 4 0 0 0 15 7z"/><circle cx="15" cy="7" r="1.2" fill="currentColor" stroke="none"/></svg>
-    Licencias
-  </button>
-  <button class="tab-btn" data-tab="historial">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-    Historial
+    Inventario Licencias
   </button>
   <button class="tab-btn" data-tab="finanzas">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg>
     Finanzas
+  </button>
+  <button class="tab-btn" data-tab="cotizador">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
+    Cotizaciones
+  </button>
+  <button class="tab-btn" data-tab="tareas">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Tareas
+  </button>
+  <button class="tab-btn" data-tab="historial">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    Historial
   </button>
 </nav>
 
@@ -345,8 +638,8 @@
       <div class="brand-mark" style="width:48px; height:48px; border-radius:12px; margin:0 auto 12px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="#05131c" stroke-width="2.2" stroke-linecap="round" style="width:26px;height:26px;"><path d="M2 12c5-5 15-5 20 0M5 15.5c3.5-3.5 10.5-3.5 14 0M9 19c1.5-1.5 4.5-1.5 6 0"/><circle cx="12" cy="6" r="1.4" fill="#05131c"/></svg>
       </div>
-      <h1>partesycomputadores.com.co</h1>
-      <p>Selecciona un módulo para empezar</p>
+      <h1>Centro de Operaciones</h1>
+      <p>partesycomputadores.com.co — Selecciona un módulo para empezar</p>
     </div>
 
     <div class="home-grid">
@@ -354,16 +647,8 @@
         <div class="home-card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M6 8l6-6 6 6M4 14c4-3 12-3 16 0"/></svg>
         </div>
-        <div class="home-card-title">Gestión de Antenas</div>
+        <div class="home-card-title">Alquiler de Antenas</div>
         <div class="home-card-desc">Seriales, arriendos, propietarios y liquidaciones</div>
-      </button>
-
-      <button class="home-card" data-tab="accesorios">
-        <div class="home-card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        </div>
-        <div class="home-card-title">Inventario de Accesorios</div>
-        <div class="home-card-desc">Stock, precios y catálogo Starlink</div>
       </button>
 
       <button class="home-card" data-tab="despliegues">
@@ -374,11 +659,19 @@
         <div class="home-card-desc">Despliegues en campo, cobros y activación</div>
       </button>
 
+      <button class="home-card" data-tab="accesorios">
+        <div class="home-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </div>
+        <div class="home-card-title">Inventario Accesorios</div>
+        <div class="home-card-desc">Stock, precios y catálogo Starlink</div>
+      </button>
+
       <button class="home-card" data-tab="licencias">
         <div class="home-card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 7a4 4 0 1 0-4.9 3.9L4 17v3h3l6.1-6.1A4 4 0 0 0 15 7z"/><circle cx="15" cy="7" r="1.2" fill="currentColor" stroke="none"/></svg>
         </div>
-        <div class="home-card-title">Licencias</div>
+        <div class="home-card-title">Inventario Licencias</div>
         <div class="home-card-desc">Windows, Office y antivirus McAfee</div>
       </button>
 
@@ -388,6 +681,22 @@
         </div>
         <div class="home-card-title">Módulo Financiero</div>
         <div class="home-card-desc">Ingresos, egresos y utilidad del mes</div>
+      </button>
+
+      <button class="home-card" data-tab="cotizador">
+        <div class="home-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
+        </div>
+        <div class="home-card-title">Cotizaciones</div>
+        <div class="home-card-desc">Cotizador, cuentas de cobro y recibos de caja</div>
+      </button>
+
+      <button class="home-card" data-tab="tareas">
+        <div class="home-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </div>
+        <div class="home-card-title">Tareas Pendientes</div>
+        <div class="home-card-desc">Compras, recogidas y envíos por hacer</div>
       </button>
 
       <button class="home-card" data-tab="historial">
@@ -502,7 +811,22 @@
 
       <div class="divider"></div>
       <h2 class="section-title">Liquidación del mes por propietario</h2>
+      <div class="form-grid" style="margin-bottom:10px;">
+        <div class="field">
+          <label>Mes a liquidar</label>
+          <input type="month" id="antLiquidacionMes">
+        </div>
+      </div>
       <div class="kpi-row" id="liquidacionPropietarios"></div>
+      <div class="table-wrap" style="margin-top:10px;">
+        <table>
+          <thead><tr><th>Serial</th><th>Propietario</th><th>Días en el mes</th><th>Arriendo</th><th>Accesorios</th><th>A liquidar</th></tr></thead>
+          <tbody id="liquidacionDetalleBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="liquidacionDetalleEmpty" style="display:none;">
+        <div>Ninguna antena tiene días de arriendo en el mes seleccionado.</div>
+      </div>
 
       <div class="divider"></div>
       <h2 class="section-title">Listado de antenas</h2>
@@ -528,15 +852,19 @@
 
       <h2 class="section-title">Nuevo accesorio</h2>
       <div class="form-grid">
-        <div class="field">
+        <div class="field" style="grid-column:1/-1;">
           <label>Nombre del accesorio</label>
           <input type="text" id="newAccNombre" placeholder="Ej: Cable de red 30m">
         </div>
         <div class="field">
-          <label>Precio (COP)</label>
-          <input type="number" min="0" step="1000" id="newAccPrecio" placeholder="0">
+          <label>Precio de compra (COP)</label>
+          <input type="number" min="0" step="1000" id="newAccPrecioCompra" placeholder="0">
         </div>
         <div class="field">
+          <label>Precio de venta (COP)</label>
+          <input type="number" min="0" step="1000" id="newAccPrecio" placeholder="0">
+        </div>
+        <div class="field" style="grid-column:1/-1;">
           <label>Stock inicial</label>
           <input type="number" min="0" step="1" id="newAccStock" placeholder="0">
         </div>
@@ -551,12 +879,14 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Accesorio</th><th>Precio (COP)</th><th>Stock</th><th>Valor total</th><th></th>
+            <th>Accesorio</th><th>Costo promedio</th><th>Precio venta</th><th>Stock</th><th>Valor stock (costo)</th><th></th>
           </tr></thead>
           <tbody id="accesoriosBody"></tbody>
         </table>
       </div>
-      <small class="hint">Los precios y cantidades se pueden editar directamente en la tabla. Los cambios se guardan automáticamente. Los accesorios del catálogo base no se pueden eliminar; los que agregues manualmente sí.</small>
+      <small class="hint">
+        Usa <b>+ / −</b> para mover stock rápido de a 1 unidad (usa el costo promedio actual). Si compraste un lote a un <b>precio distinto</b>, toca "Entrada con precio" para que el costo promedio se recalcule automáticamente. El número de stock también se puede editar directo. Los accesorios del catálogo base no se pueden eliminar; los que agregues manualmente sí.
+      </small>
     </div>
   </section>
 
@@ -598,13 +928,19 @@
         </div>
       </div>
 
-      <div class="field" style="margin-bottom:14px;">
+      <div class="field" style="margin-bottom:10px;">
         <label>Recoger en bodega antes de instalar</label>
         <div class="checklist-inline" style="border:1px solid var(--line); border-radius:10px; background:var(--bg-1);">
-          <label><input type="checkbox" id="depRecogeAntena"> Antena</label>
+          <label><input type="checkbox" id="depRecogeAntena"> Antena (se vende al cliente)</label>
           <label><input type="checkbox" id="depRecogeBase"> Base / soporte</label>
           <label><input type="checkbox" id="depRecogeAdaptador"> Adaptador</label>
         </div>
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <label>Valor del equipo (si se lleva la antena)</label>
+        <input type="number" min="0" step="1000" id="depValorEquipo" placeholder="0">
+        <small class="hint">La antena que se lleva el cliente es de su propiedad, no es arrendada. Ingresa manualmente lo que le cobras por el equipo — varía según el caso, no tiene un precio fijo. Solo se suma al total si arriba marcaste "Antena".</small>
       </div>
 
       <h2 class="section-title" style="margin-top:4px;">Valores a cobrar al cliente</h2>
@@ -770,6 +1106,19 @@
       <small class="hint">Una "salida" se registra automáticamente cada vez que reduces el stock de un accesorio en la pestaña Accesorios (se asume que salió por venta o uso, no por corrección de inventario).</small>
 
       <div class="divider"></div>
+      <h2 class="section-title">Egresos por entradas de accesorios del mes</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Accesorio</th><th>Cantidad</th><th>Costo unitario</th><th>Costo total</th></tr></thead>
+          <tbody id="finEntradasBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="finEntradasEmpty" style="display:none;">
+        <div>No se han registrado entradas de accesorios en este mes.</div>
+      </div>
+      <small class="hint">Una "entrada" se registra al subir el stock de un accesorio (botón +, edición directa o "Entrada con precio"). Cada lote se contabiliza a su costo real de compra, y el costo promedio del accesorio se recalcula automáticamente cuando compras a un precio distinto.</small>
+
+      <div class="divider"></div>
       <h2 class="section-title">Movimientos de licencias del mes</h2>
       <div class="table-wrap">
         <table>
@@ -781,7 +1130,376 @@
         <div>No se han registrado movimientos de licencias en este mes.</div>
       </div>
       <small class="hint">Las <b>entradas</b> (compra de licencias) se restan como egreso; las <b>salidas</b> (venta) se suman como ingreso.</small>
+
+      <div class="divider"></div>
+      <h2 class="section-title">Utilidad por accesorios de arriendo del mes</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Antena</th><th>Propietario</th><th>Inicio</th><th>Accesorios</th><th>Valor (utilidad empresa)</th></tr></thead>
+          <tbody id="finArriendoAccBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="finArriendoAccEmpty" style="display:none;">
+        <div>No hay accesorios opcionales de arriendo este mes.</div>
+      </div>
+      <small class="hint">El trípode, cable UTP y router mini de arriendo son propiedad de partesycomputadores.com.co — su valor cuenta como ingreso de la empresa aunque la antena sea de Alejandra, ya que a ella solo se le liquida el valor del arriendo de la antena.</small>
     </div>
+  </section>
+
+  <!-- ================= TAREAS PENDIENTES ================= -->
+  <section class="tab-content" id="tab-tareas">
+    <div class="panel">
+      <div class="field" style="margin-bottom:10px;">
+        <label>Nueva tarea</label>
+        <input type="text" id="tareaNombre" placeholder="Ej: Comprar 5 routers mini" style="font-size:16px; padding:14px;">
+      </div>
+      <button class="btn btn-primary" id="btnAddTarea">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar tarea
+      </button>
+
+      <div class="divider"></div>
+
+      <div class="kpi-row" id="kpiTareas"></div>
+
+      <div id="tareasLista"></div>
+      <div class="empty-state" id="tareasEmpty" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <div>No tienes tareas pendientes. ¡Vas al día!</div>
+      </div>
+
+      <div class="divider"></div>
+      <button class="btn btn-ghost" id="btnLimpiarCompletadas">Borrar tareas completadas</button>
+    </div>
+  </section>
+
+
+  <!-- ================= COTIZACIONES (módulo integrado) ================= -->
+  <section class="tab-content" id="tab-cotizador">
+
+<div class="topbar">
+  <div class="mark">PC</div>
+  <div>
+    <h1>Cotizador · Partes y Computadores</h1>
+    <p>Genera cotizaciones en PDF listas para enviar por WhatsApp o correo</p>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="formcol">
+
+    <div class="card">
+      <h2>Datos de tu empresa</h2>
+      <label class="filebtn" for="logoInput">
+        <img id="logoPreview" src="" style="display:none;">
+        <span id="logoPlaceholder">Sin logo cargado</span>
+        <span class="btnlabel">Subir logo</span>
+        <input type="file" id="logoInput" accept="image/*">
+      </label>
+      <label>Nombre comercial</label>
+      <input type="text" id="co_name" value="Partes y Computadores">
+      <label>Eslogan / actividad (opcional)</label>
+      <input type="text" id="co_tagline" value="Partes, componentes y equipos de cómputo">
+      <div class="row2">
+        <div><label>NIT</label><input type="text" id="co_nit" placeholder="900.XXX.XXX-X"></div>
+        <div><label>Teléfono / WhatsApp</label><input type="tel" id="co_phone" placeholder="300 000 0000"></div>
+      </div>
+      <div class="row2">
+        <div><label>Correo</label><input type="email" id="co_email" placeholder="ventas@partesycomputadores.com.co"></div>
+        <div><label>Sitio web</label><input type="text" id="co_website" value="partesycomputadores.com.co"></div>
+      </div>
+      <label>Dirección / ciudad</label>
+      <input type="text" id="co_address" placeholder="Ciudad, dirección">
+
+      <label style="margin-top:16px;border-top:1px dashed var(--line);padding-top:14px;">Titular / representante legal (para cuentas de cobro y documentos legales)</label>
+      <input type="text" id="co_legalname" placeholder="Ej: Adriana Mendez Vargas" value="Adriana Mendez Vargas">
+      <label>Cédula del titular</label>
+      <input type="text" id="co_legalid" placeholder="Ej: 52984771" value="52984771">
+      <label class="filebtn" for="signatureInput" style="margin-top:10px;">
+        <img id="signaturePreview" src="" style="display:none;">
+        <span id="signaturePlaceholder">Sin firma cargada</span>
+        <span class="btnlabel">Subir firma</span>
+        <input type="file" id="signatureInput" accept="image/*">
+      </label>
+      <div class="note">Se guarda una sola vez y se agrega automáticamente en cada cuenta de cobro que generes.</div>
+
+      <div class="actions">
+        <button class="btn btn-outline" id="saveProfileBtn">💾 Guardar datos de mi empresa</button>
+      </div>
+      <div class="status" id="profileStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2>Datos del cliente</h2>
+      <div class="row2">
+        <div><label>Nombre / razón social</label><input type="text" id="cl_name" placeholder="Nombre del cliente"></div>
+        <div><label>NIT / Cédula</label><input type="text" id="cl_id" placeholder="C.C. / NIT"></div>
+      </div>
+      <div class="row2">
+        <div><label>Teléfono</label><input type="tel" id="cl_phone" placeholder="Ej: 3001234567"></div>
+        <div><label>Correo</label><input type="email" id="cl_email" placeholder="cliente@correo.com"></div>
+      </div>
+      <label>Ciudad / dirección (opcional)</label>
+      <input type="text" id="cl_address" placeholder="Ciudad">
+    </div>
+
+    <div class="card">
+      <h2>Cotización</h2>
+      <div class="row3">
+        <div><label>N.° cotización</label><input type="text" id="q_number"></div>
+        <div><label>Fecha</label><input type="date" id="q_date"></div>
+        <div><label>Validez (días)</label><input type="number" id="q_validity" value="15" min="1"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Productos o servicios</h2>
+      <div id="itemsContainer"></div>
+      <button class="additem" id="addItemBtn">+ Agregar ítem</button>
+      <div class="row3" style="margin-top:12px;">
+        <div><label>IVA (%)</label><input type="number" id="ivaPercent" value="19" min="0"></div>
+        <div><label>Descuento (COP)</label><input type="number" id="discount" value="0" min="0"></div>
+        <div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Condiciones comerciales</h2>
+      <textarea id="conditions" rows="6"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>Medios de pago disponibles</h2>
+
+      <div class="pmethod on" id="pm_transfer">
+        <div class="head">
+          <input type="checkbox" id="pm_transfer_chk" checked>
+          <span>Transferencia / consignación bancaria</span>
+        </div>
+        <div class="detail">
+          <div class="row2">
+            <div><label>Banco</label><input type="text" id="pm_transfer_bank" placeholder="Ej: Bancolombia"></div>
+            <div><label>Tipo de cuenta</label>
+              <select id="pm_transfer_type"><option>Ahorros</option><option>Corriente</option></select>
+            </div>
+          </div>
+          <label>Número de cuenta</label>
+          <input type="text" id="pm_transfer_number">
+          <div class="row2">
+            <div><label>Titular</label><input type="text" id="pm_transfer_holder" value="Partes y Computadores"></div>
+            <div><label>NIT / C.C. titular</label><input type="text" id="pm_transfer_holderid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pmethod" id="pm_pse">
+        <div class="head"><input type="checkbox" id="pm_pse_chk"><span>PSE</span></div>
+        <div class="detail"><label>Enlace o instrucción</label><input type="text" id="pm_pse_note" placeholder="Ej: enlace de pago enviado por correo"></div>
+      </div>
+
+      <div class="pmethod" id="pm_brebb">
+        <div class="head"><input type="checkbox" id="pm_brebb_chk"><span>Llave Bre-B</span></div>
+        <div class="detail">
+          <label>Llave (celular, correo o llave alfanumérica)</label>
+          <input type="text" id="pm_brebb_key" placeholder="Ej: 300 000 0000">
+          <label>Banco o entidad asociada (opcional)</label>
+          <input type="text" id="pm_brebb_bank" placeholder="Ej: Bancolombia">
+        </div>
+      </div>
+
+      <div class="pmethod" id="pm_nequi">
+        <div class="head"><input type="checkbox" id="pm_nequi_chk"><span>Nequi</span></div>
+        <div class="detail"><label>Número Nequi</label><input type="tel" id="pm_nequi_number"></div>
+      </div>
+
+      <div class="pmethod" id="pm_daviplata">
+        <div class="head"><input type="checkbox" id="pm_daviplata_chk"><span>Daviplata</span></div>
+        <div class="detail"><label>Número Daviplata</label><input type="tel" id="pm_daviplata_number"></div>
+      </div>
+
+      <div class="pmethod" id="pm_card">
+        <div class="head"><input type="checkbox" id="pm_card_chk"><span>Tarjeta débito / crédito</span></div>
+        <div class="detail"><label>Nota</label><input type="text" id="pm_card_note" value="Datáfono disponible en punto de venta o link de pago."></div>
+      </div>
+
+      <div class="pmethod" id="pm_cash">
+        <div class="head"><input type="checkbox" id="pm_cash_chk"><span>Efectivo</span></div>
+        <div class="detail"><label>Nota</label><input type="text" id="pm_cash_note" value="Pago contra entrega, sujeto a disponibilidad."></div>
+      </div>
+
+      <div class="status ok" id="saveBankStatus"></div>
+      <button class="btn btn-outline" id="saveBankBtn" style="margin-top:6px;">💾 Guardar medios de pago</button>
+    </div>
+
+    <div class="card">
+      <h2>Certificación bancaria</h2>
+      <label class="filebtn" for="certInput">
+        <span id="certPlaceholder">Adjunta una imagen (JPG/PNG) de la certificación</span>
+        <span class="btnlabel">Subir</span>
+        <input type="file" id="certInput" accept="image/*,application/pdf">
+      </label>
+      <div class="note" id="certNote">Se agregará como página adicional al final del PDF. Si tu certificación es un PDF, adjúntala manualmente junto con la cotización al escribir por WhatsApp o correo — el navegador no puede fusionar dos PDF automáticamente.</div>
+    </div>
+
+    <div class="card">
+      <h2>Guardar y retomar cotización</h2>
+      <button class="btn btn-outline" id="saveDraftBtn">💾 Guardar avance de esta cotización</button>
+      <div class="status" id="draftStatus"></div>
+      <label>Cotizaciones guardadas</label>
+      <select id="draftSelect"><option value="">— Selecciona una cotización guardada —</option></select>
+      <div class="actions" style="flex-direction:row;">
+        <button class="btn btn-secondary" id="loadDraftBtn" style="flex:1;">↩️ Retomar</button>
+        <button class="btn btn-outline" id="deleteDraftBtn" style="flex:1;">🗑️ Eliminar</button>
+      </div>
+      <div class="note">Se guarda en este mismo lugar (tu cuenta de Claude, o este navegador si lo usas desde GitHub Pages), identificada por su número de cotización.</div>
+    </div>
+
+    <div class="card">
+      <h2>Generar y compartir</h2>
+      <div class="actions">
+        <button class="btn btn-primary" id="generateBtn">📄 Generar PDF de la cotización</button>
+        <button class="btn btn-secondary" id="waBtn" disabled>💬 Compartir por WhatsApp</button>
+        <button class="btn btn-outline" id="mailBtn" disabled>✉️ Compartir por correo</button>
+      </div>
+      <div class="status" id="genStatus"></div>
+      <div class="note">Al compartir por WhatsApp o correo se abrirá el chat/borrador con un mensaje listo — como los navegadores no permiten adjuntar archivos automáticamente, deberás adjuntar el PDF ya descargado en esa misma ventana.</div>
+    </div>
+
+    <div class="card">
+      <h2>Cuenta de cobro</h2>
+      <div class="note">Cuando el cliente apruebe esta cotización, genera la cuenta de cobro correspondiente con un clic: toma el cliente, el total y el número de cotización automáticamente.</div>
+      <button class="btn btn-outline" id="ccFromQuoteBtn" style="margin-top:8px;">➡️ Generar cuenta de cobro desde esta cotización</button>
+
+      <div class="row2" style="margin-top:12px;">
+        <div><label>N.° cuenta de cobro</label><input type="text" id="cc_number"></div>
+        <div><label>Fecha</label><input type="date" id="cc_date"></div>
+      </div>
+      <label>Cotización de referencia</label>
+      <input type="text" id="cc_refquote" placeholder="Ej: COT-2026-0002">
+      <label>Concepto (solo se usa si no hay ítems cargados desde la cotización)</label>
+      <textarea id="cc_concept" rows="3" placeholder="Por concepto de..."></textarea>
+      <label>Valor total (COP)</label>
+      <input type="number" id="cc_total" min="0">
+
+      <div class="actions">
+        <button class="btn btn-primary" id="ccGenerateBtn">📄 Generar PDF de cuenta de cobro</button>
+        <button class="btn btn-secondary" id="ccWaBtn" disabled>💬 Compartir por WhatsApp</button>
+        <button class="btn btn-outline" id="ccMailBtn" disabled>✉️ Compartir por correo</button>
+      </div>
+      <div class="status" id="ccGenStatus"></div>
+
+      <label style="margin-top:14px;">Cuentas de cobro guardadas</label>
+      <select id="ccDraftSelect"><option value="">— Selecciona una cuenta de cobro guardada —</option></select>
+      <div class="actions" style="flex-direction:row;">
+        <button class="btn btn-outline" id="ccSaveBtn" style="flex:1;">💾 Guardar</button>
+        <button class="btn btn-secondary" id="ccLoadBtn" style="flex:1;">↩️ Retomar</button>
+        <button class="btn btn-outline" id="ccDeleteBtn" style="flex:1;">🗑️ Eliminar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Recibo de caja</h2>
+      <div class="note">Úsalo cuando recibas un abono (pago parcial o total) de una cotización o cuenta de cobro. Puede tomar los datos automáticamente de la cuenta de cobro que tengas abierta arriba.</div>
+      <button class="btn btn-outline" id="reciboFromCcBtn" style="margin-top:8px;">➡️ Tomar datos de la cuenta de cobro actual</button>
+
+      <div class="row2" style="margin-top:12px;">
+        <div><label>N.° recibo</label><input type="text" id="rc_number"></div>
+        <div><label>Fecha</label><input type="date" id="rc_date"></div>
+      </div>
+      <label>Recibí de (nombre del cliente)</label>
+      <input type="text" id="rc_payername" placeholder="Nombre de quien paga">
+      <label>NIT / C.C. de quien paga (opcional)</label>
+      <input type="text" id="rc_payerid">
+      <label>Documento de referencia (cotización o cuenta de cobro)</label>
+      <input type="text" id="rc_refdoc" placeholder="Ej: CC-2026-0004">
+      <label>Concepto</label>
+      <textarea id="rc_concept" rows="2" placeholder="Ej: Abono a cuenta de cobro CC-2026-0004"></textarea>
+      <div class="row2">
+        <div><label>Valor recibido (COP)</label><input type="number" id="rc_amount" min="0"></div>
+        <div>
+          <label>Forma de pago</label>
+          <select id="rc_method">
+            <option>Efectivo</option>
+            <option>Transferencia bancaria</option>
+            <option>Nequi</option>
+            <option>Daviplata</option>
+            <option>Llave Bre-B</option>
+            <option>Tarjeta</option>
+            <option>PSE</option>
+          </select>
+        </div>
+      </div>
+      <label>Valor total del documento (opcional, para calcular saldo pendiente)</label>
+      <input type="number" id="rc_totaldoc" min="0">
+      <div class="note" id="rc_balanceNote"></div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="reciboGenerateBtn">📄 Generar PDF del recibo</button>
+        <button class="btn btn-secondary" id="rcWaBtn" disabled>💬 Compartir por WhatsApp</button>
+        <button class="btn btn-outline" id="rcMailBtn" disabled>✉️ Compartir por correo</button>
+      </div>
+      <div class="status" id="rcGenStatus"></div>
+
+      <label style="margin-top:14px;">Recibos guardados</label>
+      <select id="reciboDraftSelect"><option value="">— Selecciona un recibo guardado —</option></select>
+      <div class="actions" style="flex-direction:row;">
+        <button class="btn btn-outline" id="reciboSaveBtn" style="flex:1;">💾 Guardar</button>
+        <button class="btn btn-secondary" id="reciboLoadBtn" style="flex:1;">↩️ Retomar</button>
+        <button class="btn btn-outline" id="reciboDeleteBtn" style="flex:1;">🗑️ Eliminar</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="previewcol">
+    <div class="sheet" id="sheet">
+      <div class="sheet-head">
+        <div class="co">
+          <img id="pv_logo" style="display:none;">
+          <div>
+            <div class="co-name" id="pv_coname">Partes y Computadores</div>
+            <div class="co-sub" id="pv_cotag">Partes, componentes y equipos de cómputo</div>
+            <div class="co-meta" id="pv_cometa"></div>
+          </div>
+        </div>
+        <div class="quoteinfo">
+          <span class="tag">COTIZACIÓN</span><br>
+          <span class="num" id="pv_number"></span><br>
+          <span id="pv_date"></span><br>
+          <span id="pv_validity"></span>
+        </div>
+      </div>
+
+      <div class="sheet-section">
+        <h3>Cliente</h3>
+        <div class="clientgrid" id="pv_client"></div>
+      </div>
+
+      <div class="sheet-section">
+        <h3>Detalle de la cotización</h3>
+        <table class="items">
+          <thead><tr><th>Ítem</th><th>Descripción</th><th>Cant.</th><th>Vlr. unit.</th><th>Vlr. total</th></tr></thead>
+          <tbody id="pv_items"></tbody>
+        </table>
+        <div class="totalsbox" id="pv_totals"></div>
+      </div>
+
+      <div class="sheet-section">
+        <h3>Condiciones comerciales</h3>
+        <p id="pv_conditions"></p>
+      </div>
+
+      <div class="sheet-section">
+        <h3>Medios de pago disponibles</h3>
+        <div class="paylist" id="pv_payment"></div>
+      </div>
+
+      <div class="sheet-foot" id="pv_foot"></div>
+    </div>
+  </div>
+</div>
+
+
   </section>
 
 </main>
@@ -813,39 +1531,39 @@
 
   const CATALOGO_BASE = [
     // --- Alimentación / routers ---
-    { id:"fuente_std4",   nombre:"Fuente de alimentación avanzada | Standard 4", precio:1063000, stock:0, custom:false },
-    { id:"router3",       nombre:"Router 3 | Standard 4, Mini",                  precio:624000,  stock:0, custom:false },
-    { id:"router_mini",   nombre:"Router Mini",                                  precio:249790,  stock:0, custom:false },
+    { id:"fuente_std4",   nombre:"Fuente de alimentación avanzada | Standard 4", precio:1063000, precioCompra:0, stock:0, custom:false },
+    { id:"router3",       nombre:"Router 3 | Standard 4, Mini",                  precio:624000, precioCompra:0,  stock:0, custom:false },
+    { id:"router_mini",   nombre:"Router Mini",                                  precio:249790, precioCompra:0,  stock:0, custom:false },
     // --- Cables ---
-    { id:"cable_15",      nombre:"Cable Starlink de 15 m",                       precio:341600,  stock:0, custom:false },
-    { id:"cable_45",      nombre:"Cable Starlink de 45 m",                       precio:630800,  stock:0, custom:false },
-    { id:"cc_mini_15",    nombre:"Cable de alimentación CC | Mini 15 m",         precio:210000,  stock:0, custom:false },
-    { id:"cc_mini_30",    nombre:"Cable de alimentación CC | Mini 30 m",         precio:265000,  stock:0, custom:false },
-    { id:"cable_eth_mini_15", nombre:"Cable Ethernet | Mini 15 m",               precio:211000,  stock:0, custom:false },
-    { id:"cable_usbc_mini_5", nombre:"Cable USB-C | Mini 5 m",                   precio:175000,  stock:0, custom:false },
+    { id:"cable_15",      nombre:"Cable Starlink de 15 m",                       precio:341600, precioCompra:0,  stock:0, custom:false },
+    { id:"cable_45",      nombre:"Cable Starlink de 45 m",                       precio:630800, precioCompra:0,  stock:0, custom:false },
+    { id:"cc_mini_15",    nombre:"Cable de alimentación CC | Mini 15 m",         precio:210000, precioCompra:0,  stock:0, custom:false },
+    { id:"cc_mini_30",    nombre:"Cable de alimentación CC | Mini 30 m",         precio:265000, precioCompra:0,  stock:0, custom:false },
+    { id:"cable_eth_mini_15", nombre:"Cable Ethernet | Mini 15 m",               precio:211000, precioCompra:0,  stock:0, custom:false },
+    { id:"cable_usbc_mini_5", nombre:"Cable USB-C | Mini 5 m",                   precio:175000, precioCompra:0,  stock:0, custom:false },
     // --- Kits y adaptadores ---
-    { id:"kit_viaje_mini", nombre:"Kit de viaje | Mini",                         precio:237000,  stock:0, custom:false },
-    { id:"adap_auto_mini", nombre:"Adaptador para automóvil | Mini",             precio:280000,  stock:0, custom:false },
-    { id:"adap_std4_a_mini", nombre:"Adaptador de soporte Standard 4/4X a Standard mini", precio:231000, stock:0, custom:false },
-    { id:"adap_tubo_std4", nombre:"Adaptador de tubo | Standard 4",              precio:286700,  stock:0, custom:false },
-    { id:"masonry_kit",   nombre:"Masonry Routing Kit",                         precio:374300,  stock:0, custom:false },
-    { id:"cable_routing_kit", nombre:"Cable Routing Kit",                       precio:262000,  stock:0, custom:false },
+    { id:"kit_viaje_mini", nombre:"Kit de viaje | Mini",                         precio:237000, precioCompra:0,  stock:0, custom:false },
+    { id:"adap_auto_mini", nombre:"Adaptador para automóvil | Mini",             precio:280000, precioCompra:0,  stock:0, custom:false },
+    { id:"adap_std4_a_mini", nombre:"Adaptador de soporte Standard 4/4X a Standard mini", precio:231000, precioCompra:0, stock:0, custom:false },
+    { id:"adap_tubo_std4", nombre:"Adaptador de tubo | Standard 4",              precio:286700, precioCompra:0,  stock:0, custom:false },
+    { id:"masonry_kit",   nombre:"Masonry Routing Kit",                         precio:374300, precioCompra:0,  stock:0, custom:false },
+    { id:"cable_routing_kit", nombre:"Cable Routing Kit",                       precio:262000, precioCompra:0,  stock:0, custom:false },
     // --- Soportes Standard 4 ---
-    { id:"soporte_portaequip_std4", nombre:"Soporte para portaequipajes | Standard 4",     precio:355000, stock:0, custom:false },
-    { id:"soporte_giratorio_std4",  nombre:"Soporte giratorio | Standard 4 y 4X, Enterprise", precio:41000, stock:0, custom:false },
-    { id:"soporte_pared_std4",      nombre:"Soporte de pared | Standard 4",                precio:419600, stock:0, custom:false },
-    { id:"soporte_base_cruz_std4",  nombre:"Base de estructura en cruz | Standard 4/4X, Enterprise", precio:410000, stock:0, custom:false },
-    { id:"soporte_cresta_std4",     nombre:"Soporte para cresta | Standard 4/4X",          precio:420000, stock:0, custom:false },
-    { id:"soporte_router3",         nombre:"Soporte del Router 3",                         precio:228900, stock:0, custom:false },
-    { id:"soporte_movilidad_std4",  nombre:"Soporte para movilidad | Standard 4",          precio:41000,  stock:0, custom:false },
-    { id:"soporte_fuente_std4",     nombre:"Soporte de la fuente de alimentación | Standard 4", precio:221300, stock:0, custom:false },
+    { id:"soporte_portaequip_std4", nombre:"Soporte para portaequipajes | Standard 4",     precio:355000, precioCompra:0, stock:0, custom:false },
+    { id:"soporte_giratorio_std4",  nombre:"Soporte giratorio | Standard 4 y 4X, Enterprise", precio:41000, precioCompra:0, stock:0, custom:false },
+    { id:"soporte_pared_std4",      nombre:"Soporte de pared | Standard 4",                precio:419600, precioCompra:0, stock:0, custom:false },
+    { id:"soporte_base_cruz_std4",  nombre:"Base de estructura en cruz | Standard 4/4X, Enterprise", precio:410000, precioCompra:0, stock:0, custom:false },
+    { id:"soporte_cresta_std4",     nombre:"Soporte para cresta | Standard 4/4X",          precio:420000, precioCompra:0, stock:0, custom:false },
+    { id:"soporte_router3",         nombre:"Soporte del Router 3",                         precio:228900, precioCompra:0, stock:0, custom:false },
+    { id:"soporte_movilidad_std4",  nombre:"Soporte para movilidad | Standard 4",          precio:41000, precioCompra:0,  stock:0, custom:false },
+    { id:"soporte_fuente_std4",     nombre:"Soporte de la fuente de alimentación | Standard 4", precio:221300, precioCompra:0, stock:0, custom:false },
     // --- Soportes Mini ---
-    { id:"soporte_movilidad_mini",  nombre:"Soporte para movilidad | Mini",                precio:100000, stock:0, custom:false },
-    { id:"soporte_portaequip_mini", nombre:"Soporte para portaequipajes | Mini",           precio:110000, stock:0, custom:false },
-    { id:"soporte_giratorio_mini",  nombre:"Soporte giratorio | Mini",                     precio:41000,  stock:0, custom:false },
-    { id:"soporte_pared_mini",      nombre:"Soporte de pared | Mini",                      precio:41000,  stock:0, custom:false },
+    { id:"soporte_movilidad_mini",  nombre:"Soporte para movilidad | Mini",                precio:100000, precioCompra:0, stock:0, custom:false },
+    { id:"soporte_portaequip_mini", nombre:"Soporte para portaequipajes | Mini",           precio:110000, precioCompra:0, stock:0, custom:false },
+    { id:"soporte_giratorio_mini",  nombre:"Soporte giratorio | Mini",                     precio:41000, precioCompra:0,  stock:0, custom:false },
+    { id:"soporte_pared_mini",      nombre:"Soporte de pared | Mini",                      precio:41000, precioCompra:0,  stock:0, custom:false },
     // --- Varios ---
-    { id:"soporte_varios", nombre:"Soporte / trípode (otros)",                  precio:0,       stock:0, custom:false },
+    { id:"soporte_varios", nombre:"Soporte / trípode (otros)",                  precio:0, precioCompra:0,       stock:0, custom:false },
   ];
 
   // Ítems que SOLO se alquilan, no se venden — independientes del catálogo de accesorios de inventario
@@ -862,6 +1580,11 @@
   ];
 
   const PROPIETARIOS = ["Alejandra", "Partes y Computadores", "Adriana"];
+
+  // Alejandra paga una administración fija mensual, que se descuenta de lo que
+  // se le liquida por el arriendo de sus antenas. Esto queda como ingreso de
+  // partesycomputadores.com.co (igual que los accesorios de arriendo).
+  const ADMIN_FEE_ALEJANDRA = 150000;
 
   const CATALOGO_LICENCIAS = [
     // --- Windows ---
@@ -891,8 +1614,10 @@
     despliegues: [],
     historial: [],
     salidasAccesorios: [],
+    entradasAccesorios: [],
     licencias: JSON.parse(JSON.stringify(CATALOGO_LICENCIAS)),
-    movimientosLicencias: []
+    movimientosLicencias: [],
+    tareas: []
   };
 
   let syncTimer = null;
@@ -966,7 +1691,9 @@
         state.despliegues = parsed.despliegues || [];
         state.historial = parsed.historial || [];
         state.salidasAccesorios = parsed.salidasAccesorios || [];
+        state.entradasAccesorios = parsed.entradasAccesorios || [];
         state.movimientosLicencias = parsed.movimientosLicencias || [];
+        state.tareas = parsed.tareas || [];
         if(Array.isArray(parsed.accesorios) && parsed.accesorios.length){
           state.accesorios = mergeCatalogoConGuardado(CATALOGO_BASE, parsed.accesorios);
         }
@@ -1082,7 +1809,9 @@
         state.despliegues = Array.isArray(data.despliegues) ? data.despliegues : [];
         state.historial = Array.isArray(data.historial) ? data.historial : [];
         state.salidasAccesorios = Array.isArray(data.salidasAccesorios) ? data.salidasAccesorios : [];
+        state.entradasAccesorios = Array.isArray(data.entradasAccesorios) ? data.entradasAccesorios : [];
         state.movimientosLicencias = Array.isArray(data.movimientosLicencias) ? data.movimientosLicencias : [];
+        state.tareas = Array.isArray(data.tareas) ? data.tareas : [];
         if(Array.isArray(data.accesorios) && data.accesorios.length){
           state.accesorios = mergeCatalogoConGuardado(CATALOGO_BASE, data.accesorios);
         }
@@ -1157,7 +1886,7 @@
     $all(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => goToTab(btn.dataset.tab));
     });
-    $all(".home-card").forEach(card => {
+    $all(".home-card[data-tab]").forEach(card => {
       card.addEventListener("click", () => goToTab(card.dataset.tab));
     });
     $("#btnVolverInicio").addEventListener("click", () => goToTab("inicio"));
@@ -1182,12 +1911,53 @@
     return diff >= 0 ? diff + 1 : 0;
   }
 
+  // Cuenta solo los días del arriendo que caen DENTRO de un mes calendario
+  // específico (mesStr en formato "YYYY-MM") — para arriendos que cruzan de un
+  // mes a otro, cada mes se liquida por separado según los días que le tocan.
+  function calcDiasEnMes(fechaInicio, fechaFin, mesStr){
+    if(!fechaInicio || !fechaFin || !mesStr) return 0;
+    const inicio = new Date(fechaInicio + "T00:00:00");
+    const fin = new Date(fechaFin + "T00:00:00");
+    if(fin < inicio) return 0;
+    const [y, m] = mesStr.split("-").map(Number);
+    const mesInicio = new Date(y, m - 1, 1);
+    const mesFin = new Date(y, m, 0); // último día del mes
+    const overlapStart = inicio > mesInicio ? inicio : mesInicio;
+    const overlapEnd = fin < mesFin ? fin : mesFin;
+    const diff = Math.round((overlapEnd - overlapStart) / 86400000);
+    return diff >= 0 ? diff + 1 : 0;
+  }
+
   function calcLiquidacionAntena(a){
     const dias = calcDiasArriendo(a.fechaInicio, a.fechaFin);
     const subArriendo = (Number(a.tarifaDia) || 0) * dias;
     const elementos = Array.isArray(a.elementos) ? a.elementos : [];
     const subElementos = elementos.reduce((s, e) => s + (Number(e.valor) || 0), 0);
-    return { dias, subArriendo, subElementos, total: subArriendo + subElementos };
+    const total = subArriendo + subElementos;
+    // Los accesorios opcionales (trípode, cable UTP, router mini) son propiedad de
+    // partesycomputadores.com.co, no de Alejandra. Cuando el propietario de la
+    // antena es Alejandra, solo el valor del arriendo de la antena se le liquida
+    // a ella — los accesorios quedan como utilidad de la empresa y se contabilizan
+    // aparte en Finanzas, no en su liquidación.
+    const propietario = a.propietario || "Alejandra";
+    const totalPropietario = propietario === "Alejandra" ? subArriendo : total;
+    return { dias, subArriendo, subElementos, total, totalPropietario };
+  }
+
+  // Versión prorrateada por mes calendario del cálculo anterior. El arriendo
+  // (días × tarifa) se reparte solo por los días que caen en "mesStr". Los
+  // accesorios opcionales, en cambio, son un cargo único (no diario) y se
+  // atribuyen completos al mes en que INICIÓ el arriendo, no se reparten.
+  function calcLiquidacionAntenaMes(a, mesStr){
+    const diasMes = calcDiasEnMes(a.fechaInicio, a.fechaFin, mesStr);
+    const subArriendoMes = (Number(a.tarifaDia) || 0) * diasMes;
+    const elementos = Array.isArray(a.elementos) ? a.elementos : [];
+    const inicioEnEsteMes = estaEnMes(a.fechaInicio, mesStr);
+    const subElementosMes = inicioEnEsteMes ? elementos.reduce((s, e) => s + (Number(e.valor) || 0), 0) : 0;
+    const totalMes = subArriendoMes + subElementosMes;
+    const propietario = a.propietario || "Alejandra";
+    const totalPropietarioMes = propietario === "Alejandra" ? subArriendoMes : totalMes;
+    return { diasMes, subArriendoMes, subElementosMes, totalMes, totalPropietarioMes };
   }
 
   // Dibuja el checklist de accesorios OPCIONALES de arrendamiento (lista fija,
@@ -1253,16 +2023,25 @@
     const inicio = $("#antFechaInicio").value;
     const fin = $("#antFechaFin").value;
     const tarifaDia = Number($("#antTarifaDia").value) || 0;
+    const propietario = $("#antPropietario") ? $("#antPropietario").value : "Alejandra";
     const dias = calcDiasArriendo(inicio, fin);
     const subArriendo = tarifaDia * dias;
     const elementos = getElementosSeleccionados();
     const subElementos = elementos.reduce((s, e) => s + e.valor, 0);
     const total = subArriendo + subElementos;
+    const totalPropietario = propietario === "Alejandra" ? subArriendo : total;
+
+    let filaExtra = "";
+    if(propietario === "Alejandra" && subElementos > 0){
+      filaExtra = `<div class="row" style="color:var(--tx-2); font-size:11px;"><span>↳ Accesorios opcionales quedan como utilidad de la empresa (no se liquidan a Alejandra)</span><span></span></div>`;
+    }
+
     box.innerHTML = `
       <div class="row"><span>Días de arriendo</span><span>${dias}</span></div>
       <div class="row"><span>Subtotal arriendo (${dias} × ${formatCOP(tarifaDia)})</span><span class="cop">${formatCOP(subArriendo)}</span></div>
       <div class="row"><span>Accesorios opcionales (${elementos.length})</span><span class="cop">${formatCOP(subElementos)}</span></div>
-      <div class="row total"><span>Total a liquidar al propietario</span><span class="cop">${formatCOP(total)}</span></div>
+      <div class="row total"><span>Total a liquidar a ${escapeHtml(propietario)}</span><span class="cop">${formatCOP(totalPropietario)}</span></div>
+      ${filaExtra}
     `;
   }
 
@@ -1281,17 +2060,55 @@
 
   function renderLiquidacionPropietarios(){
     const box = $("#liquidacionPropietarios");
+    const mesInput = $("#antLiquidacionMes");
     if(!box) return;
+    const mes = (mesInput && mesInput.value) ? mesInput.value : mesActualISO();
     box.innerHTML = PROPIETARIOS.map(p => {
       const antenasProp = state.antenas.filter(a => (a.propietario || "Alejandra") === p);
-      const total = antenasProp.reduce((s, a) => s + calcLiquidacionAntena(a).total, 0);
+      let totalBruto = 0;
+      let antenasConMovimientoEsteMes = 0;
+      antenasProp.forEach(a => {
+        const liqMes = calcLiquidacionAntenaMes(a, mes);
+        if(liqMes.diasMes > 0 || liqMes.subElementosMes > 0){
+          totalBruto += liqMes.totalPropietarioMes;
+          antenasConMovimientoEsteMes++;
+        }
+      });
+      const esAlejandra = p === "Alejandra";
+      const esEmpresa = p === "Partes y Computadores";
+      const admin = esAlejandra ? -ADMIN_FEE_ALEJANDRA : (esEmpresa ? ADMIN_FEE_ALEJANDRA : 0);
+      const totalNeto = totalBruto + admin;
       return `
         <div class="kpi accent">
-          <div class="n" style="font-size:14px;">${formatCOP(total)}</div>
-          <div class="l">${escapeHtml(p)} (${antenasProp.length} antena${antenasProp.length===1?"":"s"})</div>
+          <div class="n" style="font-size:14px; color:${totalNeto<0?'var(--red)':'var(--tx-0)'}">${formatCOP(totalNeto)}</div>
+          <div class="l">${escapeHtml(p)} (${antenasConMovimientoEsteMes} antena${antenasConMovimientoEsteMes===1?"":"s"} este mes)</div>
+          ${esAlejandra ? `<div class="l" style="margin-top:4px; color:var(--tx-2);">Arriendo ${formatCOP(totalBruto)} − admin. ${formatCOP(ADMIN_FEE_ALEJANDRA)}</div>` : ""}
+          ${esEmpresa ? `<div class="l" style="margin-top:4px; color:var(--tx-2);">Arriendo propio ${formatCOP(totalBruto)} + admin. Alejandra ${formatCOP(ADMIN_FEE_ALEJANDRA)}</div>` : ""}
         </div>
       `;
     }).join("");
+
+    const detalleBody = $("#liquidacionDetalleBody");
+    const detalleEmpty = $("#liquidacionDetalleEmpty");
+    const antenasConMovimiento = state.antenas
+      .map(a => ({ a, liqMes: calcLiquidacionAntenaMes(a, mes) }))
+      .filter(x => x.liqMes.diasMes > 0 || x.liqMes.subElementosMes > 0);
+    if(!antenasConMovimiento.length){
+      detalleBody.innerHTML = "";
+      detalleEmpty.style.display = "block";
+    } else {
+      detalleEmpty.style.display = "none";
+      detalleBody.innerHTML = antenasConMovimiento.map(({a, liqMes}) => `
+        <tr>
+          <td class="mono">${escapeHtml(a.serial)}</td>
+          <td>${escapeHtml(a.propietario || "Alejandra")}</td>
+          <td>${liqMes.diasMes}</td>
+          <td class="cop">${formatCOP(liqMes.subArriendoMes)}</td>
+          <td class="cop">${formatCOP(liqMes.subElementosMes)}</td>
+          <td class="cop">${formatCOP(liqMes.totalPropietarioMes)}</td>
+        </tr>
+      `).join("");
+    }
   }
 
   function renderAntenas(){
@@ -1338,7 +2155,7 @@
         <td style="white-space:normal; max-width:170px;">${elementosTags}</td>
         <td class="mono">${escapeHtml(a.fechaCorte || "—")}</td>
         <td><span class="badge ${badgePlan}">${planEstado === "Corriendo" ? "Corriendo" : "Standby"}</span></td>
-        <td class="cop">${formatCOP(liq.total)}</td>
+        <td class="cop">${formatCOP(liq.totalPropietario)}</td>
         <td>
           <div class="row-actions">
             <button class="icon-btn del" data-del-antena="${a.id}" title="Eliminar">
@@ -1426,9 +2243,10 @@
       fechaInicio, fechaFin, tarifaDia, fechaCorte, planEstado, maletin, elementos
     });
 
-    const liq = calcLiquidacionAntena({ fechaInicio, fechaFin, tarifaDia, elementos });
+    const liq = calcLiquidacionAntena({ fechaInicio, fechaFin, tarifaDia, elementos, propietario });
     logHistorial("Antena agregada", `${serial} (${tipo}) — ${estado} — propietario: ${propietario}` +
-      (liq.dias ? ` — ${liq.dias} días a liquidar, total ${formatCOP(liq.total)}` : ""));
+      (liq.dias ? ` — ${liq.dias} días, a liquidar a ${propietario}: ${formatCOP(liq.totalPropietario)}` +
+        (liq.subElementos > 0 && propietario === "Alejandra" ? ` (accesorios ${formatCOP(liq.subElementos)} quedan como utilidad de la empresa)` : "") : ""));
 
     $("#antSerial").value = "";
     $("#antCliente").value = "";
@@ -1457,12 +2275,13 @@
   ============================================================ */
   function renderKpiAccesorios(){
     const totalItems = state.accesorios.reduce((s,a) => s + (Number(a.stock)||0), 0);
-    const totalValor = state.accesorios.reduce((s,a) => s + (Number(a.stock)||0) * (Number(a.precio)||0), 0);
+    const totalCosto = state.accesorios.reduce((s,a) => s + (Number(a.stock)||0) * (Number(a.precioCompra)||0), 0);
+    const totalVenta = state.accesorios.reduce((s,a) => s + (Number(a.stock)||0) * (Number(a.precio)||0), 0);
     const sinStock = state.accesorios.filter(a => (Number(a.stock)||0) === 0).length;
     $("#kpiAccesorios").innerHTML = `
       <div class="kpi accent"><div class="n">${totalItems}</div><div class="l">Unidades en stock</div></div>
-      <div class="kpi"><div class="n cop" style="font-size:14px">${formatCOP(totalValor)}</div><div class="l">Valor total</div></div>
-      <div class="kpi"><div class="n">${state.accesorios.length}</div><div class="l">Referencias</div></div>
+      <div class="kpi"><div class="n cop" style="font-size:14px">${formatCOP(totalCosto)}</div><div class="l">Valor stock (costo)</div></div>
+      <div class="kpi"><div class="n cop" style="font-size:14px">${formatCOP(totalVenta)}</div><div class="l">Valor potencial venta</div></div>
       <div class="kpi"><div class="n">${sinStock}</div><div class="l">Sin stock</div></div>
     `;
   }
@@ -1474,12 +2293,20 @@
       <tr>
         <td>${escapeHtml(a.nombre)}</td>
         <td>
+          <input type="number" min="0" step="1000" class="price-input acc-precio-compra" data-id="${a.id}" value="${Number(a.precioCompra)||0}">
+        </td>
+        <td>
           <input type="number" min="0" step="1000" class="price-input acc-precio" data-id="${a.id}" value="${Number(a.precio)||0}">
         </td>
         <td>
-          <input type="number" min="0" step="1" class="num-input acc-stock" data-id="${a.id}" value="${Number(a.stock)||0}">
+          <div class="qty-group">
+            <button class="qty-btn minus" data-qty-minus="${a.id}" title="Restar 1 (salida)">−</button>
+            <input type="number" min="0" step="1" class="qty-input acc-stock" data-id="${a.id}" value="${Number(a.stock)||0}">
+            <button class="qty-btn plus" data-qty-plus="${a.id}" title="Sumar 1 al costo promedio actual (entrada)">+</button>
+          </div>
+          <button class="link-btn" data-entrada-precio="${a.id}">+ Entrada con precio</button>
         </td>
-        <td class="cop">${formatCOP((Number(a.stock)||0) * (Number(a.precio)||0))}</td>
+        <td class="cop">${formatCOP((Number(a.stock)||0) * (Number(a.precioCompra)||0))}</td>
         <td>
           ${a.custom ? `<button class="icon-btn del" data-del-accesorio="${a.id}" title="Eliminar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
@@ -1488,47 +2315,58 @@
       </tr>
     `).join("");
 
+    $all(".acc-precio-compra").forEach(inp => {
+      inp.addEventListener("input", (e) => {
+        const acc = state.accesorios.find(x => x.id === e.target.dataset.id);
+        if(!acc) return;
+        acc.precioCompra = Number(e.target.value) || 0;
+        renderKpiAccesorios();
+        updateAccesorioRowTotal(acc);
+        scheduleSync();
+      });
+    });
+
     $all(".acc-precio").forEach(inp => {
       inp.addEventListener("input", (e) => {
         const acc = state.accesorios.find(x => x.id === e.target.dataset.id);
         if(!acc) return;
         acc.precio = Number(e.target.value) || 0;
         renderKpiAccesorios();
-        // Actualiza sólo la celda de valor total de esa fila sin re-render completo
-        updateAccesorioRowTotal(acc);
         scheduleSync();
       });
     });
 
     $all(".acc-stock").forEach(inp => {
-      inp.addEventListener("input", (e) => {
+      inp.addEventListener("change", (e) => {
         const acc = state.accesorios.find(x => x.id === e.target.dataset.id);
         if(!acc) return;
-        const anterior = acc.stock;
-        acc.stock = Number(e.target.value) || 0;
-        if(anterior !== acc.stock){
-          logHistorial("Ajuste de stock", `${acc.nombre}: ${anterior} → ${acc.stock} unidades`);
-          renderHistorial();
-          // Si el stock BAJÓ, se asume que salió por venta/uso → se registra como ingreso en Finanzas
-          if(acc.stock < anterior){
-            const cantidad = anterior - acc.stock;
-            state.salidasAccesorios.unshift({
-              id: uid("sal"),
-              accesorioId: acc.id,
-              nombre: acc.nombre,
-              cantidad,
-              valorUnitario: Number(acc.precio) || 0,
-              valorTotal: cantidad * (Number(acc.precio) || 0),
-              fechaISO: new Date().toISOString(),
-              fecha: nowLabel()
-            });
-          }
-        }
-        renderKpiAccesorios();
-        updateAccesorioRowTotal(acc);
-        renderFinanzas();
-        scheduleSync();
+        const anterior = Number(acc.stock) || 0;
+        const nuevo = Math.max(0, Number(e.target.value) || 0);
+        e.target.value = nuevo;
+        aplicarCambioStockAccesorio(acc, anterior, nuevo);
       });
+    });
+
+    $all("[data-qty-minus]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const acc = state.accesorios.find(x => x.id === e.currentTarget.dataset.qtyMinus);
+        if(!acc) return;
+        const anterior = Number(acc.stock) || 0;
+        aplicarCambioStockAccesorio(acc, anterior, Math.max(0, anterior - 1));
+      });
+    });
+
+    $all("[data-qty-plus]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const acc = state.accesorios.find(x => x.id === e.currentTarget.dataset.qtyPlus);
+        if(!acc) return;
+        const anterior = Number(acc.stock) || 0;
+        aplicarCambioStockAccesorio(acc, anterior, anterior + 1);
+      });
+    });
+
+    $all("[data-entrada-precio]").forEach(btn => {
+      btn.addEventListener("click", (e) => registrarEntradaConPrecioLote(e.currentTarget.dataset.entradaPrecio));
     });
 
     $all("[data-del-accesorio]").forEach(btn => {
@@ -1547,8 +2385,83 @@
     });
   }
 
+  // Cambia el stock de un accesorio y registra el movimiento correspondiente:
+  // - Si SUBE: es una "entrada" al costo promedio ACTUAL (no altera el promedio,
+  //   matemáticamente correcto cuando el lote entra al mismo costo ya registrado).
+  //   Para un lote a un precio distinto, usar "Entrada con precio" en su lugar.
+  // - Si BAJA: es una "salida" al precio de venta actual (ingreso para Finanzas).
+  function aplicarCambioStockAccesorio(acc, anterior, nuevo){
+    const delta = nuevo - anterior;
+    acc.stock = nuevo;
+    if(delta === 0){ renderAccesorios(); return; }
+
+    if(delta > 0){
+      const valorUnitario = Number(acc.precioCompra) || 0;
+      logHistorial("Entrada de accesorio", `${acc.nombre}: ${anterior} → ${nuevo} (+${delta}) a ${formatCOP(valorUnitario)} c/u`);
+      state.entradasAccesorios.unshift({
+        id: uid("entacc"), accesorioId: acc.id, nombre: acc.nombre, cantidad: delta,
+        valorUnitario, valorTotal: delta * valorUnitario, fechaISO: new Date().toISOString(), fecha: nowLabel()
+      });
+    } else {
+      const cantidad = Math.abs(delta);
+      const valorUnitario = Number(acc.precio) || 0;
+      logHistorial("Salida de accesorio", `${acc.nombre}: ${anterior} → ${nuevo} (-${cantidad}) a ${formatCOP(valorUnitario)} c/u`);
+      state.salidasAccesorios.unshift({
+        id: uid("sal"), accesorioId: acc.id, nombre: acc.nombre, cantidad,
+        valorUnitario, valorTotal: cantidad * valorUnitario, fechaISO: new Date().toISOString(), fecha: nowLabel()
+      });
+    }
+
+    renderHistorial();
+    renderAccesorios();
+    renderFinanzas();
+    scheduleSync();
+  }
+
+  // Registra un lote de entrada a un precio de compra distinto al costo promedio
+  // actual, y recalcula el costo promedio ponderado automáticamente:
+  //   nuevo costo = (stockAnterior×costoAnterior + cantidad×precioLote) / stockNuevo
+  function registrarEntradaConPrecioLote(accId){
+    const acc = state.accesorios.find(x => x.id === accId);
+    if(!acc) return;
+
+    const cantidadStr = prompt(`¿Cuántas unidades de "${acc.nombre}" entraron?`, "1");
+    if(cantidadStr === null) return;
+    const cantidad = Math.max(0, Math.round(Number(cantidadStr)) || 0);
+    if(!cantidad){ toast("Cantidad inválida"); return; }
+
+    const precioStr = prompt(`Precio de compra de este lote (COP) para "${acc.nombre}":`, String(Math.round(Number(acc.precioCompra)||0)));
+    if(precioStr === null) return;
+    const precioLote = Math.max(0, Number(precioStr) || 0);
+
+    const stockAnterior = Number(acc.stock) || 0;
+    const costoAnterior = Number(acc.precioCompra) || 0;
+    const nuevoStock = stockAnterior + cantidad;
+    const nuevoCostoPromedio = nuevoStock > 0
+      ? Math.round(((stockAnterior * costoAnterior) + (cantidad * precioLote)) / nuevoStock)
+      : precioLote;
+
+    acc.stock = nuevoStock;
+    acc.precioCompra = nuevoCostoPromedio;
+
+    logHistorial("Entrada de accesorio (lote a precio distinto)",
+      `${acc.nombre}: +${cantidad} a ${formatCOP(precioLote)} c/u → nuevo costo promedio ${formatCOP(nuevoCostoPromedio)}`);
+    state.entradasAccesorios.unshift({
+      id: uid("entacc"), accesorioId: acc.id, nombre: acc.nombre, cantidad,
+      valorUnitario: precioLote, valorTotal: cantidad * precioLote,
+      fechaISO: new Date().toISOString(), fecha: nowLabel()
+    });
+
+    renderAccesorios();
+    renderHistorial();
+    renderFinanzas();
+    scheduleSync();
+    toast(`Entrada registrada. Costo promedio actualizado a ${formatCOP(nuevoCostoPromedio)}`);
+  }
+
   function addAccesorio(){
     const nombre = $("#newAccNombre").value.trim();
+    const precioCompra = Number($("#newAccPrecioCompra").value) || 0;
     const precio = Number($("#newAccPrecio").value) || 0;
     const stock = Number($("#newAccStock").value) || 0;
 
@@ -1562,16 +2475,27 @@
       return;
     }
 
-    state.accesorios.push({ id: uid("acc"), nombre, precio, stock, custom:true });
-    logHistorial("Accesorio agregado", `${nombre} — ${stock} unidades a ${formatCOP(precio)}`);
+    const nuevo = { id: uid("acc"), nombre, precio, precioCompra, stock, custom:true };
+    state.accesorios.push(nuevo);
+    logHistorial("Accesorio agregado", `${nombre} — ${stock} unidades a costo ${formatCOP(precioCompra)}, venta ${formatCOP(precio)}`);
+
+    if(stock > 0){
+      state.entradasAccesorios.unshift({
+        id: uid("entacc"), accesorioId: nuevo.id, nombre, cantidad: stock,
+        valorUnitario: precioCompra, valorTotal: stock * precioCompra,
+        fechaISO: new Date().toISOString(), fecha: nowLabel()
+      });
+    }
 
     $("#newAccNombre").value = "";
+    $("#newAccPrecioCompra").value = "";
     $("#newAccPrecio").value = "";
     $("#newAccStock").value = "";
 
     renderAccesorios();
     renderHistorial();
     renderElementosChecklist();
+    renderFinanzas();
     scheduleSync();
     toast("Accesorio agregado");
   }
@@ -1581,8 +2505,8 @@
     if(!stockInput) return;
     const row = stockInput.closest("tr");
     if(!row) return;
-    const totalCell = row.querySelector("td:last-child");
-    if(totalCell) totalCell.textContent = formatCOP((Number(acc.stock)||0) * (Number(acc.precio)||0));
+    const totalCell = row.querySelector("td:nth-last-child(2)");
+    if(totalCell) totalCell.textContent = formatCOP((Number(acc.stock)||0) * (Number(acc.precioCompra)||0));
   }
 
   /* ============================================================
@@ -1615,7 +2539,11 @@
           <input type="number" min="0" step="1000" class="price-input lic-precio-venta" data-id="${l.id}" value="${Number(l.precioVenta)||0}">
         </td>
         <td>
-          <input type="number" min="0" step="1" class="num-input lic-stock" data-id="${l.id}" value="${Number(l.stock)||0}">
+          <div class="qty-group">
+            <button class="qty-btn minus" data-lic-qty-minus="${l.id}" title="Restar 1 (salida)">−</button>
+            <input type="number" min="0" step="1" class="qty-input lic-stock" data-id="${l.id}" value="${Number(l.stock)||0}">
+            <button class="qty-btn plus" data-lic-qty-plus="${l.id}" title="Sumar 1 (entrada)">+</button>
+          </div>
         </td>
         <td class="cop">${formatCOP((Number(l.stock)||0) * (Number(l.precioCompra)||0))}</td>
         <td>
@@ -1648,35 +2576,31 @@
     });
 
     $all(".lic-stock").forEach(inp => {
-      inp.addEventListener("input", (e) => {
+      inp.addEventListener("change", (e) => {
         const lic = state.licencias.find(x => x.id === e.target.dataset.id);
         if(!lic) return;
-        const anterior = lic.stock;
-        lic.stock = Number(e.target.value) || 0;
-        const delta = lic.stock - anterior;
-        if(delta !== 0){
-          const esEntrada = delta > 0;
-          const cantidad = Math.abs(delta);
-          const valorUnitario = esEntrada ? (Number(lic.precioCompra)||0) : (Number(lic.precioVenta)||0);
-          logHistorial(esEntrada ? "Entrada de licencia" : "Salida de licencia",
-            `${lic.nombre}: ${anterior} → ${lic.stock} (${esEntrada?"+":"-"}${cantidad}) a ${formatCOP(valorUnitario)} c/u`);
-          renderHistorial();
-          state.movimientosLicencias.unshift({
-            id: uid("movlic"),
-            licenciaId: lic.id,
-            nombre: lic.nombre,
-            tipo: esEntrada ? "entrada" : "salida",
-            cantidad,
-            valorUnitario,
-            valorTotal: cantidad * valorUnitario,
-            fechaISO: new Date().toISOString(),
-            fecha: nowLabel()
-          });
-        }
-        renderKpiLicencias();
-        updateLicenciaRowTotal(lic);
-        renderFinanzas();
-        scheduleSync();
+        const anterior = Number(lic.stock) || 0;
+        const nuevo = Math.max(0, Number(e.target.value) || 0);
+        e.target.value = nuevo;
+        aplicarCambioStockLicencia(lic, anterior, nuevo);
+      });
+    });
+
+    $all("[data-lic-qty-minus]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const lic = state.licencias.find(x => x.id === e.currentTarget.dataset.licQtyMinus);
+        if(!lic) return;
+        const anterior = Number(lic.stock) || 0;
+        aplicarCambioStockLicencia(lic, anterior, Math.max(0, anterior - 1));
+      });
+    });
+
+    $all("[data-lic-qty-plus]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const lic = state.licencias.find(x => x.id === e.currentTarget.dataset.licQtyPlus);
+        if(!lic) return;
+        const anterior = Number(lic.stock) || 0;
+        aplicarCambioStockLicencia(lic, anterior, anterior + 1);
       });
     });
 
@@ -1693,6 +2617,31 @@
         scheduleSync();
       });
     });
+  }
+
+  // Cambia el stock de una licencia y registra el movimiento (entrada al costo
+  // de compra si sube, salida al precio de venta si baja) — misma lógica usada
+  // tanto por los botones +/- como por la edición directa del número de stock.
+  function aplicarCambioStockLicencia(lic, anterior, nuevo){
+    const delta = nuevo - anterior;
+    lic.stock = nuevo;
+    if(delta === 0){ renderLicencias(); return; }
+
+    const esEntrada = delta > 0;
+    const cantidad = Math.abs(delta);
+    const valorUnitario = esEntrada ? (Number(lic.precioCompra)||0) : (Number(lic.precioVenta)||0);
+    logHistorial(esEntrada ? "Entrada de licencia" : "Salida de licencia",
+      `${lic.nombre}: ${anterior} → ${nuevo} (${esEntrada?"+":"-"}${cantidad}) a ${formatCOP(valorUnitario)} c/u`);
+    state.movimientosLicencias.unshift({
+      id: uid("movlic"), licenciaId: lic.id, nombre: lic.nombre,
+      tipo: esEntrada ? "entrada" : "salida", cantidad, valorUnitario,
+      valorTotal: cantidad * valorUnitario, fechaISO: new Date().toISOString(), fecha: nowLabel()
+    });
+
+    renderHistorial();
+    renderLicencias();
+    renderFinanzas();
+    scheduleSync();
   }
 
   function updateLicenciaRowTotal(lic){
@@ -1747,6 +2696,94 @@
   }
 
   /* ============================================================
+     RENDER — TAREAS PENDIENTES
+  ============================================================ */
+  const ESTADOS_TAREA = ["Pendiente", "En tránsito", "Completada"];
+  const TAREA_BADGE_CLASS = { "Pendiente":"pendiente", "En tránsito":"transito", "Completada":"completada" };
+
+  function renderKpiTareas(){
+    const pendientes = state.tareas.filter(t => t.estado === "Pendiente").length;
+    const transito = state.tareas.filter(t => t.estado === "En tránsito").length;
+    const completadas = state.tareas.filter(t => t.estado === "Completada").length;
+    $("#kpiTareas").innerHTML = `
+      <div class="kpi accent"><div class="n">${pendientes}</div><div class="l">Pendientes</div></div>
+      <div class="kpi"><div class="n">${transito}</div><div class="l">En tránsito</div></div>
+      <div class="kpi"><div class="n">${completadas}</div><div class="l">Completadas</div></div>
+    `;
+  }
+
+  function renderTareas(){
+    renderKpiTareas();
+    const lista = $("#tareasLista");
+    const empty = $("#tareasEmpty");
+    if(!state.tareas.length){
+      lista.innerHTML = "";
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    // Pendientes y en tránsito primero; completadas al final para no distraer.
+    const orden = { "Pendiente":0, "En tránsito":1, "Completada":2 };
+    const ordenadas = [...state.tareas].sort((a,b) => (orden[a.estado]??0) - (orden[b.estado]??0));
+
+    lista.innerHTML = ordenadas.map(t => `
+      <div class="task-item ${t.estado === 'Completada' ? 'completada' : ''}">
+        <button class="task-status-badge ${TAREA_BADGE_CLASS[t.estado] || 'pendiente'}" data-cycle-tarea="${t.id}" title="Toca para cambiar el estado">${escapeHtml(t.estado)}</button>
+        <span class="task-name">${escapeHtml(t.nombre)}</span>
+        <button class="task-del" data-del-tarea="${t.id}" title="Eliminar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
+        </button>
+      </div>
+    `).join("");
+
+    $all("[data-cycle-tarea]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = e.currentTarget.dataset.cycleTarea;
+        const t = state.tareas.find(x => x.id === id);
+        if(!t) return;
+        const idx = ESTADOS_TAREA.indexOf(t.estado);
+        t.estado = ESTADOS_TAREA[(idx + 1) % ESTADOS_TAREA.length];
+        renderTareas();
+        scheduleSync();
+      });
+    });
+
+    $all("[data-del-tarea]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = e.currentTarget.dataset.delTarea;
+        state.tareas = state.tareas.filter(x => x.id !== id);
+        renderTareas();
+        scheduleSync();
+      });
+    });
+  }
+
+  function addTarea(){
+    const input = $("#tareaNombre");
+    const nombre = input.value.trim();
+    if(!nombre){
+      toast("Escribe el nombre de la tarea");
+      input.focus();
+      return;
+    }
+    state.tareas.unshift({ id: uid("tarea"), nombre, estado: "Pendiente", fechaISO: new Date().toISOString() });
+    input.value = "";
+    renderTareas();
+    scheduleSync();
+    input.focus();
+  }
+
+  function limpiarTareasCompletadas(){
+    const completadas = state.tareas.filter(t => t.estado === "Completada").length;
+    if(!completadas){ toast("No hay tareas completadas para borrar"); return; }
+    if(!confirm(`¿Borrar ${completadas} tarea${completadas===1?"":"s"} completada${completadas===1?"":"s"}?`)) return;
+    state.tareas = state.tareas.filter(t => t.estado !== "Completada");
+    renderTareas();
+    scheduleSync();
+  }
+
+  /* ============================================================
      RENDER — DESPLIEGUES
   ============================================================ */
   const DESPLIEGUE_BADGE = {
@@ -1765,7 +2802,9 @@
   };
 
   function calcTotalCliente(d){
-    return (Number(d.valorInstalacion) || 0) + (Number(d.valorArriendo) || 0) + (Number(d.valorTransporte) || 0);
+    const recogeAntena = !!(d.recoger && d.recoger.antena);
+    const valorEquipo = recogeAntena ? (Number(d.valorEquipo) || 0) : 0;
+    return (Number(d.valorInstalacion) || 0) + (Number(d.valorArriendo) || 0) + (Number(d.valorTransporte) || 0) + valorEquipo;
   }
 
   function calcMargenInstalacion(d){
@@ -1778,11 +2817,14 @@
     const instalacion = Number($("#depValorInstalacion").value) || 0;
     const arriendo = Number($("#depValorArriendo").value) || 0;
     const transporte = Number($("#depValorTransporte").value) || 0;
-    const total = instalacion + arriendo + transporte;
+    const recogeAntena = $("#depRecogeAntena").checked;
+    const valorEquipo = recogeAntena ? (Number($("#depValorEquipo").value) || 0) : 0;
+    const total = instalacion + arriendo + transporte + valorEquipo;
     box.innerHTML = `
       <div class="row"><span>Instalación</span><span class="cop">${formatCOP(instalacion)}</span></div>
       <div class="row"><span>Arriendo antena</span><span class="cop">${formatCOP(arriendo)}</span></div>
       <div class="row"><span>Transporte</span><span class="cop">${formatCOP(transporte)}</span></div>
+      ${recogeAntena ? `<div class="row"><span>Valor del equipo (antena vendida)</span><span class="cop">${formatCOP(valorEquipo)}</span></div>` : ""}
       <div class="row total"><span>Total a cobrar al cliente</span><span class="cop">${formatCOP(total)}</span></div>
     `;
   }
@@ -1909,6 +2951,7 @@
     const valorArriendo = Number($("#depValorArriendo").value) || 0;
     const valorTransporte = Number($("#depValorTransporte").value) || 0;
     const valorInstalador = Number($("#depValorInstalador").value) || 0;
+    const valorEquipo = Number($("#depValorEquipo").value) || 0;
 
     if(!nombre){
       toast("Ingresa el nombre del proyecto o cliente");
@@ -1918,11 +2961,12 @@
 
     const nuevo = {
       id: uid("dep"), nombre, instalador, ubicacion, estado, activacion, notas,
-      recoger, valorInstalacion, valorArriendo, valorTransporte, valorInstalador,
+      recoger, valorInstalacion, valorArriendo, valorTransporte, valorInstalador, valorEquipo,
       fechaISO: new Date().toISOString()
     };
     state.despliegues.unshift(nuevo);
-    logHistorial("Instalación registrada", `${nombre} — ${DESPLIEGUE_LABEL[estado]} — total cliente ${formatCOP(calcTotalCliente(nuevo))} — margen ${formatCOP(calcMargenInstalacion(nuevo))}`);
+    logHistorial("Instalación registrada", `${nombre} — ${DESPLIEGUE_LABEL[estado]} — total cliente ${formatCOP(calcTotalCliente(nuevo))} — margen ${formatCOP(calcMargenInstalacion(nuevo))}` +
+      (recoger.antena ? ` — incluye venta de equipo por ${formatCOP(valorEquipo)}` : ""));
 
     $("#depNombre").value = "";
     $("#depInstalador").value = "";
@@ -1937,6 +2981,7 @@
     $("#depValorArriendo").value = "";
     $("#depValorTransporte").value = "";
     $("#depValorInstalador").value = "";
+    $("#depValorEquipo").value = "";
     updateDepTotalPreview();
 
     renderDespliegues();
@@ -1966,22 +3011,32 @@
 
     const desplieguesMes = state.despliegues.filter(d => estaEnMes(d.fechaISO, mes));
     const salidasMes = state.salidasAccesorios.filter(s => estaEnMes(s.fechaISO, mes));
+    const entradasMes = state.entradasAccesorios.filter(en => estaEnMes(en.fechaISO, mes));
     const movLicMes = state.movimientosLicencias.filter(m => estaEnMes(m.fechaISO, mes));
+    // Antenas cuyo arriendo inició este mes — sus accesorios opcionales (trípode,
+    // cable UTP, router mini) son propiedad de la empresa, no del propietario de
+    // la antena, así que su valor cuenta como utilidad de los arrendamientos aquí,
+    // incluso en antenas de Alejandra (donde no se le liquidan a ella).
+    const antenasMes = state.antenas.filter(a => estaEnMes(a.fechaInicio, mes));
 
     const ingresosInstalaciones = desplieguesMes.reduce((s,d) => s + calcTotalCliente(d), 0);
     const egresosInstalador = desplieguesMes.reduce((s,d) => s + (Number(d.valorInstalador)||0), 0);
     const ingresosAccesorios = salidasMes.reduce((s,x) => s + x.valorTotal, 0);
+    const egresosAccesorios = entradasMes.reduce((s,x) => s + x.valorTotal, 0);
     const ingresosLicencias = movLicMes.filter(m => m.tipo === "salida").reduce((s,m) => s + m.valorTotal, 0);
     const egresosLicencias = movLicMes.filter(m => m.tipo === "entrada").reduce((s,m) => s + m.valorTotal, 0);
-    const ingresosTotales = ingresosInstalaciones + ingresosAccesorios + ingresosLicencias;
-    const egresosTotales = egresosInstalador + egresosLicencias;
+    const ingresosArriendosAccesorios = antenasMes.reduce((s,a) => s + calcLiquidacionAntena(a).subElementos, 0);
+    const ingresosAdministracion = ADMIN_FEE_ALEJANDRA;
+    const ingresosTotales = ingresosInstalaciones + ingresosAccesorios + ingresosLicencias + ingresosArriendosAccesorios + ingresosAdministracion;
+    const egresosTotales = egresosInstalador + egresosLicencias + egresosAccesorios;
     const utilidad = ingresosTotales - egresosTotales;
 
     $("#kpiFinanzas").innerHTML = `
       <div class="kpi accent"><div class="n" style="font-size:15px;">${formatCOP(ingresosTotales)}</div><div class="l">Ingresos del mes</div></div>
       <div class="kpi"><div class="n" style="font-size:15px;">${formatCOP(egresosTotales)}</div><div class="l">Egresos del mes</div></div>
       <div class="kpi"><div class="n" style="font-size:15px; color:${utilidad>=0?'var(--green)':'var(--red)'}">${formatCOP(utilidad)}</div><div class="l">Utilidad del mes</div></div>
-      <div class="kpi"><div class="n">${desplieguesMes.length}</div><div class="l">Instalaciones</div></div>
+      <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosArriendosAccesorios)}</div><div class="l">Utilidad accesorios de arriendo</div></div>
+      <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosAdministracion)}</div><div class="l">Administración Alejandra</div></div>
     `;
 
     const instBody = $("#finInstalacionesBody");
@@ -2020,6 +3075,24 @@
       `).join("");
     }
 
+    const entBody = $("#finEntradasBody");
+    const entEmpty = $("#finEntradasEmpty");
+    if(!entradasMes.length){
+      entBody.innerHTML = "";
+      entEmpty.style.display = "block";
+    } else {
+      entEmpty.style.display = "none";
+      entBody.innerHTML = entradasMes.map(en => `
+        <tr>
+          <td class="mono">${en.fechaISO ? en.fechaISO.slice(0,10) : "—"}</td>
+          <td>${escapeHtml(en.nombre)}</td>
+          <td>${en.cantidad}</td>
+          <td class="cop">${formatCOP(en.valorUnitario)}</td>
+          <td class="cop">${formatCOP(en.valorTotal)}</td>
+        </tr>
+      `).join("");
+    }
+
     const licBody = $("#finLicenciasBody");
     const licEmpty = $("#finLicenciasEmpty");
     if(!movLicMes.length){
@@ -2037,6 +3110,28 @@
           <td class="cop">${formatCOP(m.valorTotal)}</td>
         </tr>
       `).join("");
+    }
+
+    const antenasConAcc = antenasMes.filter(a => calcLiquidacionAntena(a).subElementos > 0);
+    const arrAccBody = $("#finArriendoAccBody");
+    const arrAccEmpty = $("#finArriendoAccEmpty");
+    if(!antenasConAcc.length){
+      arrAccBody.innerHTML = "";
+      arrAccEmpty.style.display = "block";
+    } else {
+      arrAccEmpty.style.display = "none";
+      arrAccBody.innerHTML = antenasConAcc.map(a => {
+        const liq = calcLiquidacionAntena(a);
+        const nombresElementos = (a.elementos || []).map(e => e.nombre).join(", ");
+        return `
+        <tr>
+          <td class="mono">${escapeHtml(a.serial)}</td>
+          <td>${escapeHtml(a.propietario || "Alejandra")}</td>
+          <td class="mono">${escapeHtml(a.fechaInicio || "—")}</td>
+          <td style="white-space:normal; max-width:170px;">${escapeHtml(nombresElementos)}</td>
+          <td class="cop">${formatCOP(liq.subElementos)}</td>
+        </tr>
+      `;}).join("");
     }
   }
 
@@ -2079,6 +3174,7 @@
     renderLicencias();
     renderHistorial();
     renderFinanzas();
+    renderTareas();
   }
 
   function init(){
@@ -2086,6 +3182,7 @@
     loadLocal();
     initTabs();
     $("#finMes").value = mesActualISO();
+    $("#antLiquidacionMes").value = mesActualISO();
     renderAll();
     setStatus('local');
 
@@ -2097,16 +3194,22 @@
     $("#btnForceSync").addEventListener("click", forceSync);
     $("#btnPullCloud").addEventListener("click", pullFromCloudManual);
     $("#finMes").addEventListener("change", renderFinanzas);
+    $("#antLiquidacionMes").addEventListener("change", renderLiquidacionPropietarios);
+    $("#btnAddTarea").addEventListener("click", addTarea);
+    $("#tareaNombre").addEventListener("keydown", (e) => { if(e.key === "Enter") addTarea(); });
+    $("#btnLimpiarCompletadas").addEventListener("click", limpiarTareasCompletadas);
 
     renderElementosChecklist();
     updateAntLiquidacionPreview();
     updateDepTotalPreview();
-    ["antFechaInicio","antFechaFin","antTarifaDia"].forEach(id => {
+    ["antFechaInicio","antFechaFin","antTarifaDia","antPropietario"].forEach(id => {
       $("#"+id).addEventListener("input", updateAntLiquidacionPreview);
+      $("#"+id).addEventListener("change", updateAntLiquidacionPreview);
     });
-    ["depValorInstalacion","depValorArriendo","depValorTransporte"].forEach(id => {
+    ["depValorInstalacion","depValorArriendo","depValorTransporte","depValorEquipo"].forEach(id => {
       $("#"+id).addEventListener("input", updateDepTotalPreview);
     });
+    $("#depRecogeAntena").addEventListener("change", updateDepTotalPreview);
 
     // Si este navegador/dispositivo nunca ha guardado nada localmente,
     // asumimos que es "nuevo" y traemos automáticamente el último respaldo de Firebase.
@@ -2128,5 +3231,1397 @@
   document.addEventListener("DOMContentLoaded", init);
 })();
 </script>
+<script>
+/* ============================================================
+   MÓDULO COTIZACIONES — envuelto en su propia función para no
+   compartir variables/funciones con el resto de la app (evita
+   choques de nombres como $, state, toast, etc.)
+============================================================ */
+(function(){
+  'use strict';
+
+const $ = id => document.getElementById(id);
+
+/* Shared PDF palette */
+const PDF_TRACE = [27,122,94];
+const PDF_INK = [28,37,33];
+const PDF_INKSOFT = [90,102,95];
+const PDF_LINE = [220,213,196];
+
+const state = {
+  company:{name:'Partes y Computadores', tagline:'Partes, componentes y equipos de cómputo', nit:'', phone:'', email:'', website:'partesycomputadores.com.co', address:'', logo:null, legalName:'Adriana Mendez Vargas', legalId:'52984771', signature:null},
+  client:{name:'', id:'', phone:'', email:'', address:''},
+  meta:{number:'', date:'', validity:15},
+  items:[{desc:'', qty:1, price:0}],
+  ivaPercent:19,
+  discount:0,
+  conditions:`Precios expresados en pesos colombianos (COP).
+Esta cotización tiene una validez de 15 días calendario a partir de la fecha de emisión.
+Los precios pueden variar sin previo aviso según disponibilidad de inventario o fluctuación del dólar.
+Tiempo de entrega a convenir según disponibilidad de stock.
+Garantía sujeta a las políticas del fabricante y/o de partesycomputadores.com.co`,
+  payment:{
+    transfer:{enabled:true, bank:'', type:'Ahorros', number:'', holder:'Partes y Computadores', holderId:''},
+    pse:{enabled:false, note:''},
+    nequi:{enabled:false, number:''},
+    daviplata:{enabled:false, number:''},
+    brebb:{enabled:false, key:'', bank:''},
+    card:{enabled:false, note:'Datáfono disponible en punto de venta o link de pago.'},
+    cash:{enabled:false, note:'Pago contra entrega, sujeto a disponibilidad.'}
+  },
+  bankCert:{dataUrl:null, isImage:false, fileName:''},
+  cc:{number:'', date:'', refQuote:'', concept:'', total:0, items:[]},
+  recibo:{number:'', date:'', payerName:'', payerId:'', refDoc:'', concept:'', amount:0, method:'Efectivo', totalDoc:0}
+};
+
+let lastPdfBlob = null;
+let lastPdfName = '';
+
+/* Works both inside Claude (window.storage) and standalone, e.g. GitHub Pages (localStorage) */
+const storageAdapter = {
+  async get(key){
+    if(typeof window.storage !== 'undefined' && window.storage){
+      try{ const r = await window.storage.get(key, false); return r ? r.value : null; }
+      catch(e){ return null; }
+    }
+    try{ return localStorage.getItem(key); }catch(e){ return null; }
+  },
+  async set(key, value){
+    if(typeof window.storage !== 'undefined' && window.storage){
+      try{ const r = await window.storage.set(key, value, false); return !!r; }
+      catch(e){ return false; }
+    }
+    try{ localStorage.setItem(key, value); return true; }catch(e){ return false; }
+  },
+  async delete(key){
+    if(typeof window.storage !== 'undefined' && window.storage){
+      try{ await window.storage.delete(key, false); return true; }
+      catch(e){ return false; }
+    }
+    try{ localStorage.removeItem(key); return true; }catch(e){ return false; }
+  }
+};
+
+function formatCOP(n){
+  if(isNaN(n)) n = 0;
+  return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n);
+}
+
+function computeTotals(){
+  const subtotal = state.items.reduce((s,it)=> s + (Number(it.qty)||0)*(Number(it.price)||0), 0);
+  const afterDiscount = Math.max(subtotal - (Number(state.discount)||0), 0);
+  const iva = afterDiscount * ((Number(state.ivaPercent)||0)/100);
+  const total = afterDiscount + iva;
+  return {subtotal, discount:Number(state.discount)||0, iva, total, ivaPercent:Number(state.ivaPercent)||0};
+}
+
+/* ---------- ITEM ROWS ---------- */
+function renderItemsForm(){
+  const c = $('itemsContainer');
+  c.innerHTML = '';
+  state.items.forEach((it, i)=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+      <button class="del" data-i="${i}" title="Eliminar">✕</button>
+      <label style="margin-top:0;">Descripción</label>
+      <input type="text" data-field="desc" data-i="${i}" value="${escapeAttr(it.desc)}" placeholder="Ej: Disco SSD 1TB NVMe">
+      <div class="row3">
+        <div><label>Cantidad</label><input type="number" min="0" step="1" data-field="qty" data-i="${i}" value="${it.qty}"></div>
+        <div><label>Vlr. unitario (COP)</label><input type="number" min="0" data-field="price" data-i="${i}" value="${it.price}"></div>
+        <div><label>Subtotal</label><input type="text" disabled value="${formatCOP((it.qty||0)*(it.price||0))}"></div>
+      </div>`;
+    c.appendChild(row);
+  });
+
+  c.querySelectorAll('input[data-field]').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const i = Number(e.target.dataset.i);
+      const f = e.target.dataset.field;
+      state.items[i][f] = f==='desc' ? e.target.value : Number(e.target.value);
+      // update subtotal cell live without full re-render (avoid focus loss)
+      const row = e.target.closest('.item-row');
+      const subCell = row.querySelector('.row3 input[disabled]');
+      if(subCell) subCell.value = formatCOP((state.items[i].qty||0)*(state.items[i].price||0));
+      renderPreview();
+    });
+  });
+  c.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const i = Number(e.target.dataset.i);
+      state.items.splice(i,1);
+      if(state.items.length===0) state.items.push({desc:'',qty:1,price:0});
+      renderItemsForm();
+      renderPreview();
+    });
+  });
+}
+$('addItemBtn').addEventListener('click', ()=>{
+  state.items.push({desc:'', qty:1, price:0});
+  renderItemsForm();
+  renderPreview();
+});
+
+function escapeAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- SIMPLE FIELD BINDINGS ---------- */
+function bind(id, getSet){
+  const el = $(id);
+  el.addEventListener('input', ()=>{
+    getSet(el.type==='number' ? Number(el.value) : el.value);
+    renderPreview();
+  });
+}
+bind('co_name', v=>state.company.name=v);
+bind('co_tagline', v=>state.company.tagline=v);
+bind('co_nit', v=>state.company.nit=v);
+bind('co_phone', v=>state.company.phone=v);
+bind('co_email', v=>state.company.email=v);
+bind('co_website', v=>state.company.website=v);
+bind('co_address', v=>state.company.address=v);
+bind('co_legalname', v=>state.company.legalName=v);
+bind('co_legalid', v=>state.company.legalId=v);
+
+bind('cl_name', v=>state.client.name=v);
+bind('cl_id', v=>state.client.id=v);
+bind('cl_phone', v=>state.client.phone=v);
+bind('cl_email', v=>state.client.email=v);
+bind('cl_address', v=>state.client.address=v);
+
+bind('q_number', v=>state.meta.number=v);
+bind('q_date', v=>state.meta.date=v);
+bind('q_validity', v=>state.meta.validity=v);
+
+bind('ivaPercent', v=>state.ivaPercent=v);
+bind('discount', v=>state.discount=v);
+bind('conditions', v=>state.conditions=v);
+
+/* cuenta de cobro fields (no live preview pane, so plain listeners) */
+$('cc_number').addEventListener('input', e=> state.cc.number = e.target.value);
+$('cc_date').addEventListener('input', e=> state.cc.date = e.target.value);
+$('cc_refquote').addEventListener('input', e=> state.cc.refQuote = e.target.value);
+$('cc_concept').addEventListener('input', e=> state.cc.concept = e.target.value);
+$('cc_total').addEventListener('input', e=> state.cc.total = Number(e.target.value));
+
+/* recibo de caja fields */
+$('rc_number').addEventListener('input', e=> state.recibo.number = e.target.value);
+$('rc_date').addEventListener('input', e=> state.recibo.date = e.target.value);
+$('rc_payername').addEventListener('input', e=> state.recibo.payerName = e.target.value);
+$('rc_payerid').addEventListener('input', e=> state.recibo.payerId = e.target.value);
+$('rc_refdoc').addEventListener('input', e=> state.recibo.refDoc = e.target.value);
+$('rc_concept').addEventListener('input', e=> state.recibo.concept = e.target.value);
+$('rc_amount').addEventListener('input', e=> { state.recibo.amount = Number(e.target.value); updateReciboBalanceNote(); });
+$('rc_method').addEventListener('change', e=> state.recibo.method = e.target.value);
+$('rc_totaldoc').addEventListener('input', e=> { state.recibo.totalDoc = Number(e.target.value); updateReciboBalanceNote(); });
+
+function updateReciboBalanceNote(){
+  const note = $('rc_balanceNote');
+  if(!state.recibo.totalDoc){ note.textContent = ''; return; }
+  const saldo = state.recibo.totalDoc - state.recibo.amount;
+  note.textContent = saldo > 0
+    ? `Saldo pendiente después de este abono: ${formatCOP(saldo)}`
+    : (saldo === 0 ? 'Este abono deja el documento pagado en su totalidad.' : `El valor recibido supera el total del documento por ${formatCOP(Math.abs(saldo))}.`);
+}
+
+/* payment methods */
+function wirePayMethod(key, prefix, fields){
+  const chk = $(prefix+'_chk');
+  const box = $(prefix.replace('pm_','pm_')); // container id equals prefix
+  chk.addEventListener('change', ()=>{
+    state.payment[key].enabled = chk.checked;
+    $(prefix).classList.toggle('on', chk.checked);
+    renderPreview();
+  });
+  fields.forEach(f=>{
+    const el = $(prefix+'_'+f.id);
+    if(!el) return;
+    el.addEventListener('input', ()=>{
+      state.payment[key][f.state] = el.value;
+      renderPreview();
+    });
+  });
+}
+wirePayMethod('transfer','pm_transfer',[{id:'bank',state:'bank'},{id:'type',state:'type'},{id:'number',state:'number'},{id:'holder',state:'holder'},{id:'holderid',state:'holderId'}]);
+wirePayMethod('pse','pm_pse',[{id:'note',state:'note'}]);
+wirePayMethod('nequi','pm_nequi',[{id:'number',state:'number'}]);
+wirePayMethod('daviplata','pm_daviplata',[{id:'number',state:'number'}]);
+wirePayMethod('brebb','pm_brebb',[{id:'key',state:'key'},{id:'bank',state:'bank'}]);
+wirePayMethod('card','pm_card',[{id:'note',state:'note'}]);
+wirePayMethod('cash','pm_cash',[{id:'note',state:'note'}]);
+$('pm_transfer_type').addEventListener('change', e=>{ state.payment.transfer.type = e.target.value; renderPreview(); });
+
+/* ---------- FILE UPLOADS ---------- */
+function fileToDataUrl(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=>res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+$('logoInput').addEventListener('change', async e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const dataUrl = await fileToDataUrl(f);
+  state.company.logo = dataUrl;
+  $('logoPreview').src = dataUrl;
+  $('logoPreview').style.display='inline-block';
+  $('logoPlaceholder').style.display='none';
+  renderPreview();
+});
+$('certInput').addEventListener('change', async e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const isImage = f.type.startsWith('image/');
+  const dataUrl = await fileToDataUrl(f);
+  state.bankCert = {dataUrl, isImage, fileName:f.name};
+  $('certPlaceholder').textContent = f.name + (isImage ? ' ✓ se incluirá como página final del PDF' : ' — es un PDF, adjúntalo manualmente al compartir');
+});
+$('signatureInput').addEventListener('change', async e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const dataUrl = await fileToDataUrl(f);
+  state.company.signature = dataUrl;
+  $('signaturePreview').src = dataUrl;
+  $('signaturePreview').style.display='inline-block';
+  $('signaturePlaceholder').style.display='none';
+});
+
+/* ---------- PREVIEW ---------- */
+function renderPreview(){
+  $('pv_coname').textContent = state.company.name || 'Tu empresa';
+  $('pv_cotag').textContent = state.company.tagline || '';
+  const metaParts = [];
+  if(state.company.nit) metaParts.push('NIT: '+state.company.nit);
+  if(state.company.address) metaParts.push(state.company.address);
+  if(state.company.phone) metaParts.push('Tel: '+state.company.phone);
+  if(state.company.email) metaParts.push(state.company.email);
+  if(state.company.website) metaParts.push(state.company.website);
+  $('pv_cometa').innerHTML = metaParts.map(p=>escapeHtml(p)).join('<br>');
+
+  if(state.company.logo){
+    $('pv_logo').src = state.company.logo;
+    $('pv_logo').style.display='block';
+  } else {
+    $('pv_logo').style.display='none';
+  }
+
+  $('pv_number').textContent = state.meta.number || '(sin número)';
+  const dateStr = state.meta.date ? new Date(state.meta.date+'T00:00:00').toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'}) : '';
+  $('pv_date').textContent = dateStr ? 'Fecha: '+dateStr : '';
+  let validText = '';
+  if(state.meta.date && state.meta.validity){
+    const d = new Date(state.meta.date+'T00:00:00');
+    d.setDate(d.getDate()+Number(state.meta.validity));
+    validText = 'Válida hasta: '+d.toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  }
+  $('pv_validity').textContent = validText;
+
+  $('pv_client').innerHTML = `
+    <div><b>Cliente:</b> ${escapeHtml(state.client.name)||'—'}</div>
+    <div><b>NIT/CC:</b> ${escapeHtml(state.client.id)||'—'}</div>
+    <div><b>Teléfono:</b> ${escapeHtml(state.client.phone)||'—'}</div>
+    <div><b>Correo:</b> ${escapeHtml(state.client.email)||'—'}</div>
+    <div style="grid-column:1/-1;"><b>Dirección:</b> ${escapeHtml(state.client.address)||'—'}</div>`;
+
+  $('pv_items').innerHTML = state.items.map((it,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${escapeHtml(it.desc)||'—'}</td>
+      <td>${it.qty||0}</td>
+      <td>${formatCOP(it.price)}</td>
+      <td>${formatCOP((it.qty||0)*(it.price||0))}</td>
+    </tr>`).join('');
+
+  const t = computeTotals();
+  let totalsHtml = `<div><span>Subtotal</span><span>${formatCOP(t.subtotal)}</span></div>`;
+  if(t.discount>0) totalsHtml += `<div><span>Descuento</span><span>-${formatCOP(t.discount)}</span></div>`;
+  totalsHtml += `<div><span>IVA (${t.ivaPercent}%)</span><span>${formatCOP(t.iva)}</span></div>`;
+  totalsHtml += `<div class="grand"><span>Total</span><span>${formatCOP(t.total)}</span></div>`;
+  $('pv_totals').innerHTML = totalsHtml;
+
+  $('pv_conditions').textContent = state.conditions;
+
+  const pay = state.payment;
+  let payHtml = '';
+  if(pay.transfer.enabled){
+    payHtml += `<div class="pitem"><b>Transferencia bancaria:</b> ${escapeHtml(pay.transfer.bank)||'Banco'} · Cta. ${escapeHtml(pay.transfer.type)} N.° ${escapeHtml(pay.transfer.number)||'—'}<br>Titular: ${escapeHtml(pay.transfer.holder)} ${pay.transfer.holderId? '· '+escapeHtml(pay.transfer.holderId):''}</div>`;
+  }
+  if(pay.pse.enabled) payHtml += `<div class="pitem"><b>PSE:</b> ${escapeHtml(pay.pse.note)||'Disponible'}</div>`;
+  if(pay.nequi.enabled) payHtml += `<div class="pitem"><b>Nequi:</b> ${escapeHtml(pay.nequi.number)||'—'}</div>`;
+  if(pay.daviplata.enabled) payHtml += `<div class="pitem"><b>Daviplata:</b> ${escapeHtml(pay.daviplata.number)||'—'}</div>`;
+  if(pay.brebb.enabled) payHtml += `<div class="pitem"><b>Llave Bre-B:</b> ${escapeHtml(pay.brebb.key)||'—'}${pay.brebb.bank? ' · '+escapeHtml(pay.brebb.bank):''}</div>`;
+  if(pay.card.enabled) payHtml += `<div class="pitem"><b>Tarjeta débito/crédito:</b> ${escapeHtml(pay.card.note)}</div>`;
+  if(pay.cash.enabled) payHtml += `<div class="pitem"><b>Efectivo:</b> ${escapeHtml(pay.cash.note)}</div>`;
+  $('pv_payment').innerHTML = payHtml || '<div class="pitem" style="color:#B3462C;">Selecciona al menos un medio de pago.</div>';
+
+  $('pv_foot').textContent = `${state.company.name} · ${state.company.website} — Documento generado automáticamente, sujeto a las condiciones comerciales descritas.`;
+}
+
+/* ---------- STORAGE (persist company + payment profile) ---------- */
+async function loadProfile(){
+  try{
+    const raw = await storageAdapter.get('company-profile');
+    if(raw){
+      const p = JSON.parse(raw);
+      Object.assign(state.company, p.company||{});
+      Object.assign(state.payment, p.payment||{});
+    }
+  }catch(e){ /* no saved profile yet */ }
+
+  // reflect into form fields
+  $('co_name').value = state.company.name;
+  $('co_tagline').value = state.company.tagline;
+  $('co_nit').value = state.company.nit;
+  $('co_phone').value = state.company.phone;
+  $('co_email').value = state.company.email;
+  $('co_website').value = state.company.website;
+  $('co_address').value = state.company.address;
+  $('co_legalname').value = state.company.legalName || '';
+  $('co_legalid').value = state.company.legalId || '';
+  if(state.company.logo){
+    $('logoPreview').src = state.company.logo;
+    $('logoPreview').style.display='inline-block';
+    $('logoPlaceholder').style.display='none';
+  }
+  if(state.company.signature){
+    $('signaturePreview').src = state.company.signature;
+    $('signaturePreview').style.display='inline-block';
+    $('signaturePlaceholder').style.display='none';
+  }
+
+  reflectPaymentToForm();
+}
+
+function reflectPaymentToForm(){
+  $('pm_transfer_chk').checked = state.payment.transfer.enabled;
+  $('pm_transfer').classList.toggle('on', state.payment.transfer.enabled);
+  $('pm_transfer_bank').value = state.payment.transfer.bank;
+  $('pm_transfer_type').value = state.payment.transfer.type;
+  $('pm_transfer_number').value = state.payment.transfer.number;
+  $('pm_transfer_holder').value = state.payment.transfer.holder;
+  $('pm_transfer_holderid').value = state.payment.transfer.holderId;
+
+  $('pm_pse_chk').checked = state.payment.pse.enabled; $('pm_pse').classList.toggle('on', state.payment.pse.enabled);
+  $('pm_pse_note').value = state.payment.pse.note;
+  $('pm_nequi_chk').checked = state.payment.nequi.enabled; $('pm_nequi').classList.toggle('on', state.payment.nequi.enabled);
+  $('pm_nequi_number').value = state.payment.nequi.number;
+  $('pm_daviplata_chk').checked = state.payment.daviplata.enabled; $('pm_daviplata').classList.toggle('on', state.payment.daviplata.enabled);
+  $('pm_daviplata_number').value = state.payment.daviplata.number;
+  $('pm_brebb_chk').checked = state.payment.brebb.enabled; $('pm_brebb').classList.toggle('on', state.payment.brebb.enabled);
+  $('pm_brebb_key').value = state.payment.brebb.key;
+  $('pm_brebb_bank').value = state.payment.brebb.bank;
+  $('pm_card_chk').checked = state.payment.card.enabled; $('pm_card').classList.toggle('on', state.payment.card.enabled);
+  $('pm_card_note').value = state.payment.card.note;
+  $('pm_cash_chk').checked = state.payment.cash.enabled; $('pm_cash').classList.toggle('on', state.payment.cash.enabled);
+  $('pm_cash_note').value = state.payment.cash.note;
+}
+
+
+async function saveProfile(silent){
+  try{
+    const payload = JSON.stringify({company:state.company, payment:state.payment});
+    const res = await storageAdapter.set('company-profile', payload);
+    if(!silent){
+      $('profileStatus').textContent = res ? '✓ Datos guardados. Se cargarán automáticamente la próxima vez que abras esta página.' : 'No se pudo guardar.';
+      $('profileStatus').className = res ? 'status ok' : 'status';
+    }
+  }catch(e){
+    if(!silent){ $('profileStatus').textContent = 'No se pudo guardar (' + e + ')'; }
+  }
+}
+$('saveProfileBtn').addEventListener('click', ()=>saveProfile(false));
+$('saveBankBtn').addEventListener('click', async ()=>{
+  await saveProfile(true);
+  $('saveBankStatus').textContent = '✓ Medios de pago guardados junto con el perfil de tu empresa.';
+});
+
+async function nextQuoteNumber(){
+  let n = 1;
+  try{
+    const stored = await storageAdapter.get('quote-counter');
+    if(stored) n = Number(stored)+1;
+  }catch(e){}
+  try{ await storageAdapter.set('quote-counter', String(n)); }catch(e){}
+  const year = new Date().getFullYear();
+  return `COT-${year}-${String(n).padStart(4,'0')}`;
+}
+
+/* ---------- SAVE / RESUME DRAFT QUOTES ---------- */
+async function getDraftIndex(){
+  try{
+    const raw = await storageAdapter.get('draft-index');
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+async function setDraftIndex(index){
+  try{ await storageAdapter.set('draft-index', JSON.stringify(index)); }catch(e){}
+}
+
+function draftLabel(d){
+  const dateStr = d.date ? new Date(d.date+'T00:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+  return `${d.number || '(sin número)'} · ${d.clientName || '(sin cliente)'} · ${dateStr} · ${formatCOP(d.total)}`;
+}
+
+async function renderDraftsList(){
+  const index = await getDraftIndex();
+  const sel = $('draftSelect');
+  const prevValue = sel.value;
+  sel.innerHTML = '<option value="">— Selecciona una cotización guardada —</option>' +
+    index.map(d=>`<option value="${escapeAttr(d.key)}">${escapeHtml(draftLabel(d))}</option>`).join('');
+  if(index.some(d=>d.key===prevValue)) sel.value = prevValue;
+}
+
+async function saveDraft(){
+  if(!state.meta.number){ $('draftStatus').textContent = 'Asigna primero un número de cotización.'; return; }
+  const t = computeTotals();
+  const key = 'draft:' + state.meta.number;
+  const data = {
+    client: state.client, meta: state.meta, items: state.items,
+    ivaPercent: state.ivaPercent, discount: state.discount, conditions: state.conditions,
+    payment: state.payment, bankCert: state.bankCert
+  };
+  const ok = await storageAdapter.set(key, JSON.stringify(data));
+  if(ok){
+    let index = await getDraftIndex();
+    index = index.filter(d=>d.key!==key);
+    index.unshift({key, number:state.meta.number, clientName:state.client.name||'', date:state.meta.date, total:t.total, savedAt:new Date().toISOString()});
+    index = index.slice(0,50);
+    await setDraftIndex(index);
+    await renderDraftsList();
+    $('draftSelect').value = key;
+    $('draftStatus').textContent = '✓ Avance guardado como "'+state.meta.number+'". Puedes retomarlo cuando quieras.';
+    $('draftStatus').className = 'status ok';
+  }else{
+    $('draftStatus').textContent = 'No se pudo guardar el avance.';
+    $('draftStatus').className = 'status';
+  }
+}
+
+function reflectClientMetaMiscToForm(){
+  $('cl_name').value = state.client.name || '';
+  $('cl_id').value = state.client.id || '';
+  $('cl_phone').value = state.client.phone || '';
+  $('cl_email').value = state.client.email || '';
+  $('cl_address').value = state.client.address || '';
+  $('q_number').value = state.meta.number || '';
+  $('q_date').value = state.meta.date || '';
+  $('q_validity').value = state.meta.validity || 15;
+  $('ivaPercent').value = state.ivaPercent;
+  $('discount').value = state.discount;
+  $('conditions').value = state.conditions;
+  reflectPaymentToForm();
+  $('certPlaceholder').textContent = state.bankCert.fileName
+    ? state.bankCert.fileName + (state.bankCert.isImage ? ' ✓ se incluirá como página final del PDF' : ' — es un PDF, adjúntalo manualmente al compartir')
+    : 'Adjunta una imagen (JPG/PNG) de la certificación';
+}
+
+async function loadDraft(key){
+  if(!key) return;
+  const raw = await storageAdapter.get(key);
+  if(!raw){ $('draftStatus').textContent = 'No se encontró esa cotización guardada.'; return; }
+  const data = JSON.parse(raw);
+  Object.assign(state.client, data.client||{});
+  Object.assign(state.meta, data.meta||{});
+  state.items = (data.items && data.items.length) ? data.items : [{desc:'',qty:1,price:0}];
+  state.ivaPercent = (data.ivaPercent !== undefined) ? data.ivaPercent : state.ivaPercent;
+  state.discount = (data.discount !== undefined) ? data.discount : state.discount;
+  state.conditions = data.conditions || state.conditions;
+  Object.assign(state.payment, data.payment||{});
+  state.bankCert = data.bankCert || {dataUrl:null, isImage:false, fileName:''};
+
+  reflectClientMetaMiscToForm();
+  renderItemsForm();
+  renderPreview();
+  $('draftStatus').textContent = '✓ Cotización "'+state.meta.number+'" cargada. Puedes seguir editándola.';
+  $('draftStatus').className = 'status ok';
+}
+
+async function deleteDraft(key){
+  if(!key) return;
+  const index = await getDraftIndex();
+  const item = index.find(d=>d.key===key);
+  const label = item ? draftLabel(item) : key;
+  if(!window.confirm('¿Eliminar la cotización guardada "'+label+'"? Esta acción no se puede deshacer.')) return;
+  await storageAdapter.delete(key);
+  const newIndex = index.filter(d=>d.key!==key);
+  await setDraftIndex(newIndex);
+  await renderDraftsList();
+  $('draftStatus').textContent = 'Cotización eliminada.';
+  $('draftStatus').className = 'status';
+}
+
+$('saveDraftBtn').addEventListener('click', saveDraft);
+$('loadDraftBtn').addEventListener('click', ()=> loadDraft($('draftSelect').value));
+$('deleteDraftBtn').addEventListener('click', ()=> deleteDraft($('draftSelect').value));
+
+/* ---------- CUENTA DE COBRO ---------- */
+async function nextCcNumber(){
+  let n = 1;
+  try{
+    const stored = await storageAdapter.get('cc-counter');
+    if(stored) n = Number(stored)+1;
+  }catch(e){}
+  try{ await storageAdapter.set('cc-counter', String(n)); }catch(e){}
+  const year = new Date().getFullYear();
+  return `CC-${year}-${String(n).padStart(4,'0')}`;
+}
+
+function reflectCcToForm(){
+  $('cc_number').value = state.cc.number || '';
+  $('cc_date').value = state.cc.date || '';
+  $('cc_refquote').value = state.cc.refQuote || '';
+  $('cc_concept').value = state.cc.concept || '';
+  $('cc_total').value = state.cc.total || 0;
+}
+
+$('ccFromQuoteBtn').addEventListener('click', async ()=>{
+  const t = computeTotals();
+  state.cc.number = await nextCcNumber();
+  state.cc.date = new Date().toISOString().slice(0,10);
+  state.cc.refQuote = state.meta.number || '';
+  state.cc.items = state.items.filter(it=>it.desc && it.desc.trim()).map(it=>({desc:it.desc, qty:it.qty, price:it.price}));
+  state.cc.concept = '';
+  state.cc.total = t.total;
+  reflectCcToForm();
+  $('ccGenStatus').textContent = '✓ Datos tomados de la cotización '+(state.meta.number||'')+'.';
+  $('ccGenStatus').className = 'status ok';
+});
+
+async function getCcIndex(){
+  try{ const raw = await storageAdapter.get('cc-index'); return raw ? JSON.parse(raw) : []; }catch(e){ return []; }
+}
+async function setCcIndex(index){ try{ await storageAdapter.set('cc-index', JSON.stringify(index)); }catch(e){} }
+
+function ccLabel(d){
+  const dateStr = d.date ? new Date(d.date+'T00:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+  return `${d.number || '(sin número)'} · ${d.clientName || '(sin cliente)'} · ${dateStr} · ${formatCOP(d.total)}`;
+}
+
+async function renderCcList(){
+  const index = await getCcIndex();
+  const sel = $('ccDraftSelect');
+  const prevValue = sel.value;
+  sel.innerHTML = '<option value="">— Selecciona una cuenta de cobro guardada —</option>' +
+    index.map(d=>`<option value="${escapeAttr(d.key)}">${escapeHtml(ccLabel(d))}</option>`).join('');
+  if(index.some(d=>d.key===prevValue)) sel.value = prevValue;
+}
+
+async function saveCcDraft(){
+  if(!state.cc.number){ $('ccGenStatus').textContent = 'Asigna primero un número de cuenta de cobro.'; return; }
+  const key = 'cc:' + state.cc.number;
+  const data = {
+    cc: state.cc,
+    client: state.client // keep client snapshot so it can be shared/regenerated later
+  };
+  const ok = await storageAdapter.set(key, JSON.stringify(data));
+  if(ok){
+    let index = await getCcIndex();
+    index = index.filter(d=>d.key!==key);
+    index.unshift({key, number:state.cc.number, clientName:state.client.name||'', date:state.cc.date, total:state.cc.total, savedAt:new Date().toISOString()});
+    index = index.slice(0,50);
+    await setCcIndex(index);
+    await renderCcList();
+    $('ccDraftSelect').value = key;
+    $('ccGenStatus').textContent = '✓ Cuenta de cobro guardada como "'+state.cc.number+'".';
+    $('ccGenStatus').className = 'status ok';
+  }else{
+    $('ccGenStatus').textContent = 'No se pudo guardar la cuenta de cobro.';
+  }
+}
+
+async function loadCcDraft(key){
+  if(!key) return;
+  const raw = await storageAdapter.get(key);
+  if(!raw){ $('ccGenStatus').textContent = 'No se encontró esa cuenta de cobro.'; return; }
+  const data = JSON.parse(raw);
+  Object.assign(state.cc, data.cc||{});
+  if(data.client) Object.assign(state.client, data.client);
+  reflectCcToForm();
+  reflectClientMetaMiscToForm();
+  $('ccGenStatus').textContent = '✓ Cuenta de cobro "'+state.cc.number+'" cargada.';
+  $('ccGenStatus').className = 'status ok';
+}
+
+async function deleteCcDraft(key){
+  if(!key) return;
+  const index = await getCcIndex();
+  const item = index.find(d=>d.key===key);
+  const label = item ? ccLabel(item) : key;
+  if(!window.confirm('¿Eliminar la cuenta de cobro "'+label+'"? Esta acción no se puede deshacer.')) return;
+  await storageAdapter.delete(key);
+  const newIndex = index.filter(d=>d.key!==key);
+  await setCcIndex(newIndex);
+  await renderCcList();
+  $('ccGenStatus').textContent = 'Cuenta de cobro eliminada.';
+}
+
+/* ---------- RECIBO DE CAJA ---------- */
+async function nextReciboNumber(){
+  let n = 1;
+  try{
+    const stored = await storageAdapter.get('recibo-counter');
+    if(stored) n = Number(stored)+1;
+  }catch(e){}
+  try{ await storageAdapter.set('recibo-counter', String(n)); }catch(e){}
+  const year = new Date().getFullYear();
+  return `RC-${year}-${String(n).padStart(4,'0')}`;
+}
+
+function reflectReciboToForm(){
+  $('rc_number').value = state.recibo.number || '';
+  $('rc_date').value = state.recibo.date || '';
+  $('rc_payername').value = state.recibo.payerName || '';
+  $('rc_payerid').value = state.recibo.payerId || '';
+  $('rc_refdoc').value = state.recibo.refDoc || '';
+  $('rc_concept').value = state.recibo.concept || '';
+  $('rc_amount').value = state.recibo.amount || 0;
+  $('rc_method').value = state.recibo.method || 'Efectivo';
+  $('rc_totaldoc').value = state.recibo.totalDoc || 0;
+  updateReciboBalanceNote();
+}
+
+$('reciboFromCcBtn').addEventListener('click', async ()=>{
+  state.recibo.number = await nextReciboNumber();
+  state.recibo.date = new Date().toISOString().slice(0,10);
+  state.recibo.payerName = state.client.name || '';
+  state.recibo.payerId = state.client.id || '';
+  state.recibo.refDoc = state.cc.number || state.meta.number || '';
+  state.recibo.concept = state.cc.number ? ('Abono a cuenta de cobro '+state.cc.number) : '';
+  state.recibo.totalDoc = state.cc.total || 0;
+  state.recibo.amount = state.cc.total || 0;
+  reflectReciboToForm();
+  $('rcGenStatus').textContent = '✓ Datos tomados de la cuenta de cobro '+(state.cc.number||'')+'. Ajusta el valor recibido si es un abono parcial.';
+  $('rcGenStatus').className = 'status ok';
+});
+
+async function getReciboIndex(){
+  try{ const raw = await storageAdapter.get('recibo-index'); return raw ? JSON.parse(raw) : []; }catch(e){ return []; }
+}
+async function setReciboIndex(index){ try{ await storageAdapter.set('recibo-index', JSON.stringify(index)); }catch(e){} }
+
+function reciboLabel(d){
+  const dateStr = d.date ? new Date(d.date+'T00:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+  return `${d.number || '(sin número)'} · ${d.payerName || '(sin nombre)'} · ${dateStr} · ${formatCOP(d.amount)}`;
+}
+
+async function renderReciboList(){
+  const index = await getReciboIndex();
+  const sel = $('reciboDraftSelect');
+  const prevValue = sel.value;
+  sel.innerHTML = '<option value="">— Selecciona un recibo guardado —</option>' +
+    index.map(d=>`<option value="${escapeAttr(d.key)}">${escapeHtml(reciboLabel(d))}</option>`).join('');
+  if(index.some(d=>d.key===prevValue)) sel.value = prevValue;
+}
+
+async function saveReciboDraft(){
+  if(!state.recibo.number){ $('rcGenStatus').textContent = 'Asigna primero un número de recibo.'; return; }
+  const key = 'recibo:' + state.recibo.number;
+  const ok = await storageAdapter.set(key, JSON.stringify(state.recibo));
+  if(ok){
+    let index = await getReciboIndex();
+    index = index.filter(d=>d.key!==key);
+    index.unshift({key, number:state.recibo.number, payerName:state.recibo.payerName||'', date:state.recibo.date, amount:state.recibo.amount, savedAt:new Date().toISOString()});
+    index = index.slice(0,50);
+    await setReciboIndex(index);
+    await renderReciboList();
+    $('reciboDraftSelect').value = key;
+  }
+  return ok;
+}
+
+async function loadReciboDraft(key){
+  if(!key) return;
+  const raw = await storageAdapter.get(key);
+  if(!raw){ $('rcGenStatus').textContent = 'No se encontró ese recibo guardado.'; return; }
+  Object.assign(state.recibo, JSON.parse(raw));
+  reflectReciboToForm();
+  $('rcGenStatus').textContent = '✓ Recibo "'+state.recibo.number+'" cargado.';
+  $('rcGenStatus').className = 'status ok';
+}
+
+async function deleteReciboDraft(key){
+  if(!key) return;
+  const index = await getReciboIndex();
+  const item = index.find(d=>d.key===key);
+  const label = item ? reciboLabel(item) : key;
+  if(!window.confirm('¿Eliminar el recibo "'+label+'"? Esta acción no se puede deshacer.')) return;
+  await storageAdapter.delete(key);
+  const newIndex = index.filter(d=>d.key!==key);
+  await setReciboIndex(newIndex);
+  await renderReciboList();
+  $('rcGenStatus').textContent = 'Recibo eliminado.';
+}
+
+$('reciboSaveBtn').addEventListener('click', async ()=>{
+  const ok = await saveReciboDraft();
+  if(ok){ $('rcGenStatus').textContent = '✓ Recibo guardado como "'+state.recibo.number+'". Puedes retomarlo cuando quieras.'; $('rcGenStatus').className = 'status ok'; }
+  else { $('rcGenStatus').textContent = 'No se pudo guardar el recibo.'; }
+});
+$('reciboLoadBtn').addEventListener('click', ()=> loadReciboDraft($('reciboDraftSelect').value));
+$('reciboDeleteBtn').addEventListener('click', ()=> deleteReciboDraft($('reciboDraftSelect').value));
+
+$('ccSaveBtn').addEventListener('click', saveCcDraft);
+$('ccLoadBtn').addEventListener('click', ()=> loadCcDraft($('ccDraftSelect').value));
+$('ccDeleteBtn').addEventListener('click', ()=> deleteCcDraft($('ccDraftSelect').value));
+
+/* ---------- PDF GENERATION ---------- */
+function getImageFormat(dataUrl){
+  if(dataUrl.startsWith('data:image/png')) return 'PNG';
+  if(dataUrl.startsWith('data:image/webp')) return 'WEBP';
+  return 'JPEG';
+}
+function loadImageDims(dataUrl){
+  return new Promise(res=>{
+    const img = new Image();
+    img.onload = ()=>res({w:img.naturalWidth,h:img.naturalHeight});
+    img.onerror = ()=>res({w:1,h:1});
+    img.src = dataUrl;
+  });
+}
+
+function fitFontSize(doc, text, maxWidth, startSize, minSize){
+  let size = startSize;
+  doc.setFontSize(size);
+  while(size > minSize && doc.getTextWidth(text) > maxWidth){
+    size -= 0.5;
+    doc.setFontSize(size);
+  }
+  return size;
+}
+
+/* Draws the shared letterhead (logo + company name/contact stacked, plus a right-hand
+   document-info box) used by both the quote and the cuenta de cobro. Returns the y
+   position where body content should start. */
+async function drawHeader(doc, pageW, margin, {docLabel, docNumber, rightLines}){
+  const TRACE = PDF_TRACE, INK = PDF_INK, INKSOFT = PDF_INKSOFT;
+  const headTop = margin;
+  let textX = margin;
+  let logoBottom = headTop;
+  if(state.company.logo){
+    try{
+      const dims = await loadImageDims(state.company.logo);
+      const boxW = 26, boxH = 26;
+      let w = boxW, h = boxH;
+      if(dims.w && dims.h){
+        const ratio = dims.w/dims.h;
+        if(ratio>1){ h = boxW/ratio; } else { w = boxH*ratio; }
+      }
+      doc.addImage(state.company.logo, getImageFormat(state.company.logo), margin, headTop, w, h);
+      textX = margin + boxW + 6;
+      logoBottom = headTop + h;
+    }catch(e){ /* skip logo if it fails */ }
+  }
+
+  // Reserve a fixed-width column on the right for the document-info box,
+  // so the company name/tagline/meta text on the left never runs underneath it.
+  const rightColWidth = 72;
+  const rx = pageW - margin;
+  const leftMaxWidth = Math.max(40, (rx - rightColWidth) - textX - 4);
+
+  doc.setFont('helvetica','bold'); doc.setTextColor(...INK);
+  const companyName = state.company.name || 'Tu empresa';
+  const nameSize = fitFontSize(doc, companyName, leftMaxWidth, 15, 9.5);
+  doc.setFontSize(nameSize);
+  doc.text(companyName, textX, headTop+6);
+  let curY = headTop + 11;
+
+  if(state.company.tagline){
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...INKSOFT);
+    const taglineLines = doc.splitTextToSize(state.company.tagline, leftMaxWidth).slice(0,2);
+    doc.text(taglineLines, textX, curY);
+    curY += taglineLines.length*3.6 + 1.5;
+  }
+
+  const contactLines = [
+    state.company.nit ? 'NIT: '+state.company.nit : '',
+    state.company.address || '',
+    state.company.phone ? 'Tel: '+state.company.phone : '',
+    state.company.email || '',
+    state.company.website || ''
+  ].filter(Boolean);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(...INKSOFT);
+  contactLines.forEach(line=>{
+    const wrapped = doc.splitTextToSize(line, leftMaxWidth);
+    doc.text(wrapped, textX, curY);
+    curY += wrapped.length*3.2;
+  });
+  const leftBottom = Math.max(curY, logoBottom);
+
+  // document info box (right)
+  doc.setFont('courier','bold'); doc.setFontSize(9); doc.setTextColor(...TRACE);
+  doc.text(docLabel, rx, headTop+2, {align:'right'});
+  doc.setFont('courier','normal'); doc.setFontSize(9); doc.setTextColor(...INK);
+  doc.text(docNumber || '', rx, headTop+7, {align:'right'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...INKSOFT);
+  (rightLines||[]).forEach((line,i)=>{ doc.text(line, rx, headTop+12+i*5, {align:'right'}); });
+  const rightBottom = headTop + 12 + (rightLines||[]).length*5 + 3;
+
+  let y = Math.max(leftBottom, rightBottom) + 6;
+  doc.setDrawColor(...TRACE); doc.setLineWidth(0.6);
+  doc.line(margin, y, pageW-margin, y);
+  y += 8;
+  return y;
+}
+
+/* Draws the "medios de pago disponibles" block, shared by both documents. Returns new y. */
+function drawPaymentSection(doc, pageW, pageH, margin, y, TRACE, INK){
+  if(y+40 > pageH-20){ doc.addPage(); y = margin; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...TRACE);
+  doc.text('MEDIOS DE PAGO DISPONIBLES', margin, y); y+=5.5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...INK);
+  const pay = state.payment;
+  const payLines = [];
+  if(pay.transfer.enabled) payLines.push(['Transferencia bancaria', `${pay.transfer.bank||'Banco'} · Cta. ${pay.transfer.type} N.° ${pay.transfer.number||'—'} · Titular: ${pay.transfer.holder}${pay.transfer.holderId? ' ('+pay.transfer.holderId+')':''}`]);
+  if(pay.pse.enabled) payLines.push(['PSE', pay.pse.note || 'Disponible']);
+  if(pay.nequi.enabled) payLines.push(['Nequi', pay.nequi.number || '—']);
+  if(pay.daviplata.enabled) payLines.push(['Daviplata', pay.daviplata.number || '—']);
+  if(pay.brebb.enabled) payLines.push(['Llave Bre-B', (pay.brebb.key||'—') + (pay.brebb.bank? ' · '+pay.brebb.bank:'')]);
+  if(pay.card.enabled) payLines.push(['Tarjeta débito/crédito', pay.card.note]);
+  if(pay.cash.enabled) payLines.push(['Efectivo', pay.cash.note]);
+  payLines.forEach(([label,val])=>{
+    if(y>pageH-20){ doc.addPage(); y=margin; }
+    doc.setFont('helvetica','bold'); doc.text('• '+label+':', margin, y);
+    doc.setFont('helvetica','normal');
+    const wrapped = doc.splitTextToSize(val, pageW-2*margin-4);
+    doc.text(wrapped, margin+4, y+4.2);
+    y += 4.2*wrapped.length + 3;
+  });
+  return y;
+}
+
+/* Draws the footer (company name/website + page number) on every page of the document. */
+function drawFooters(doc, pageW, pageH, margin, INKSOFT){
+  const pageCount = doc.internal.getNumberOfPages();
+  for(let p=1;p<=pageCount;p++){
+    doc.setPage(p);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(...INKSOFT);
+    doc.text(`${state.company.name} · ${state.company.website}`, margin, pageH-10);
+    doc.text(`Página ${p} de ${pageCount}`, pageW-margin, pageH-10, {align:'right'});
+  }
+}
+
+/* Appends the uploaded bank certification image as a final page, if present. */
+async function drawBankCertPage(doc, pageW, pageH, margin, TRACE){
+  if(state.bankCert.dataUrl && state.bankCert.isImage){
+    doc.addPage();
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...TRACE);
+    doc.text('CERTIFICACIÓN BANCARIA', margin, margin);
+    const dims = await loadImageDims(state.bankCert.dataUrl);
+    const maxW = pageW-2*margin, maxH = pageH-2*margin-10;
+    let w = maxW, h = maxW*(dims.h/dims.w);
+    if(h>maxH){ h = maxH; w = maxH*(dims.w/dims.h); }
+    doc.addImage(state.bankCert.dataUrl, getImageFormat(state.bankCert.dataUrl), margin, margin+8, w, h);
+  }
+}
+
+/* Converts an integer COP amount into Spanish words, e.g. 2604000 ->
+   "DOS MILLONES SEISCIENTOS CUATRO MIL PESOS M/CTE". Practical approximation
+   suitable for a cuenta de cobro; not a full formal-grammar engine. */
+function numberToWordsES(num){
+  num = Math.round(Number(num)||0);
+  if(num === 0) return 'CERO PESOS M/CTE';
+  const NEG = num < 0; num = Math.abs(num);
+
+  const UNITS=['','UN','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE'];
+  const TEENS=['DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS','DIECISIETE','DIECIOCHO','DIECINUEVE'];
+  const TWENTIES=['VEINTE','VEINTIUNO','VEINTIDÓS','VEINTITRÉS','VEINTICUATRO','VEINTICINCO','VEINTISÉIS','VEINTISIETE','VEINTIOCHO','VEINTINUEVE'];
+  const TENS=['','','','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+  const HUNDREDS=['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS','SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+
+  function under100(n){
+    if(n<10) return UNITS[n];
+    if(n<20) return TEENS[n-10];
+    if(n<30) return TWENTIES[n-20];
+    const t=Math.floor(n/10), u=n%10;
+    return u===0 ? TENS[t] : TENS[t]+' Y '+UNITS[u];
+  }
+  function under1000(n){
+    const h=Math.floor(n/100), r=n%100;
+    let s='';
+    if(h>0) s += (n===100) ? 'CIEN' : HUNDREDS[h];
+    if(r>0) s += (s?' ':'')+under100(r);
+    return s;
+  }
+
+  const millions = Math.floor(num/1000000);
+  const thousands = Math.floor((num%1000000)/1000);
+  const rest = num%1000;
+
+  let parts=[];
+  if(millions>0) parts.push(millions===1 ? 'UN MILLÓN' : under1000(millions)+' MILLONES');
+  if(thousands>0) parts.push(thousands===1 ? 'MIL' : under1000(thousands)+' MIL');
+  if(rest>0) parts.push(under1000(rest));
+
+  let words = parts.join(' ').trim();
+  words += (num===1) ? ' PESO M/CTE' : ' PESOS M/CTE';
+  return (NEG?'MENOS ':'') + words;
+}
+
+async function generatePDF(){
+  $('genStatus').textContent = 'Generando PDF…';
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4'});
+  const pageW = 210, pageH = 297, margin = 15;
+
+  const TRACE = PDF_TRACE, INK = PDF_INK, INKSOFT = PDF_INKSOFT, LINE = PDF_LINE;
+
+  const dateStr = state.meta.date ? new Date(state.meta.date+'T00:00:00').toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'}) : '';
+  let validText = '';
+  if(state.meta.date && state.meta.validity){
+    const d = new Date(state.meta.date+'T00:00:00');
+    d.setDate(d.getDate()+Number(state.meta.validity));
+    validText = 'Válida hasta: '+d.toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  }
+  let y = await drawHeader(doc, pageW, margin, {
+    docLabel: 'COTIZACIÓN',
+    docNumber: state.meta.number,
+    rightLines: ['Fecha: '+dateStr, validText].filter(Boolean)
+  });
+
+  // client section
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...TRACE);
+  doc.text('CLIENTE', margin, y);
+  y += 5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...INK);
+  const clientLines = [
+    'Cliente: '+(state.client.name||'—')+'    NIT/CC: '+(state.client.id||'—'),
+    'Teléfono: '+(state.client.phone||'—')+'    Correo: '+(state.client.email||'—'),
+    'Dirección: '+(state.client.address||'—')
+  ];
+  clientLines.forEach(l=>{ doc.text(l, margin, y); y+=5; });
+  y += 3;
+
+  // items table header
+  function drawTableHeader(){
+    doc.setFillColor(...INK);
+    doc.rect(margin, y, pageW-2*margin, 7, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(255,255,255);
+    doc.text('#', margin+2, y+4.7);
+    doc.text('DESCRIPCIÓN', margin+12, y+4.7);
+    doc.text('CANT.', pageW-margin-42, y+4.7, {align:'right'});
+    doc.text('VLR. UNIT.', pageW-margin-22, y+4.7, {align:'right'});
+    doc.text('VLR. TOTAL', pageW-margin-2, y+4.7, {align:'right'});
+    y += 7;
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...TRACE);
+  doc.text('DETALLE DE LA COTIZACIÓN', margin, y);
+  y += 5;
+  drawTableHeader();
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...INK);
+  state.items.forEach((it,i)=>{
+    const descLines = doc.splitTextToSize(it.desc||'—', 110);
+    const rowH = Math.max(6, descLines.length*4.2+2);
+    if(y+rowH > pageH-55){
+      doc.addPage(); y = margin;
+      drawTableHeader();
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...INK);
+    }
+    if(i%2===1){ doc.setFillColor(251,250,247); doc.rect(margin, y, pageW-2*margin, rowH, 'F'); }
+    doc.text(String(i+1), margin+2, y+4.5);
+    doc.text(descLines, margin+12, y+4.5);
+    doc.text(String(it.qty||0), pageW-margin-42, y+4.5, {align:'right'});
+    doc.text(formatCOP(it.price), pageW-margin-22, y+4.5, {align:'right'});
+    doc.text(formatCOP((it.qty||0)*(it.price||0)), pageW-margin-2, y+4.5, {align:'right'});
+    doc.setDrawColor(...LINE); doc.setLineWidth(0.2);
+    doc.line(margin, y+rowH, pageW-margin, y+rowH);
+    y += rowH;
+  });
+  y += 4;
+
+  // totals
+  const t = computeTotals();
+  if(y+35 > pageH-20){ doc.addPage(); y = margin; }
+  const boxX = pageW-margin-70;
+  doc.setFont('courier','normal'); doc.setFontSize(9); doc.setTextColor(...INKSOFT);
+  doc.text('Subtotal', boxX, y); doc.text(formatCOP(t.subtotal), pageW-margin, y, {align:'right'}); y+=5;
+  if(t.discount>0){ doc.text('Descuento', boxX, y); doc.text('-'+formatCOP(t.discount), pageW-margin, y, {align:'right'}); y+=5; }
+  doc.text('IVA ('+t.ivaPercent+'%)', boxX, y); doc.text(formatCOP(t.iva), pageW-margin, y, {align:'right'}); y+=6;
+  doc.setDrawColor(...TRACE); doc.setLineWidth(0.5);
+  doc.line(boxX, y-4, pageW-margin, y-4);
+  doc.setFont('courier','bold'); doc.setFontSize(12); doc.setTextColor(...TRACE);
+  doc.text('TOTAL', boxX, y+2); doc.text(formatCOP(t.total), pageW-margin, y+2, {align:'right'});
+  y += 12;
+
+  // conditions
+  if(y+30 > pageH-20){ doc.addPage(); y = margin; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...TRACE);
+  doc.text('CONDICIONES COMERCIALES', margin, y); y+=5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.3); doc.setTextColor(...INK);
+  const condLines = doc.splitTextToSize(state.conditions, pageW-2*margin);
+  condLines.forEach(l=>{
+    if(y>pageH-20){ doc.addPage(); y=margin; }
+    doc.text(l, margin, y); y+=4.2;
+  });
+  y+=4;
+
+  // payment
+  y = drawPaymentSection(doc, pageW, pageH, margin, y, TRACE, INK);
+
+  // footer on every page
+  drawFooters(doc, pageW, pageH, margin, INKSOFT);
+
+  // bank certification as final page
+  await drawBankCertPage(doc, pageW, pageH, margin, TRACE);
+
+  const clientSlug = (state.client.name||'cliente').toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,30);
+  lastPdfName = `Cotizacion_${state.meta.number||'sinnumero'}_${clientSlug}.pdf`;
+  lastPdfBlob = doc.output('blob');
+  doc.save(lastPdfName);
+
+  $('genStatus').textContent = '✓ PDF descargado como "'+lastPdfName+'". Ya puedes compartirlo.';
+  $('genStatus').className = 'status ok';
+  $('waBtn').disabled = false;
+  $('mailBtn').disabled = false;
+
+  if(state.bankCert.dataUrl && !state.bankCert.isImage){
+    $('genStatus').textContent += ' Recuerda adjuntar también tu certificación bancaria en PDF por separado.';
+  }
+}
+
+$('generateBtn').addEventListener('click', async ()=>{
+  $('generateBtn').disabled = true;
+  try{
+    await generatePDF();
+    await saveDraft(); // autoguardado: nunca se pierde una cotización cuyo PDF ya se generó
+    $('genStatus').textContent = '✓ PDF descargado como "'+lastPdfName+'" y guardado como "'+state.meta.number+'". Puedes retomarla cuando quieras.';
+    $('genStatus').className = 'status ok';
+  }
+  catch(e){ $('genStatus').textContent = 'Ocurrió un error generando el PDF: '+e; }
+  $('generateBtn').disabled = false;
+});
+
+$('waBtn').addEventListener('click', ()=>{
+  const t = computeTotals();
+  const msg = `Hola${state.client.name? ' '+state.client.name:''}, te comparto la cotización ${state.meta.number} de ${state.company.name} por un total de ${formatCOP(t.total)}. Adjunto el PDF con el detalle, condiciones comerciales y medios de pago. Quedo atento(a) a tu confirmación.`;
+  const phoneDigits = (state.client.phone||'').replace(/\D/g,'');
+  const url = phoneDigits ? `https://wa.me/57${phoneDigits.replace(/^57/,'')}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+});
+
+$('mailBtn').addEventListener('click', ()=>{
+  const t = computeTotals();
+  const subject = `Cotización ${state.meta.number} - ${state.company.name}`;
+  const body = `Hola${state.client.name? ' '+state.client.name:''},\n\nAdjunto la cotización ${state.meta.number} por un total de ${formatCOP(t.total)}, con el detalle de productos/servicios, condiciones comerciales y medios de pago disponibles.\n\nRecuerda adjuntar el archivo PDF descargado a este correo antes de enviarlo.\n\nSaludos,\n${state.company.name}\n${state.company.website}`;
+  const url = `mailto:${state.client.email||''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = url;
+});
+
+/* ---------- CUENTA DE COBRO PDF ---------- */
+let lastCcPdfBlob = null;
+let lastCcPdfName = '';
+
+async function generateCuentaCobroPDF(){
+  if(!state.cc.number){ state.cc.number = await nextCcNumber(); reflectCcToForm(); }
+  if(!state.cc.date){ state.cc.date = new Date().toISOString().slice(0,10); reflectCcToForm(); }
+  $('ccGenStatus').textContent = 'Generando PDF…';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4'});
+  const pageW = 210, pageH = 297, margin = 15;
+  const TRACE = PDF_TRACE, INK = PDF_INK, INKSOFT = PDF_INKSOFT;
+
+  const dateStr = state.cc.date ? new Date(state.cc.date+'T00:00:00').toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'}) : '';
+  const rightLines = ['Fecha: '+dateStr];
+  if(state.cc.refQuote) rightLines.push('Ref. cotización: '+state.cc.refQuote);
+
+  let y = await drawHeader(doc, pageW, margin, {
+    docLabel: 'CUENTA DE COBRO',
+    docNumber: state.cc.number,
+    rightLines
+  });
+
+  // Salutation
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...INK);
+  doc.text('Señor(es):', margin, y); y += 5.5;
+  doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text(state.client.name || '—', margin, y); y += 5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...INKSOFT);
+  if(state.client.id){ doc.text('NIT/CC: '+state.client.id, margin, y); y += 4.5; }
+  if(state.client.address){ doc.text(state.client.address, margin, y); y += 4.5; }
+  y += 6;
+
+  // Main declarative paragraph, with the amount spelled out in words (standard cuenta de cobro format)
+  const totalWords = numberToWordsES(state.cc.total);
+  const billingName = state.company.legalName || state.company.name || 'nuestra empresa';
+  const items = (state.cc.items && state.cc.items.length) ? state.cc.items.filter(it=>it.desc && it.desc.trim()) : [];
+  let introText;
+  if(items.length){
+    introText = `Debe(n) a ${billingName} la suma de ${totalWords} (${formatCOP(state.cc.total)} M/CTE), por concepto de los siguientes productos y/o servicios:`;
+  }else{
+    const conceptText = (state.cc.concept && state.cc.concept.trim()) ? state.cc.concept.trim() : 'los productos y/o servicios prestados.';
+    introText = `Debe(n) a ${billingName} la suma de ${totalWords} (${formatCOP(state.cc.total)} M/CTE), por concepto de ${conceptText}`;
+  }
+  doc.setFont('helvetica','normal'); doc.setFontSize(10.5); doc.setTextColor(...INK);
+  const introLines = doc.splitTextToSize(introText, pageW-2*margin);
+  doc.text(introLines, margin, y);
+  y += introLines.length*5.2 + 5;
+
+  // Itemized list, one line per product/service — never crowded into a single paragraph
+  if(items.length){
+    function ccTableHeader(){
+      doc.setFillColor(...INK);
+      doc.rect(margin, y, pageW-2*margin, 7, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(255,255,255);
+      doc.text('#', margin+2, y+4.7);
+      doc.text('DESCRIPCIÓN', margin+12, y+4.7);
+      doc.text('CANT.', pageW-margin-32, y+4.7, {align:'right'});
+      doc.text('VALOR', pageW-margin-2, y+4.7, {align:'right'});
+      y += 7;
+    }
+    ccTableHeader();
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...INK);
+    items.forEach((it,i)=>{
+      const descLines = doc.splitTextToSize(it.desc, 122);
+      const rowH = Math.max(6, descLines.length*4.2+2);
+      if(y+rowH > pageH-75){
+        doc.addPage(); y = margin;
+        ccTableHeader();
+        doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...INK);
+      }
+      if(i%2===1){ doc.setFillColor(251,250,247); doc.rect(margin, y, pageW-2*margin, rowH, 'F'); }
+      doc.text(String(i+1), margin+2, y+4.5);
+      doc.text(descLines, margin+12, y+4.5);
+      doc.text(String(it.qty||0), pageW-margin-32, y+4.5, {align:'right'});
+      doc.text(formatCOP((it.qty||0)*(it.price||0)), pageW-margin-2, y+4.5, {align:'right'});
+      doc.setDrawColor(...PDF_LINE); doc.setLineWidth(0.2);
+      doc.line(margin, y+rowH, pageW-margin, y+rowH);
+      y += rowH;
+    });
+    y += 6;
+  }
+
+  // Total box
+  if(y+16 > pageH-70){ doc.addPage(); y = margin; }
+  doc.setDrawColor(...TRACE); doc.setLineWidth(0.5);
+  doc.setFillColor(...PDF_TRACE_SOFT_RGB());
+  doc.rect(margin, y, pageW-2*margin, 14, 'FD');
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...TRACE);
+  doc.text('VALOR TOTAL', margin+5, y+9);
+  doc.text(formatCOP(state.cc.total), pageW-margin-5, y+9, {align:'right'});
+  y += 24;
+
+  // payment methods (shared with quote)
+  y = drawPaymentSection(doc, pageW, pageH, margin, y, TRACE, INK);
+  y += 10;
+
+  // signature block: legal name + C.C., with the uploaded signature image above the line
+  if(y+55 > pageH-20){ doc.addPage(); y = margin; }
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...INK);
+  doc.text('Cordialmente,', margin, y); y += 10;
+
+  if(state.company.signature){
+    try{
+      const dims = await loadImageDims(state.company.signature);
+      const sigMaxW = 55, sigMaxH = 22;
+      let sw = sigMaxW, sh = dims.h ? sigMaxW*(dims.h/dims.w) : sigMaxH;
+      if(sh>sigMaxH){ sh = sigMaxH; sw = sigMaxH*(dims.w/dims.h); }
+      doc.addImage(state.company.signature, getImageFormat(state.company.signature), margin, y, sw, sh);
+      y += sh + 3;
+    }catch(e){ y += 15; }
+  }else{
+    y += 15;
+  }
+
+  doc.setDrawColor(...INK); doc.setLineWidth(0.3);
+  doc.line(margin, y, margin+75, y); y += 5;
+  doc.setFont('helvetica','bold'); doc.setFontSize(10);
+  doc.text(state.company.legalName || state.company.name || '', margin, y); y += 4.5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...INKSOFT);
+  if(state.company.legalId) doc.text('C.C. '+state.company.legalId, margin, y);
+
+  drawFooters(doc, pageW, pageH, margin, INKSOFT);
+  await drawBankCertPage(doc, pageW, pageH, margin, TRACE);
+
+  const clientSlug = (state.client.name||'cliente').toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,30);
+  lastCcPdfName = `CuentaDeCobro_${state.cc.number||'sinnumero'}_${clientSlug}.pdf`;
+  lastCcPdfBlob = doc.output('blob');
+  doc.save(lastCcPdfName);
+
+  $('ccGenStatus').textContent = '✓ PDF descargado como "'+lastCcPdfName+'". Ya puedes compartirlo.';
+  $('ccGenStatus').className = 'status ok';
+  $('ccWaBtn').disabled = false;
+  $('ccMailBtn').disabled = false;
+}
+function PDF_TRACE_SOFT_RGB(){ return [228,242,236]; }
+
+async function generateReciboPDF(){
+  if(!state.recibo.number){ state.recibo.number = await nextReciboNumber(); reflectReciboToForm(); }
+  if(!state.recibo.date){ state.recibo.date = new Date().toISOString().slice(0,10); reflectReciboToForm(); }
+  $('rcGenStatus').textContent = 'Generando PDF…';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4'});
+  const pageW = 210, pageH = 297, margin = 15;
+  const TRACE = PDF_TRACE, INK = PDF_INK, INKSOFT = PDF_INKSOFT;
+
+  const dateStr = state.recibo.date ? new Date(state.recibo.date+'T00:00:00').toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'}) : '';
+  const rightLines = ['Fecha: '+dateStr];
+  if(state.recibo.refDoc) rightLines.push('Ref. documento: '+state.recibo.refDoc);
+
+  let y = await drawHeader(doc, pageW, margin, {
+    docLabel: 'RECIBO DE CAJA',
+    docNumber: state.recibo.number,
+    rightLines
+  });
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...INK);
+  doc.text('Recibí de:', margin, y); y += 5.5;
+  doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text(state.recibo.payerName || '—', margin, y); y += 5;
+  if(state.recibo.payerId){
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...INKSOFT);
+    doc.text('NIT/CC: '+state.recibo.payerId, margin, y); y += 4.5;
+  }
+  y += 6;
+
+  const amountWords = numberToWordsES(state.recibo.amount);
+  const conceptText = (state.recibo.concept && state.recibo.concept.trim())
+    ? state.recibo.concept.trim()
+    : 'abono/pago recibido.';
+  let introText = `La suma de ${amountWords} (${formatCOP(state.recibo.amount)} M/CTE), por concepto de ${conceptText}`;
+  if(state.recibo.refDoc) introText += `, correspondiente al documento ${state.recibo.refDoc}.`; else introText += '.';
+  doc.setFont('helvetica','normal'); doc.setFontSize(10.5); doc.setTextColor(...INK);
+  const introLines = doc.splitTextToSize(introText, pageW-2*margin);
+  doc.text(introLines, margin, y);
+  y += introLines.length*5.2 + 8;
+
+  // Value + payment method box
+  if(y+20 > pageH-90){ doc.addPage(); y = margin; }
+  doc.setDrawColor(...TRACE); doc.setLineWidth(0.5);
+  doc.setFillColor(...PDF_TRACE_SOFT_RGB());
+  doc.rect(margin, y, pageW-2*margin, 14, 'FD');
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...TRACE);
+  doc.text('VALOR RECIBIDO', margin+5, y+9);
+  doc.text(formatCOP(state.recibo.amount), pageW-margin-5, y+9, {align:'right'});
+  y += 20;
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...INK);
+  doc.text('Forma de pago: '+(state.recibo.method||'—'), margin, y); y += 6;
+
+  if(state.recibo.totalDoc){
+    const saldo = state.recibo.totalDoc - state.recibo.amount;
+    doc.text('Valor total del documento: '+formatCOP(state.recibo.totalDoc), margin, y); y += 5.5;
+    doc.setFont('helvetica','bold');
+    doc.text(saldo > 0 ? ('Saldo pendiente: '+formatCOP(saldo)) : 'Documento pagado en su totalidad.', margin, y);
+    y += 5.5;
+    doc.setFont('helvetica','normal');
+  }
+  y += 8;
+
+  // signature block
+  if(y+55 > pageH-20){ doc.addPage(); y = margin; }
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...INK);
+  doc.text('Recibido por,', margin, y); y += 10;
+
+  if(state.company.signature){
+    try{
+      const dims = await loadImageDims(state.company.signature);
+      const sigMaxW = 55, sigMaxH = 22;
+      let sw = sigMaxW, sh = dims.h ? sigMaxW*(dims.h/dims.w) : sigMaxH;
+      if(sh>sigMaxH){ sh = sigMaxH; sw = sigMaxH*(dims.w/dims.h); }
+      doc.addImage(state.company.signature, getImageFormat(state.company.signature), margin, y, sw, sh);
+      y += sh + 3;
+    }catch(e){ y += 15; }
+  }else{
+    y += 15;
+  }
+
+  doc.setDrawColor(...INK); doc.setLineWidth(0.3);
+  doc.line(margin, y, margin+75, y); y += 5;
+  doc.setFont('helvetica','bold'); doc.setFontSize(10);
+  doc.text(state.company.legalName || state.company.name || '', margin, y); y += 4.5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...INKSOFT);
+  if(state.company.legalId) doc.text('C.C. '+state.company.legalId, margin, y);
+
+  drawFooters(doc, pageW, pageH, margin, INKSOFT);
+
+  const payerSlug = (state.recibo.payerName||'cliente').toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,30);
+  lastRcPdfName = `ReciboDeCaja_${state.recibo.number||'sinnumero'}_${payerSlug}.pdf`;
+  lastRcPdfBlob = doc.output('blob');
+  doc.save(lastRcPdfName);
+
+  $('rcGenStatus').textContent = '✓ PDF descargado como "'+lastRcPdfName+'".';
+  $('rcGenStatus').className = 'status ok';
+  $('rcWaBtn').disabled = false;
+  $('rcMailBtn').disabled = false;
+}
+
+let lastRcPdfBlob = null;
+let lastRcPdfName = '';
+
+$('reciboGenerateBtn').addEventListener('click', async ()=>{
+  $('reciboGenerateBtn').disabled = true;
+  try{
+    await generateReciboPDF();
+    await saveReciboDraft();
+    $('rcGenStatus').textContent = '✓ PDF descargado como "'+lastRcPdfName+'" y guardado como "'+state.recibo.number+'".';
+    $('rcGenStatus').className = 'status ok';
+  }
+  catch(e){ $('rcGenStatus').textContent = 'Ocurrió un error generando el PDF: '+e; }
+  $('reciboGenerateBtn').disabled = false;
+});
+
+$('rcWaBtn').addEventListener('click', ()=>{
+  const msg = `Hola${state.recibo.payerName? ' '+state.recibo.payerName:''}, te comparto el recibo de caja ${state.recibo.number} de ${state.company.name} por un valor recibido de ${formatCOP(state.recibo.amount)}${state.recibo.refDoc? ' (correspondiente a '+state.recibo.refDoc+')':''}. Adjunto el PDF.`;
+  const phoneDigits = (state.client.phone||'').replace(/\D/g,'');
+  const url = phoneDigits ? `https://wa.me/57${phoneDigits.replace(/^57/,'')}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+});
+
+$('rcMailBtn').addEventListener('click', ()=>{
+  const subject = `Recibo de caja ${state.recibo.number} - ${state.company.name}`;
+  const body = `Hola${state.recibo.payerName? ' '+state.recibo.payerName:''},\n\nAdjunto el recibo de caja ${state.recibo.number} por un valor recibido de ${formatCOP(state.recibo.amount)}${state.recibo.refDoc? ', correspondiente a '+state.recibo.refDoc:''}.\n\nRecuerda adjuntar el archivo PDF descargado a este correo antes de enviarlo.\n\nSaludos,\n${state.company.name}\n${state.company.website}`;
+  const url = `mailto:${state.client.email||''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(url, '_blank');
+});
+
+$('ccGenerateBtn').addEventListener('click', async ()=>{
+  $('ccGenerateBtn').disabled = true;
+  try{
+    await generateCuentaCobroPDF();
+    await saveCcDraft(); // autoguardado: soluciona que las cuentas de cobro generadas se perdieran
+    $('ccGenStatus').textContent = '✓ PDF descargado como "'+lastCcPdfName+'" y guardado como "'+state.cc.number+'". Puedes retomarla cuando quieras.';
+    $('ccGenStatus').className = 'status ok';
+  }
+  catch(e){ $('ccGenStatus').textContent = 'Ocurrió un error generando el PDF: '+e; }
+  $('ccGenerateBtn').disabled = false;
+});
+
+$('ccWaBtn').addEventListener('click', ()=>{
+  const msg = `Hola${state.client.name? ' '+state.client.name:''}, te comparto la cuenta de cobro ${state.cc.number} de ${state.company.name} por un total de ${formatCOP(state.cc.total)}${state.cc.refQuote? ' (correspondiente a la cotización '+state.cc.refQuote+')':''}. Adjunto el PDF. Quedo atento(a) a la confirmación del pago.`;
+  const phoneDigits = (state.client.phone||'').replace(/\D/g,'');
+  const url = phoneDigits ? `https://wa.me/57${phoneDigits.replace(/^57/,'')}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+});
+
+$('ccMailBtn').addEventListener('click', ()=>{
+  const subject = `Cuenta de cobro ${state.cc.number} - ${state.company.name}`;
+  const body = `Hola${state.client.name? ' '+state.client.name:''},\n\nAdjunto la cuenta de cobro ${state.cc.number} por un total de ${formatCOP(state.cc.total)}${state.cc.refQuote? ', correspondiente a la cotización '+state.cc.refQuote:''}.\n\nRecuerda adjuntar el archivo PDF descargado a este correo antes de enviarlo.\n\nSaludos,\n${state.company.name}\n${state.company.website}`;
+  const url = `mailto:${state.client.email||''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = url;
+});
+
+/* ---------- INIT ---------- */
+(async function init(){
+  $('q_date').value = new Date().toISOString().slice(0,10);
+  state.meta.date = $('q_date').value;
+  state.meta.number = await nextQuoteNumber();
+  $('q_number').value = state.meta.number;
+  $('conditions').value = state.conditions;
+
+  await loadProfile();
+  await renderDraftsList();
+  await renderCcList();
+  await renderReciboList();
+  renderItemsForm();
+  renderPreview();
+})();
+
+})();
+</script>
+
 </body>
 </html>
