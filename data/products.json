@@ -108,15 +108,5 @@
     "desc": "Antivirus + VPN + gestor de contraseñas, hasta 5 dispositivos.",
     "image": "productos/mcafee.jpg",
     "badge": null
-  },
-  {
-    "id": "cargador-universal",
-    "name": "Cargador universal para portátil 90W",
-    "category": "Cargadores",
-    "price": 60000,
-    "sku": "CAR-UNIV-90W",
-    "desc": "Incluye varias puntas intercambiables, compatible con la mayoría de marcas.",
-    "image": "productos/cargador-universal.jpg",
-    "badge": null
   }
 ]
