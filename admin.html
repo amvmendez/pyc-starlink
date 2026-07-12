@@ -137,6 +137,12 @@
       <label for="fName">Nombre</label>
       <input id="fName" type="text" placeholder="Ej: Cargador universal 90W">
 
+      <label for="fType">Tipo</label>
+      <select id="fType">
+        <option value="producto">Producto</option>
+        <option value="servicio">Servicio</option>
+      </select>
+
       <div class="row2">
         <div>
           <label for="fCategory">Categoría</label>
@@ -152,12 +158,12 @@
       <div class="row2">
         <div>
           <label for="fPrice">Precio (COP)</label>
-          <input id="fPrice" type="number" placeholder="Ej: 60000">
+          <input id="fPrice" type="text" inputmode="numeric" placeholder="Ej: 1.900.000">
         </div>
         <div>
           <label for="fAvailability">Disponibilidad</label>
           <select id="fAvailability">
-            <option value="">Sin mostrar (servicios)</option>
+            <option value="">No aplica (es un servicio)</option>
             <option value="stock">En stock</option>
             <option value="pedido">Bajo pedido</option>
             <option value="agotado">Agotado</option>
@@ -348,7 +354,7 @@ function renderList() {
         : `<div class="thumb"></div>`}
       <div class="meta">
         <div class="n">${p.name}</div>
-        <div class="c">${p.category} · ${p.price ? "$" + Number(p.price).toLocaleString("es-CO") : "Consultar"}${p.availability ? " · " + ({stock:"En stock",pedido:"Bajo pedido",agotado:"Agotado"}[p.availability] || "") : ""}</div>
+        <div class="c">${p.type === "servicio" ? "Servicio" : "Producto"} · ${p.category} · ${p.price ? "$" + Number(p.price).toLocaleString("es-CO") : "Consultar"}${p.availability ? " · " + ({stock:"En stock",pedido:"Bajo pedido",agotado:"Agotado"}[p.availability] || "") : ""}</div>
       </div>
       <div class="actions">
         <button class="icon-btn" data-edit="${i}" aria-label="Editar">
@@ -415,6 +421,19 @@ $("reloadBtn").addEventListener("click", loadProducts);
 let pendingImageBase64 = null;
 let pendingImageExt = "jpg";
 
+function parsePrice(str) {
+  return Number((str || "").toString().replace(/[^\d]/g, "")) || 0;
+}
+function formatPriceInput(str) {
+  const digits = (str || "").toString().replace(/[^\d]/g, "");
+  return digits ? Number(digits).toLocaleString("es-CO") : "";
+}
+$("fPrice").addEventListener("input", (e) => {
+  const cursorWasAtEnd = e.target.selectionStart === e.target.value.length;
+  e.target.value = formatPriceInput(e.target.value);
+  if (cursorWasAtEnd) e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+});
+
 $("fImage").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -434,6 +453,7 @@ $("fImage").addEventListener("change", async (e) => {
 
 function resetForm() {
   $("editingId").value = "";
+  $("fType").value = "producto";
   $("fName").value = "";
   $("fCategory").value = "";
   $("fSku").value = "";
@@ -451,10 +471,11 @@ function resetForm() {
 function startEdit(index) {
   const p = currentProducts[index];
   $("editingId").value = index;
+  $("fType").value = p.type || "producto";
   $("fName").value = p.name || "";
   $("fCategory").value = p.category || "";
   $("fSku").value = p.sku || "";
-  $("fPrice").value = p.price || "";
+  $("fPrice").value = formatPriceInput(p.price);
   $("fAvailability").value = p.availability || "";
   $("fDesc").value = p.desc || "";
   $("fImage").value = "";
@@ -517,11 +538,12 @@ $("saveProductBtn").addEventListener("click", async () => {
     id: existing ? existing.id : (slugify(name) + "-" + Date.now().toString(36)),
     name,
     category,
-    price: Number($("fPrice").value) || 0,
+    price: parsePrice($("fPrice").value),
     sku: $("fSku").value.trim() || slugify(name).toUpperCase(),
     desc: $("fDesc").value.trim(),
     image: existing ? existing.image : "",
-    availability: $("fAvailability").value || null
+    availability: $("fAvailability").value || null,
+    type: $("fType").value
   };
 
   lockUI(true);
