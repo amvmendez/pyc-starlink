@@ -3,8 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Partes y Computadores · Cómputo, componentes y Starlink</title>
-<meta name="description" content="Catálogo de partes de computador, componentes, licencias y equipos Starlink. Pide por WhatsApp, llamada o correo.">
+<title>Partes y Computadores · Antenas Starlink, licencias y componentes de PC</title>
+<meta name="description" content="Antenas y soporte Starlink, licencias de software y componentes de PC a un solo clic. Pide por WhatsApp y te confirmamos disponibilidad al momento.">
+<meta name="theme-color" content="#0d0f16">
+<link rel="canonical" href="https://partesycomputadores.com.co/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Partes y Computadores">
+<meta property="og:title" content="Partes y Computadores · Antenas Starlink, licencias y componentes de PC">
+<meta property="og:description" content="Antenas y soporte Starlink, licencias de software y componentes de PC a un solo clic. Pide por WhatsApp y te confirmamos disponibilidad al momento.">
+<meta property="og:url" content="https://partesycomputadores.com.co/">
+<meta property="og:image" content="https://partesycomputadores.com.co/assets/logo-fondo.png">
+<meta property="og:locale" content="es_CO">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Partes y Computadores · Antenas Starlink, licencias y componentes de PC">
+<meta name="twitter:description" content="Antenas y soporte Starlink, licencias de software y componentes de PC a un solo clic. Pide por WhatsApp y te confirmamos disponibilidad al momento.">
+<meta name="twitter:image" content="https://partesycomputadores.com.co/assets/logo-fondo.png">
 <link rel="icon" href="assets/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -107,14 +122,17 @@
   }
   .hero p{ color:var(--muted); font-size:16px; line-height:1.6; max-width:52ch; margin:0 0 26px; }
   .hero-ctas{ display:flex; flex-wrap:wrap; gap:10px; }
-  .hero-strip{
-    margin-top:34px; display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
-    background:var(--line); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+  .quick-links{
+    margin-top:30px; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px;
   }
-  .hero-strip div{ background:var(--panel); padding:14px 16px; }
-  .hero-strip .num{ font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; }
-  .hero-strip .lbl{ font-size:11.5px; color:var(--muted); margin-top:2px; }
-  @media (max-width:640px){ .hero-strip{ grid-template-columns:1fr; } }
+  .quick-links::-webkit-scrollbar{ display:none; }
+  .quick-chip{
+    flex:0 0 auto; font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:13px;
+    padding:10px 16px; border-radius:100px; background:var(--panel); border:1px solid var(--line);
+    color:var(--text); cursor:pointer; white-space:nowrap; transition:border-color .15s ease, transform .15s ease;
+  }
+  .quick-chip:hover{ border-color:var(--c-orange); }
+  .quick-chip:active{ transform:scale(.97); }
 
   /* ---------- pin nav (category selector = connector pins, signature element) ---------- */
   .pinbar-wrap{
@@ -244,7 +262,7 @@
 
   /* ---------- carrito ---------- */
   .cart-fab{
-    position:fixed; right:16px; bottom:96px; z-index:60;
+    position:fixed; right:16px; bottom:160px; z-index:60;
     width:52px; height:52px; border-radius:50%; background:var(--grad); color:#fff;
     display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;
     box-shadow:0 10px 24px -8px rgba(232,66,95,.55);
@@ -255,7 +273,16 @@
     background:#0d0f16; border:2px solid var(--ink); color:#fff; border-radius:100px;
     font-family:'IBM Plex Mono',monospace; font-size:10.5px; display:flex; align-items:center; justify-content:center;
   }
-  @media (min-width:760px){ .cart-fab{ bottom:24px; } }
+  @media (min-width:760px){ .cart-fab{ bottom:92px; } }
+
+  .wa-fab{
+    position:fixed; right:16px; bottom:96px; z-index:60;
+    width:52px; height:52px; border-radius:50%; background:#25D366; color:#fff;
+    display:flex; align-items:center; justify-content:center; text-decoration:none;
+    box-shadow:0 10px 24px -8px rgba(37,211,102,.55);
+  }
+  .wa-fab svg{ width:26px; height:26px; }
+  @media (min-width:760px){ .wa-fab{ bottom:24px; } }
 
   .cart-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:70; opacity:0; pointer-events:none; transition:opacity .2s ease;
@@ -290,6 +317,65 @@
     transition:opacity .2s ease, transform .2s ease;
   }
   .toast.show{ opacity:1; transform:translate(-50%, 0); }
+
+  /* ---------- modal de producto ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:90; background:rgba(0,0,0,.62);
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .modal-overlay.open{ opacity:1; pointer-events:auto; }
+
+  .product-modal{
+    position:fixed; z-index:91; background:var(--panel); border:1px solid var(--line);
+    opacity:0; pointer-events:none; transition:opacity .2s ease, transform .25s ease;
+    display:flex; flex-direction:column; overflow:hidden;
+    /* móvil: hoja inferior */
+    left:0; right:0; bottom:0; max-height:88vh; border-radius:18px 18px 0 0;
+    transform:translateY(16px);
+  }
+  .product-modal.open{ opacity:1; pointer-events:auto; transform:translateY(0); }
+  @media (min-width:640px){
+    .product-modal{
+      left:50%; right:auto; bottom:auto; top:50%;
+      width:min(560px, 92vw); max-height:85vh;
+      border-radius:18px;
+      transform:translate(-50%, calc(-50% + 14px));
+    }
+    .product-modal.open{ transform:translate(-50%, -50%); }
+  }
+
+  .modal-close{
+    position:absolute; top:12px; right:12px; z-index:2;
+    width:34px; height:34px; border-radius:50%; background:rgba(13,15,22,.7);
+    border:1px solid var(--line); color:var(--text); display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .pm-media{
+    position:relative; aspect-ratio:16/10; background:var(--panel-2);
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+  }
+  .pm-media img{ width:100%; height:100%; object-fit:cover; }
+  .pm-media svg{ width:64px; height:64px; opacity:.25; }
+  .pm-media .badge{ position:absolute; top:12px; left:12px; }
+  .pm-body{ padding:18px 20px calc(20px + env(safe-area-inset-bottom)); overflow-y:auto; }
+  .pm-body h3{ font-size:19px; margin:6px 0 10px; line-height:1.25; }
+  .pm-desc-short{ color:var(--muted); font-size:14px; line-height:1.55; margin:0 0 14px; }
+  .pm-detail{
+    font-size:13.5px; line-height:1.7; color:var(--text); white-space:pre-line;
+    border-top:1px solid var(--line); padding-top:14px; margin-bottom:18px;
+  }
+  .pm-detail:empty{ display:none; }
+  .pm-foot{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    position:sticky; bottom:-1px; background:var(--panel); padding-top:6px;
+  }
+  .pm-foot .btn{ flex:0 0 auto; }
+  .card-name{ cursor:pointer; }
+  .card-media{ cursor:pointer; }
+  .card-details-link{
+    background:none; border:none; color:var(--muted); font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px; text-decoration:underline; cursor:pointer; padding:0; align-self:flex-start;
+  }
 </style>
 </head>
 <body>
@@ -317,8 +403,8 @@
   <div class="traces"></div>
   <div class="wrap hero-inner">
     <span class="eyebrow">Medellín &amp; envíos a toda Colombia</span>
-    <h1>Partes de computador, <span class="grad-text">componentes y Starlink</span> sin vueltas</h1>
-    <p>Componentes, licencias y equipos Starlink con precio claro. Escoge lo que necesitas y pídelo directo por WhatsApp — te confirmamos disponibilidad al momento.</p>
+    <h1>Antenas y soporte Starlink, licencias de software y componentes de PC <span class="grad-text">a un solo clic sin complicaciones</span></h1>
+    <p>Escoge lo que necesitas y pídelo directo por WhatsApp — te confirmamos disponibilidad al momento.</p>
     <div class="hero-ctas">
       <a class="btn btn-grad" href="#catalogo">
         Ver catálogo
@@ -327,10 +413,13 @@
       <a class="btn btn-ghost" href="https://wa.me/573157863409" target="_blank" rel="noopener">Escribir por WhatsApp</a>
       <a class="btn btn-ghost" href="mailto:adrianamendezvargas@partesycomputadores.com.co">Escribir por correo</a>
     </div>
-    <div class="hero-strip">
-      <div><div class="num mono" id="stat-count">—</div><div class="lbl">Productos en catálogo</div></div>
-      <div><div class="num mono">24-48h</div><div class="lbl">Respuesta por WhatsApp</div></div>
-      <div><div class="num mono">CO</div><div class="lbl">Cobertura nacional</div></div>
+    <div class="quick-links" id="quickLinks">
+      <button class="quick-chip" data-jump-type="producto" data-jump-cat="Kits completos">Kits Starlink</button>
+      <button class="quick-chip" data-jump-type="producto" data-jump-cat="Cables">Cables</button>
+      <button class="quick-chip" data-jump-type="producto" data-jump-cat="Soportes — Standard 4">Soportes</button>
+      <button class="quick-chip" data-jump-type="producto" data-jump-cat="Accesorios Starlink">Accesorios</button>
+      <button class="quick-chip" data-jump-type="servicio" data-jump-cat="Servicios Starlink">Servicios Starlink</button>
+      <button class="quick-chip" data-jump-type="servicio" data-jump-cat="Soporte remoto">Soporte remoto</button>
     </div>
   </div>
 </section>
@@ -394,6 +483,10 @@
   <span class="count" id="cartCount">0</span>
 </button>
 
+<a class="wa-fab" href="https://wa.me/573157863409?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20productos" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.05-1.35A10 10 0 1 0 12 2Zm0 18.2a8.16 8.16 0 0 1-4.17-1.14l-.3-.18-3.1.83.82-3.02-.2-.31A8.2 8.2 0 1 1 12 20.2Zm4.52-6.13c-.25-.12-1.46-.72-1.68-.8-.23-.08-.39-.12-.56.12-.16.25-.64.8-.79.96-.14.16-.29.18-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.22-1.46-1.37-1.7-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.15.16-.25.24-.41.08-.16.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43h-.48c-.16 0-.43.06-.65.31-.23.25-.86.84-.86 2.04 0 1.2.88 2.37 1 2.53.12.16 1.73 2.64 4.2 3.7.59.25 1.05.4 1.4.52.59.19 1.13.16 1.55.1.47-.07 1.46-.6 1.67-1.17.2-.58.2-1.08.14-1.18-.06-.1-.22-.16-.47-.28Z"/></svg>
+</a>
+
 <div class="cart-overlay" id="cartOverlay"></div>
 <aside class="cart-drawer" id="cartDrawer" aria-label="Carrito de pedido">
   <div class="cart-head">
@@ -412,6 +505,28 @@
 </aside>
 
 <div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="modalOverlay"></div>
+<div class="product-modal" id="productModal" role="dialog" aria-modal="true" aria-labelledby="pmTitle" aria-hidden="true">
+  <button class="modal-close" id="modalCloseBtn" aria-label="Cerrar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+  </button>
+  <div class="pm-media">
+    <span class="badge" id="pmBadge" style="display:none;"></span>
+    <img id="pmImage" src="" alt="" style="display:none;">
+    <div id="pmIconFallback"></div>
+  </div>
+  <div class="pm-body">
+    <div class="card-cat" id="pmCat"></div>
+    <h3 id="pmTitle"></h3>
+    <p class="pm-desc-short" id="pmDescShort"></p>
+    <div class="pm-detail" id="pmDetail"></div>
+    <div class="pm-foot">
+      <div class="card-price" id="pmPrice"></div>
+      <button class="btn btn-grad" id="pmAddBtn">Agregar al carrito</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* =========================================================================
@@ -518,7 +633,6 @@ const grid = document.getElementById("grid");
 const pinbar = document.getElementById("pinbar");
 const searchInput = document.getElementById("searchInput");
 const resultCount = document.getElementById("resultCount");
-const statCount = document.getElementById("stat-count");
 
 let ALL_PRODUCTS = [];
 let activeType = "producto";
@@ -532,6 +646,18 @@ document.querySelectorAll(".type-tab").forEach(tab => {
     document.getElementById("catalogTitle").textContent = activeType === "producto" ? "Productos" : "Servicios";
     renderPins();
     renderGrid();
+  });
+});
+
+document.querySelectorAll(".quick-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    activeType = chip.dataset.jumpType;
+    activeCategory = chip.dataset.jumpCat;
+    document.querySelectorAll(".type-tab").forEach(t => t.classList.toggle("active", t.dataset.type === activeType));
+    document.getElementById("catalogTitle").textContent = activeType === "producto" ? "Productos" : "Servicios";
+    renderPins();
+    renderGrid();
+    document.getElementById("catalogo").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });
 
@@ -558,11 +684,12 @@ function cardHTML(p) {
 
   return `
   <article class="card">
-    <div class="card-media">${badge}${media}</div>
+    <div class="card-media" data-detail="${p.id}">${badge}${media}</div>
     <div class="card-body">
       <div class="card-cat">${p.category} · ${p.sku}</div>
-      <div class="card-name">${p.name}</div>
+      <div class="card-name" data-detail="${p.id}">${p.name}</div>
       <div class="card-desc">${p.desc || ""}</div>
+      <button class="card-details-link" data-detail="${p.id}">Ver detalles →</button>
       <div class="card-foot">
         <div class="card-price">${p.price ? fmtCOP.format(p.price) : "Consultar"}<span class="from">precio aprox.</span></div>
         <button class="mini-btn" data-add="${p.id}" aria-label="Agregar al carrito">
@@ -603,9 +730,16 @@ function renderGrid() {
     : `<div class="empty">No encontramos productos con ese filtro.<br>Escríbenos por WhatsApp y te ayudamos a buscarlo.</div>`;
 
   grid.querySelectorAll("[data-add]").forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
       const p = ALL_PRODUCTS.find(x => x.id === btn.dataset.add);
       if (p) addToCart(p);
+    });
+  });
+  grid.querySelectorAll("[data-detail]").forEach(el => {
+    el.addEventListener("click", () => {
+      const p = ALL_PRODUCTS.find(x => x.id === el.dataset.detail);
+      if (p) openProductModal(p);
     });
   });
 }
@@ -614,7 +748,6 @@ async function init() {
   document.getElementById("year").textContent = new Date().getFullYear();
   const [manual, live] = await Promise.all([loadManualProducts(), loadStarlinkLive()]);
   ALL_PRODUCTS = [...manual, ...live];
-  statCount.textContent = ALL_PRODUCTS.length;
   renderPins();
   renderGrid();
   initCart();
@@ -727,6 +860,70 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
 }
+
+// ============================== MODAL DE PRODUCTO ==========================
+let modalProduct = null;
+
+function openProductModal(p) {
+  modalProduct = p;
+  document.getElementById("pmTitle").textContent = p.name;
+  document.getElementById("pmCat").textContent = `${p.category} · ${p.sku}`;
+  document.getElementById("pmDescShort").textContent = p.desc || "";
+  document.getElementById("pmDetail").textContent = p.detalle || "";
+  document.getElementById("pmPrice").innerHTML = p.price
+    ? fmtCOP.format(p.price) + '<span class="from">precio aprox.</span>'
+    : "Consultar";
+
+  const badgeEl = document.getElementById("pmBadge");
+  const badgeHTML = availabilityBadge(p);
+  if (badgeHTML) {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = badgeHTML;
+    badgeEl.className = tmp.firstElementChild.className;
+    badgeEl.textContent = tmp.firstElementChild.textContent;
+    badgeEl.style.display = "";
+  } else {
+    badgeEl.style.display = "none";
+  }
+
+  const imgEl = document.getElementById("pmImage");
+  const fallbackEl = document.getElementById("pmIconFallback");
+  if (p.image) {
+    imgEl.src = p.image;
+    imgEl.alt = p.name;
+    imgEl.style.display = "block";
+    imgEl.onerror = () => { imgEl.style.display = "none"; fallbackEl.innerHTML = placeholderIcon(); };
+    fallbackEl.innerHTML = "";
+  } else {
+    imgEl.style.display = "none";
+    fallbackEl.innerHTML = placeholderIcon();
+  }
+
+  document.getElementById("modalOverlay").classList.add("open");
+  const modal = document.getElementById("productModal");
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeProductModal() {
+  document.getElementById("modalOverlay").classList.remove("open");
+  const modal = document.getElementById("productModal");
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  modalProduct = null;
+}
+
+document.getElementById("modalCloseBtn").addEventListener("click", closeProductModal);
+document.getElementById("modalOverlay").addEventListener("click", closeProductModal);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeProductModal(); });
+document.getElementById("pmAddBtn").addEventListener("click", () => {
+  if (modalProduct) {
+    addToCart(modalProduct);
+    closeProductModal();
+  }
+});
 
 function initCart() {
   loadCart();
