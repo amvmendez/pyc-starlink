@@ -1025,6 +1025,11 @@
             <option value="encargo">Por encargo, 1-3 días</option>
           </select>
         </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label>Foto (URL pública de la imagen)</label>
+          <input type="text" id="newAccFoto" placeholder="https://.../router-mini.jpg" autocapitalize="off" autocorrect="off">
+          <small class="hint">⚠️ Este campo NO sube archivos — solo guarda un link. Debe ser una <b>URL pública</b> (empieza por <b>https://</b>) que cualquiera pueda abrir sin iniciar sesión, ej: una imagen ya subida a tu repo de GitHub (<span class="mono">https://raw.githubusercontent.com/...</span>), a Firebase Storage, o cualquier otro sitio. Si primero subes la foto ahí y luego pegas ese link aquí, se refleja sola en la tienda. Si la dejas vacía o el link no carga, la tienda muestra su ícono de respaldo sin romperse.</small>
+        </div>
       </div>
       <button class="btn btn-primary" id="btnAddAccesorio">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
@@ -1036,7 +1041,7 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Accesorio</th><th>Costo promedio</th><th>Precio venta</th><th>Stock</th><th>Valor stock (costo)</th><th>Tienda</th><th></th>
+            <th>Foto</th><th>Accesorio</th><th>Costo promedio</th><th>Precio venta</th><th>Stock</th><th>Valor stock (costo)</th><th>Tienda</th><th></th>
           </tr></thead>
           <tbody id="accesoriosBody"></tbody>
         </table>
@@ -1885,58 +1890,58 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-2";
-  const APP_VERSION_NOTA = "Fecha/hora de servicio agendado, botones más grandes, egresos en azul";
+  const APP_VERSION = "2026.07.12-4";
+  const APP_VERSION_NOTA = "Aclaración de foto: debe ser URL pública, no archivo local";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
     // --- Alimentación / routers ---
-    { id:"fuente_std4",   nombre:"Fuente de alimentación avanzada | Standard 4", precio:1063000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"router3",       nombre:"Router 3 | Standard 4, Mini",                  precio:624000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"router_mini",   nombre:"Router Mini",                                  precio:249790, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"fuente_std4",   nombre:"Fuente de alimentación avanzada | Standard 4", precio:1063000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"router3",       nombre:"Router 3 | Standard 4, Mini",                  precio:624000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"router_mini",   nombre:"Router Mini",                                  precio:249790, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
     // --- Cables ---
-    { id:"cable_15",      nombre:"Cable Starlink de 15 m",                       precio:341600, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"cable_45",      nombre:"Cable Starlink de 45 m",                       precio:630800, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"cc_mini_15",    nombre:"Cable de alimentación CC | Mini 15 m",         precio:210000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"cc_mini_30",    nombre:"Cable de alimentación CC | Mini 30 m",         precio:265000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"cable_eth_mini_15", nombre:"Cable Ethernet | Mini 15 m",               precio:211000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"cable_usbc_mini_5", nombre:"Cable USB-C | Mini 5 m",                   precio:175000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"cable_15",      nombre:"Cable Starlink de 15 m",                       precio:341600, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"cable_45",      nombre:"Cable Starlink de 45 m",                       precio:630800, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"cc_mini_15",    nombre:"Cable de alimentación CC | Mini 15 m",         precio:210000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"cc_mini_30",    nombre:"Cable de alimentación CC | Mini 30 m",         precio:265000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"cable_eth_mini_15", nombre:"Cable Ethernet | Mini 15 m",               precio:211000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"cable_usbc_mini_5", nombre:"Cable USB-C | Mini 5 m",                   precio:175000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
     // --- Kits y adaptadores ---
-    { id:"kit_viaje_mini", nombre:"Kit de viaje | Mini",                         precio:237000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"adap_auto_mini", nombre:"Adaptador para automóvil | Mini",             precio:280000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"adap_std4_a_mini", nombre:"Adaptador de soporte Standard 4/4X a Standard mini", precio:231000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"adap_tubo_std4", nombre:"Adaptador de tubo | Standard 4",              precio:286700, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"masonry_kit",   nombre:"Masonry Routing Kit",                         precio:374300, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"cable_routing_kit", nombre:"Cable Routing Kit",                       precio:262000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"kit_viaje_mini", nombre:"Kit de viaje | Mini",                         precio:237000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"adap_auto_mini", nombre:"Adaptador para automóvil | Mini",             precio:280000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"adap_std4_a_mini", nombre:"Adaptador de soporte Standard 4/4X a Standard mini", precio:231000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"adap_tubo_std4", nombre:"Adaptador de tubo | Standard 4",              precio:286700, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"masonry_kit",   nombre:"Masonry Routing Kit",                         precio:374300, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"cable_routing_kit", nombre:"Cable Routing Kit",                       precio:262000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
     // --- Soportes Standard 4 ---
-    { id:"soporte_portaequip_std4", nombre:"Soporte para portaequipajes | Standard 4",     precio:355000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_giratorio_std4",  nombre:"Soporte giratorio | Standard 4 y 4X, Enterprise", precio:41000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_pared_std4",      nombre:"Soporte de pared | Standard 4",                precio:419600, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_base_cruz_std4",  nombre:"Base de estructura en cruz | Standard 4/4X, Enterprise", precio:410000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_cresta_std4",     nombre:"Soporte para cresta | Standard 4/4X",          precio:420000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_router3",         nombre:"Soporte del Router 3",                         precio:228900, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_movilidad_std4",  nombre:"Soporte para movilidad | Standard 4",          precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_fuente_std4",     nombre:"Soporte de la fuente de alimentación | Standard 4", precio:221300, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_portaequip_std4", nombre:"Soporte para portaequipajes | Standard 4",     precio:355000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_giratorio_std4",  nombre:"Soporte giratorio | Standard 4 y 4X, Enterprise", precio:41000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_pared_std4",      nombre:"Soporte de pared | Standard 4",                precio:419600, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_base_cruz_std4",  nombre:"Base de estructura en cruz | Standard 4/4X, Enterprise", precio:410000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_cresta_std4",     nombre:"Soporte para cresta | Standard 4/4X",          precio:420000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_router3",         nombre:"Soporte del Router 3",                         precio:228900, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_movilidad_std4",  nombre:"Soporte para movilidad | Standard 4",          precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_fuente_std4",     nombre:"Soporte de la fuente de alimentación | Standard 4", precio:221300, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
     // --- Soportes Mini ---
-    { id:"soporte_movilidad_mini",  nombre:"Soporte para movilidad | Mini",                precio:100000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_portaequip_mini", nombre:"Soporte para portaequipajes | Mini",           precio:110000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_giratorio_mini",  nombre:"Soporte giratorio | Mini",                     precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_pared_mini",      nombre:"Soporte de pared | Mini",                      precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_movilidad_mini",  nombre:"Soporte para movilidad | Mini",                precio:100000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_portaequip_mini", nombre:"Soporte para portaequipajes | Mini",           precio:110000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_giratorio_mini",  nombre:"Soporte giratorio | Mini",                     precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_pared_mini",      nombre:"Soporte de pared | Mini",                      precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
     // --- Varios ---
-    { id:"soporte_varios", nombre:"Soporte / trípode (otros)",                  precio:0, precioCompra:0,       stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_varios", nombre:"Soporte / trípode (otros)",                  precio:0, precioCompra:0,       stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
     // --- Kits con activación y accesorios importados/complementarios ---
-    { id:"kit_std4_activacion",       nombre:"Kit Antena Starlink Estándar V4 + Activación y Configuración", precio:1900000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"kit_mini_activacion",       nombre:"Kit Antena Starlink Mini + Activación y Configuración",        precio:1100000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"protector_acrilico_std4",   nombre:"Protector Acrílico de Antena Starlink Estándar V4",            precio:380000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"adaptador_poe_v4",          nombre:"Adaptador PoE para Starlink V4 12V a 57V (Importado)",         precio:380000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"maletin_camuflado",         nombre:"Maletín Camuflado de Transporte para Starlink",                precio:300000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_acrilico_router3",  nombre:"Soporte Acrílico para Router Gen 3",                           precio:260000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"radio_enlace_ptp",          nombre:"Radio Enlace Punto a Punto (1 KM de Alcance - Importado)",     precio:580000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"soporte_pared_compat_v4",   nombre:"Soporte / Base de Pared Compatible V4",                        precio:280000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"kit_mini_base_techo_carro", nombre:"Kit Starlink Mini para base de techo de carro",                precio:195000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"cable_3puntas_mini",        nombre:"Cable de 3 puntas para Antena Starlink Mini",                  precio:195000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"cable_generico_cigarrera",  nombre:"Cable genérico para conectar Antena en Cigarrera",             precio:185000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
-    { id:"maletin_rigido_mini_imp",   nombre:"Maletín Rígido para Starlink Mini (Importado)",                precio:280000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"kit_std4_activacion",       nombre:"Kit Antena Starlink Estándar V4 + Activación y Configuración", precio:1900000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"kit_mini_activacion",       nombre:"Kit Antena Starlink Mini + Activación y Configuración",        precio:1100000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"protector_acrilico_std4",   nombre:"Protector Acrílico de Antena Starlink Estándar V4",            precio:380000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"adaptador_poe_v4",          nombre:"Adaptador PoE para Starlink V4 12V a 57V (Importado)",         precio:380000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"maletin_camuflado",         nombre:"Maletín Camuflado de Transporte para Starlink",                precio:300000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_acrilico_router3",  nombre:"Soporte Acrílico para Router Gen 3",                           precio:260000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"radio_enlace_ptp",          nombre:"Radio Enlace Punto a Punto (1 KM de Alcance - Importado)",     precio:580000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_pared_compat_v4",   nombre:"Soporte / Base de Pared Compatible V4",                        precio:280000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"kit_mini_base_techo_carro", nombre:"Kit Starlink Mini para base de techo de carro",                precio:195000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"cable_3puntas_mini",        nombre:"Cable de 3 puntas para Antena Starlink Mini",                  precio:195000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"cable_generico_cigarrera",  nombre:"Cable genérico para conectar Antena en Cigarrera",             precio:185000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"maletin_rigido_mini_imp",   nombre:"Maletín Rígido para Starlink Mini (Importado)",                precio:280000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
   ];
 
   // Ítems que SOLO se alquilan, no se venden — independientes del catálogo de accesorios de inventario
@@ -2743,6 +2748,13 @@
     const accesoriosOrdenados = [...state.accesorios].sort((a,b) => a.nombre.localeCompare(b.nombre, "es"));
     body.innerHTML = accesoriosOrdenados.map(a => `
       <tr>
+        <td>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:4px; width:64px;">
+            ${a.foto ? `<img src="${escapeHtml(a.foto)}" alt="" style="width:44px; height:44px; object-fit:cover; border-radius:8px; border:1px solid var(--line); background:var(--bg-1);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">` : ""}
+            <div style="display:${a.foto ? "none" : "flex"}; width:44px; height:44px; align-items:center; justify-content:center; border-radius:8px; border:1px dashed var(--line); background:var(--bg-1); color:var(--tx-2); font-size:16px;">🖼</div>
+            <input type="text" class="acc-foto" data-id="${a.id}" value="${escapeHtml(a.foto||"")}" placeholder="URL foto" style="width:64px; font-size:9px; padding:3px 4px;">
+          </div>
+        </td>
         <td>${escapeHtml(a.nombre)}</td>
         <td>
           <input type="number" min="0" step="1000" class="price-input acc-precio-compra" data-id="${a.id}" value="${Number(a.precioCompra)||0}">
@@ -2805,6 +2817,19 @@
         const acc = state.accesorios.find(x => x.id === e.target.dataset.id);
         if(!acc) return;
         acc.disponibilidad = e.target.value || "importado";
+        scheduleSync();
+      });
+    });
+
+    $all(".acc-foto").forEach(inp => {
+      inp.addEventListener("change", (e) => {
+        const acc = state.accesorios.find(x => x.id === e.target.dataset.id);
+        if(!acc) return;
+        acc.foto = e.target.value.trim();
+        if(acc.foto && !/^https?:\/\//i.test(acc.foto) && !acc.foto.startsWith("productos/")){
+          toast("Ojo: debe ser una URL pública (https://...) o una ruta dentro de /productos/ de tu repo, o la tienda no la va a poder cargar");
+        }
+        renderAccesorios(); // refresca la miniatura
         scheduleSync();
       });
     });
@@ -2979,6 +3004,7 @@
     const afectaFinanzas = $("#newAccAfectaFinanzas").checked;
     const visible = $("#newAccVisible").checked;
     const disponibilidad = $("#newAccDisponibilidad").value || "importado";
+    const foto = $("#newAccFoto").value.trim();
 
     if(!nombre){
       toast("Ingresa el nombre del accesorio");
@@ -2990,8 +3016,9 @@
       return;
     }
 
-    const nuevo = { id: uid("acc"), nombre, precio, precioCompra, stock, visible, disponibilidad, custom:true };
+    const nuevo = { id: uid("acc"), nombre, precio, precioCompra, stock, visible, disponibilidad, foto, custom:true };
     state.accesorios.push(nuevo);
+    const fotoSospechosa = foto && !/^https?:\/\//i.test(foto) && !foto.startsWith("productos/");
     logHistorial("Accesorio agregado", `${nombre} — ${stock} unidades a costo ${formatCOP(precioCompra)}, venta ${formatCOP(precio)}` +
       (stock > 0 && !afectaFinanzas ? " (sin afectar Finanzas)" : ""));
 
@@ -3010,6 +3037,7 @@
     $("#newAccAfectaFinanzas").checked = true;
     $("#newAccVisible").checked = true;
     $("#newAccDisponibilidad").value = "importado";
+    $("#newAccFoto").value = "";
     $("#newAccDisponibilidadWrap").style.display = "none";
 
     renderAccesorios();
@@ -3017,7 +3045,9 @@
     renderElementosChecklist();
     renderFinanzas();
     scheduleSync();
-    toast("Accesorio agregado");
+    toast(fotoSospechosa
+      ? "Accesorio agregado, pero la foto no parece una URL pública (https://...) — revísala"
+      : "Accesorio agregado");
   }
 
   function updateAccesorioRowTotal(acc){
