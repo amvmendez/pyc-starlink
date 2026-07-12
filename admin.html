@@ -119,7 +119,18 @@
   <div id="panelScreen" class="hidden">
 
     <div class="card">
-      <h2>Productos (<span id="prodCount">0</span>)</h2>
+      <h2>Productos <span class="hint" style="display:inline; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:none;">(desde tu inventario, solo lectura)</span></h2>
+      <p class="hint">Estos vienen en vivo desde tu app de Inventario — para agregar, editar precio o stock, hazlo allá, no aquí.</p>
+      <div class="product-list" id="firebaseProductList">
+        <div class="status show pending">Cargando…</div>
+      </div>
+      <div class="form-actions">
+        <a class="btn btn-ghost btn-block" href="inventario/">Abrir Inventario →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Servicios (<span id="prodCount">0</span>)</h2>
       <p class="hint">Toca ✎ para editar, 🗑 para borrar uno. Marca varias casillas y usa "Borrar seleccionados" para borrar en lote. Los cambios tardan 1-2 minutos en verse en la tienda.</p>
       <div class="product-list" id="productList"></div>
       <div class="form-actions">
@@ -131,17 +142,12 @@
     </div>
 
     <div class="card">
-      <h2 id="formTitle">Agregar producto</h2>
+      <h2 id="formTitle">Agregar servicio</h2>
       <input type="hidden" id="editingId" value="">
+      <input type="hidden" id="fType" value="servicio">
 
       <label for="fName">Nombre</label>
-      <input id="fName" type="text" placeholder="Ej: Cargador universal 90W">
-
-      <label for="fType">Tipo</label>
-      <select id="fType">
-        <option value="producto">Producto</option>
-        <option value="servicio">Servicio</option>
-      </select>
+      <input id="fName" type="text" placeholder="Ej: Instalación de antivirus">
 
       <div class="row2">
         <div>
@@ -185,7 +191,7 @@
       </div>
 
       <div class="form-actions">
-        <button class="btn btn-grad btn-block" id="saveProductBtn">Guardar producto</button>
+        <button class="btn btn-grad btn-block" id="saveProductBtn">Guardar servicio</button>
         <button class="btn btn-ghost hidden" id="cancelEditBtn">Cancelar</button>
       </div>
       <div class="status" id="formStatus"></div>
@@ -380,7 +386,7 @@ function renderList() {
         : `<div class="thumb"></div>`}
       <div class="meta">
         <div class="n">${p.name}</div>
-        <div class="c">${p.type === "servicio" ? "Servicio" : "Producto"} · ${p.category} · ${p.price ? "$" + Number(p.price).toLocaleString("es-CO") : "Consultar"}${p.availability ? " · " + ({stock:"En stock",pedido:"Bajo pedido",agotado:"Agotado"}[p.availability] || "") : ""}</div>
+        <div class="c">${p.category} · ${p.price ? "$" + Number(p.price).toLocaleString("es-CO") : "Consultar"}${p.availability ? " · " + ({stock:"En stock",pedido:"Bajo pedido",agotado:"Agotado"}[p.availability] || "") : ""}</div>
       </div>
       <div class="actions">
         <button class="icon-btn" data-edit="${i}" aria-label="Editar">
@@ -474,7 +480,6 @@ $("fImage").addEventListener("change", async (e) => {
 
 function resetForm() {
   $("editingId").value = "";
-  $("fType").value = "producto";
   $("fName").value = "";
   $("fCategory").value = "";
   $("fSku").value = "";
@@ -485,7 +490,7 @@ function resetForm() {
   $("fImage").value = "";
   $("imgPreviewWrap").style.display = "none";
   pendingImageBase64 = null;
-  $("formTitle").textContent = "Agregar producto";
+  $("formTitle").textContent = "Agregar servicio";
   $("cancelEditBtn").classList.add("hidden");
   clearStatus($("formStatus"));
 }
@@ -493,7 +498,6 @@ function resetForm() {
 function startEdit(index) {
   const p = currentProducts[index];
   $("editingId").value = index;
-  $("fType").value = p.type || "producto";
   $("fName").value = p.name || "";
   $("fCategory").value = p.category || "";
   $("fSku").value = p.sku || "";
@@ -510,7 +514,7 @@ function startEdit(index) {
   } else {
     $("imgPreviewWrap").style.display = "none";
   }
-  $("formTitle").textContent = "Editar producto";
+  $("formTitle").textContent = "Editar servicio";
   $("cancelEditBtn").classList.remove("hidden");
   window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
 }
@@ -581,7 +585,7 @@ $("saveProductBtn").addEventListener("click", async () => {
         return updated;
       }
       return [...freshList, product];
-    }, existing ? `Editar producto: ${name}` : `Agregar producto: ${name}`);
+    }, existing ? `Editar servicio: ${name}` : `Agregar servicio: ${name}`);
 
     setStatus(statusEl, "ok", "Guardado. Se verá en la tienda en 1-2 min.");
     resetForm();
@@ -592,6 +596,39 @@ $("saveProductBtn").addEventListener("click", async () => {
     lockUI(false);
   }
 });
+
+// ---------------------------------------------------------------- vista de productos (Firebase, solo lectura)
+const FIREBASE_BASE = "https://inventarioyfinanzas-default-rtdb.firebaseio.com";
+const FIREBASE_NODE = "inventario_starlink";
+
+async function loadFirebaseProductsPreview() {
+  const el = document.getElementById("firebaseProductList");
+  try {
+    const res = await fetch(`${FIREBASE_BASE}/${FIREBASE_NODE}.json`, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    const raw = data && data.accesorios;
+    if (!raw) { el.innerHTML = `<div class="status show pending">No se encontraron accesorios en el inventario.</div>`; return; }
+    const items = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw);
+    if (!items.length) { el.innerHTML = `<div class="status show pending">Inventario vacío.</div>`; return; }
+    el.innerHTML = items.map(it => {
+      const name = it.nombre || it.name || "Sin nombre";
+      const price = Number(it.precio || 0);
+      const stock = Number(it.stock || 0);
+      return `
+      <div class="prow">
+        <div class="thumb"></div>
+        <div class="meta">
+          <div class="n">${name}</div>
+          <div class="c">$${price.toLocaleString("es-CO")} · ${stock > 0 ? stock + " en stock" : "Bajo pedido"}</div>
+        </div>
+      </div>`;
+    }).join("");
+  } catch (err) {
+    el.innerHTML = `<div class="status show err">No se pudo cargar el inventario: ${err.message}</div>`;
+  }
+}
+loadFirebaseProductsPreview();
 
 // ---------------------------------------------------------------- boot
 if (localStorage.getItem(TOKEN_KEY)) {
