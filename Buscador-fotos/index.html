@@ -77,7 +77,7 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
   <label>Repositorio</label>
   <input id="repoInput" type="text" value="amvmendez/pyc-starlink">
   <label>Base de datos Firebase (solo para Productos)</label>
-  <input id="fbInput" type="text" value="https://inventarioyfinanzas-default-rtdb.firebaseio.com">
+  <input id="fbInput" type="text" value="https://inventarioyfinanzas-default-rtdb.firebaseio.com/inventario_starlink">
 
   <label style="margin-top:16px;">¿Qué quieres revisar?</label>
   <div class="mode-row">
@@ -369,7 +369,7 @@ $('confirmBtn').addEventListener('click', async ()=>{
     source={kind:'firebase', nodeKey:c.nodeKey, arr:entries};
     fields = detectFields(entries[0]);
     fields.idField='__fbKey';
-    if(!fields.imageField) fields.imageField='foto';
+    if(!fields.imageField) fields.imageField='imagen';
   }
   buildQueue();
   $('discovery').classList.add('hidden');
@@ -496,7 +496,7 @@ $('saveBtn').addEventListener('click', async ()=>{
   const url=$('urlInput').value.trim();
   if(!url){ setStat('status','Pega o sube primero la nueva foto.','err'); return; }
   const p=currentProduct();
-  if(!fields.imageField) fields.imageField='foto';
+  if(!fields.imageField) fields.imageField='imagen';
   p[fields.imageField]=url;
   setStat('status','Guardando...','');
   try{
