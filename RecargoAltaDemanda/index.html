@@ -1017,18 +1017,18 @@ function renderAll(){
   const done    = [];
   Object.values(db).forEach(r => r.status==='pending' ? pending.push(r) : done.push(r));
   pending.sort((a,b) => a.dept.localeCompare(b.dept) || a.muni.localeCompare(b.muni));
-  done.sort((a,b)    => new Date(b.ts) - new Date(a.ts));
+  done.sort((a,b)    => a.dept.localeCompare(b.dept) || a.muni.localeCompare(b.muni));
 
   renderList('listPending', pending, 'pending');
   renderList('listDone',    done,    'done');
 
-  const total = Object.keys(db).length;
-  const doneCount = done.length;
-  const pendCount = pending.length;
-  document.getElementById('statTotal').textContent   = total;
+  const totalMunis = Object.values(DEPTS).reduce((sum, arr) => sum + arr.length, 0);
+  const doneCount  = done.length;
+  const pendCount  = totalMunis - doneCount;
+  document.getElementById('statTotal').textContent   = totalMunis;
   document.getElementById('statPending').textContent = pendCount;
   document.getElementById('statDone').textContent    = doneCount;
-  const pct = total === 0 ? 0 : Math.round(doneCount/total*100);
+  const pct = Math.round(doneCount / totalMunis * 100);
   document.getElementById('progressPct').textContent = pct + '%';
   document.getElementById('progressFill').style.width = pct + '%';
 
