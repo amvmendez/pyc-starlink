@@ -817,8 +817,8 @@
         <div class="field">
           <label>Tipo</label>
           <select id="antTipo">
-            <option value="Standard V4">Standard V4</option>
             <option value="Mini">Mini</option>
+            <option value="Standard V4">Standard V4</option>
           </select>
         </div>
         <div class="field">
@@ -879,6 +879,22 @@
         </div>
       </div>
       <small class="hint" style="margin:-6px 0 10px;">Esto calcula cuánto se le debe liquidar al propietario por los días de arriendo + los accesorios opcionales que marques abajo.</small>
+
+      <h2 class="section-title" style="margin-top:4px;">Cuenta Starlink (acceso)</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label>Correo de la cuenta</label>
+          <input type="text" id="antCuentaEmail" placeholder="correo@ejemplo.com" autocapitalize="off" autocorrect="off">
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <div style="position:relative;">
+            <input type="password" id="antCuentaPassword" placeholder="Contraseña" style="padding-right:44px;" autocapitalize="off" autocorrect="off">
+            <button type="button" id="btnVerPasswordAnt" style="position:absolute; right:6px; top:6px; background:var(--bg-3); border:1px solid var(--line); border-radius:6px; width:28px; height:28px; color:var(--tx-1); font-size:13px;">👁</button>
+          </div>
+        </div>
+      </div>
+      <small class="hint" style="margin:-6px 0 10px;">Se guarda junto con el registro de la antena para tenerlo a mano cuando necesites entrar a la cuenta.</small>
 
       <h2 class="section-title" style="margin-top:4px;">Depósito de seguridad</h2>
       <div class="form-grid">
@@ -947,7 +963,7 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Serial</th><th>Tipo</th><th>Estado</th><th>Propietario</th><th>Cliente/Evento</th><th>Ubicación</th><th>Inicio</th><th>Fin</th><th>Días</th><th>Tarifa/día</th><th>Maletín</th><th>Opcionales</th><th>Corte plan</th><th>Plan</th><th>Depósito</th><th>A liquidar</th><th></th>
+            <th>Serial</th><th>Tipo</th><th>Estado</th><th>Propietario</th><th>Cliente/Evento</th><th>Ubicación</th><th>Inicio</th><th>Fin</th><th>Días</th><th>Tarifa/día</th><th>Maletín</th><th>Opcionales</th><th>Corte plan</th><th>Plan</th><th>Cuenta Starlink</th><th>Depósito</th><th>A liquidar</th><th></th>
           </tr></thead>
           <tbody id="antenasBody"></tbody>
         </table>
@@ -981,6 +997,10 @@
         <div class="field" style="grid-column:1/-1;">
           <label>Stock inicial</label>
           <input type="number" min="0" step="1" id="newAccStock" placeholder="0">
+        </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label><input type="checkbox" id="newAccAfectaFinanzas" checked style="width:16px; height:16px; vertical-align:middle; margin-right:6px;"> El stock inicial registra una entrada (egreso) en Finanzas</label>
+          <small class="hint">Desmarca esto si ya contabilizaste esa compra por otro lado y solo quieres que el número de stock quede correcto, sin duplicar el egreso.</small>
         </div>
       </div>
       <button class="btn btn-primary" id="btnAddAccesorio">
@@ -1026,9 +1046,9 @@
         <div class="field">
           <label>Estado de la red</label>
           <select id="depEstado">
-            <option value="Pendiente">Instalación pendiente</option>
+            <option value="Cotizacion">Instalación en cotización</option>
+            <option value="Agendada">Agendada</option>
             <option value="Configuracion">En configuración</option>
-            <option value="Operativo">Operativo</option>
             <option value="Fallas">Con fallas</option>
             <option value="Finalizado">Finalizado</option>
           </select>
@@ -1046,15 +1066,26 @@
         <label>Recoger en bodega antes de instalar</label>
         <div class="checklist-inline" style="border:1px solid var(--line); border-radius:10px; background:var(--bg-1);">
           <label><input type="checkbox" id="depRecogeAntena"> Antena (se vende al cliente)</label>
-          <label><input type="checkbox" id="depRecogeBase"> Base / soporte</label>
-          <label><input type="checkbox" id="depRecogeAdaptador"> Adaptador</label>
+          <label><input type="checkbox" id="depRecogeBase"> Base / soporte (+$120.000)</label>
+          <label><input type="checkbox" id="depRecogeAdaptador"> Adaptador (+$220.000)</label>
         </div>
+        <small class="hint">Si marcas Base y Adaptador juntos, se cobra el combo a $280.000 en vez de sumar los dos por separado.</small>
       </div>
 
       <div class="field" style="margin-bottom:14px;">
         <label>Valor del equipo (si se lleva la antena)</label>
         <input type="number" min="0" step="1000" id="depValorEquipo" placeholder="0">
         <small class="hint">La antena que se lleva el cliente es de su propiedad, no es arrendada. Ingresa manualmente lo que le cobras por el equipo — varía según el caso, no tiene un precio fijo. Solo se suma al total si arriba marcaste "Antena".</small>
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <label>Documentos que solicitan clientes empresariales</label>
+        <div class="checklist-inline" style="border:1px solid var(--line); border-radius:10px; background:var(--bg-1);">
+          <label><input type="checkbox" id="depDocARL"> ARL</label>
+          <label><input type="checkbox" id="depDocSalud"> Afiliación a Salud</label>
+          <label><input type="checkbox" id="depDocAlturas"> Curso en Alturas</label>
+        </div>
+        <input type="text" id="depDocOtros" placeholder="Otros documentos (opcional)" style="margin-top:8px;">
       </div>
 
       <h2 class="section-title" style="margin-top:4px;">Valores a cobrar al cliente</h2>
@@ -1086,17 +1117,19 @@
           <textarea id="depNotas" placeholder="IPs, VLANs, SSID, credenciales de gestión, equipos usados..."></textarea>
         </div>
       </div>
+      <div class="note" id="depEditandoNota" style="display:none; margin-bottom:8px; color:var(--amber);">✏️ Editando una instalación existente — al guardar se actualiza en vez de crear una nueva.</div>
       <button class="btn btn-primary" id="btnAddDespliegue">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
         Registrar instalación
       </button>
+      <button class="btn btn-ghost" id="btnCancelarEdicionDespliegue" style="display:none; margin-top:8px;">Cancelar edición</button>
 
       <div class="divider"></div>
       <h2 class="section-title">Instalaciones activas</h2>
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Proyecto</th><th>Instalador</th><th>Ubicación</th><th>Estado</th><th>Activación</th><th>Recoger en bodega</th><th>Total al cliente</th><th>Costo instalador</th><th>Margen</th><th>Notas</th><th></th>
+            <th>Proyecto</th><th>Instalador</th><th>Ubicación</th><th>Estado</th><th>Activación</th><th>Recoger en bodega</th><th>Documentos</th><th>Total al cliente</th><th>Costo instalador</th><th>Margen</th><th>Notas</th><th></th>
           </tr></thead>
           <tbody id="desplieguesBody"></tbody>
         </table>
@@ -1175,9 +1208,20 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
         Registrar servicio
       </button>
+      <div class="note" id="servEditandoNota" style="display:none; margin-top:8px; color:var(--amber);">✏️ Editando un servicio existente — al guardar se actualiza en vez de crear uno nuevo.</div>
+      <button class="btn btn-ghost" id="btnCancelarEdicionServicio" style="display:none; margin-top:8px;">Cancelar edición</button>
 
       <div class="divider"></div>
       <h2 class="section-title">Servicios prestados</h2>
+      <div class="form-grid" style="margin-bottom:10px;">
+        <div class="field">
+          <label>Filtrar por mes</label>
+          <input type="month" id="servFiltroMes">
+        </div>
+        <div class="field" style="align-self:flex-end;">
+          <button class="btn btn-ghost" id="btnVerTodosServicios">Ver todos los meses</button>
+        </div>
+      </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Fecha</th><th>Servicio</th><th>País</th><th>Cliente</th><th>Valor</th><th></th></tr></thead>
@@ -1186,7 +1230,7 @@
       </div>
       <div class="empty-state" id="serviciosEmpty" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>
-        <div>Sin servicios registrados todavía.</div>
+        <div>Sin servicios registrados en este filtro.</div>
       </div>
 
       <div class="divider"></div>
@@ -1292,6 +1336,7 @@
       </div>
 
       <div class="kpi-row" id="kpiFinanzas"></div>
+      <div id="finDetalleBreakdown" style="display:none;"></div>
 
       <h2 class="section-title">Ingresos por instalaciones del mes</h2>
       <div class="table-wrap">
@@ -2445,6 +2490,10 @@
         <td class="mono">${escapeHtml(a.fechaCorte || "—")}</td>
         <td><span class="badge ${badgePlan}">${planEstado === "Corriendo" ? "Corriendo" : "Standby"}</span></td>
         <td>
+          ${a.cuentaEmail ? `<div class="mono" style="font-size:11px;">${escapeHtml(a.cuentaEmail)}</div>` : "—"}
+          ${a.cuentaPassword ? `<button class="icon-btn" data-ver-clave="${a.id}" title="Ver contraseña" style="margin-top:3px; width:auto; padding:2px 8px; font-size:11px;">🔑 Ver clave</button>` : ""}
+        </td>
+        <td>
           <select class="ant-deposito-select" data-id="${a.id}">
             <option value="Retenido" ${(a.depositoEstado||"Retenido")==="Retenido"?"selected":""}>Retenido</option>
             <option value="Devuelto" ${a.depositoEstado==="Devuelto"?"selected":""}>Devuelto</option>
@@ -2461,6 +2510,14 @@
         </td>
       </tr>
     `;}).join("");
+
+    $all("[data-ver-clave]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const ant = state.antenas.find(x => x.id === e.currentTarget.dataset.verClave);
+        if(!ant) return;
+        alert(`Cuenta Starlink — Antena ${ant.serial}\n\nCorreo: ${ant.cuentaEmail || "—"}\nContraseña: ${ant.cuentaPassword || "—"}`);
+      });
+    });
 
     $all(".ant-deposito-select").forEach(sel => {
       sel.addEventListener("change", (e) => {
@@ -2555,6 +2612,8 @@
     const depositoValor = Number($("#antDepositoValor").value) || 0;
     const depositoEstado = $("#antDepositoEstado").value;
     const depositoFecha = $("#antDepositoFecha").value || (depositoEstado === "Devuelto" ? new Date().toISOString().slice(0,10) : "");
+    const cuentaEmail = $("#antCuentaEmail").value.trim();
+    const cuentaPassword = $("#antCuentaPassword").value;
 
     if(!serial){
       toast("Ingresa el ID / Serial de la antena");
@@ -2572,7 +2631,7 @@
     state.antenas.unshift({
       id: uid("ant"), serial, tipo, estado, propietario, cliente, ubicacion, fecha,
       fechaInicio, fechaFin, tarifaDia, fechaCorte, planEstado, maletin, elementos,
-      depositoValor, depositoEstado, depositoFecha
+      depositoValor, depositoEstado, depositoFecha, cuentaEmail, cuentaPassword
     });
 
     const liq = calcLiquidacionAntena({ fechaInicio, fechaFin, tarifaDia, elementos, propietario });
@@ -2598,6 +2657,8 @@
     $("#antDepositoEstado").value = "Retenido";
     $("#antDepositoFecha").value = "";
     $("#antDepositoFechaWrap").style.display = "none";
+    $("#antCuentaEmail").value = "";
+    $("#antCuentaPassword").value = "";
     renderElementosChecklist();
     updateAntLiquidacionPreview();
 
@@ -2626,7 +2687,8 @@
   function renderAccesorios(){
     renderKpiAccesorios();
     const body = $("#accesoriosBody");
-    body.innerHTML = state.accesorios.map(a => `
+    const accesoriosOrdenados = [...state.accesorios].sort((a,b) => a.nombre.localeCompare(b.nombre, "es"));
+    body.innerHTML = accesoriosOrdenados.map(a => `
       <tr>
         <td>${escapeHtml(a.nombre)}</td>
         <td>
@@ -2831,6 +2893,7 @@
     const precioCompra = Number($("#newAccPrecioCompra").value) || 0;
     const precio = Number($("#newAccPrecio").value) || 0;
     const stock = Number($("#newAccStock").value) || 0;
+    const afectaFinanzas = $("#newAccAfectaFinanzas").checked;
 
     if(!nombre){
       toast("Ingresa el nombre del accesorio");
@@ -2844,9 +2907,10 @@
 
     const nuevo = { id: uid("acc"), nombre, precio, precioCompra, stock, custom:true };
     state.accesorios.push(nuevo);
-    logHistorial("Accesorio agregado", `${nombre} — ${stock} unidades a costo ${formatCOP(precioCompra)}, venta ${formatCOP(precio)}`);
+    logHistorial("Accesorio agregado", `${nombre} — ${stock} unidades a costo ${formatCOP(precioCompra)}, venta ${formatCOP(precio)}` +
+      (stock > 0 && !afectaFinanzas ? " (sin afectar Finanzas)" : ""));
 
-    if(stock > 0){
+    if(stock > 0 && afectaFinanzas){
       state.entradasAccesorios.unshift({
         id: uid("entacc"), accesorioId: nuevo.id, nombre, cantidad: stock,
         valorUnitario: precioCompra, valorTotal: stock * precioCompra,
@@ -2858,6 +2922,7 @@
     $("#newAccPrecioCompra").value = "";
     $("#newAccPrecio").value = "";
     $("#newAccStock").value = "";
+    $("#newAccAfectaFinanzas").checked = true;
 
     renderAccesorios();
     renderHistorial();
@@ -2887,7 +2952,7 @@
     $("#kpiLicencias").innerHTML = `
       <div class="kpi accent"><div class="n">${totalUnidades}</div><div class="l">Licencias en stock</div></div>
       <div class="kpi"><div class="n" style="font-size:14px">${formatCOP(valorCosto)}</div><div class="l">Valor stock (costo)</div></div>
-      <div class="kpi"><div class="n" style="font-size:14px">${formatCOP(valorVenta)}</div><div class="l">Valor stock (venta)</div></div>
+      <div class="kpi"><div class="n" style="font-size:14px">${formatCOP(valorVenta)}</div><div class="l">Valor potencial venta</div></div>
       <div class="kpi"><div class="n">${sinStock}</div><div class="l">Sin stock</div></div>
     `;
   }
@@ -3115,12 +3180,17 @@
     renderKpiServicios();
     const body = $("#serviciosBody");
     const empty = $("#serviciosEmpty");
-    if(!state.servicios.length){
+    const filtroMes = $("#servFiltroMes") ? $("#servFiltroMes").value : "";
+    const listaFiltrada = filtroMes
+      ? state.servicios.filter(s => estaEnMes(s.fechaISO, filtroMes))
+      : state.servicios;
+
+    if(!listaFiltrada.length){
       body.innerHTML = "";
       empty.style.display = "block";
     } else {
       empty.style.display = "none";
-      body.innerHTML = state.servicios.map(s => `
+      body.innerHTML = listaFiltrada.map(s => `
         <tr>
           <td class="mono">${s.fechaISO ? s.fechaISO.slice(0,10) : "—"}</td>
           <td>${escapeHtml(s.servicio)}</td>
@@ -3128,9 +3198,14 @@
           <td>${escapeHtml(s.cliente || "—")}</td>
           <td class="cop">${formatCOP(s.valor)}</td>
           <td>
-            <button class="icon-btn del" data-del-servicio="${s.id}" title="Eliminar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
-            </button>
+            <div class="row-actions">
+              <button class="icon-btn" data-retomar-servicio="${s.id}" title="Retomar para editar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 1 2.6 6.4M3 12v6h6"/></svg>
+              </button>
+              <button class="icon-btn del" data-del-servicio="${s.id}" title="Eliminar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
+              </button>
+            </div>
           </td>
         </tr>
       `).join("");
@@ -3142,6 +3217,7 @@
           if(!confirm(`¿Eliminar el registro de "${s.servicio}" (${s.pais})?`)) return;
           state.servicios = state.servicios.filter(x => x.id !== id);
           logHistorial("Servicio eliminado", `${s.servicio} — ${s.pais} — ${formatCOP(s.valor)}`);
+          if(editandoServicioId === id) cancelarEdicionServicio();
           renderServicios();
           renderInformesServicios();
           renderHistorial();
@@ -3149,8 +3225,62 @@
           scheduleSync();
         });
       });
+      $all("[data-retomar-servicio]").forEach(btn => {
+        btn.addEventListener("click", (e) => retomarServicio(e.currentTarget.dataset.retomarServicio));
+      });
     }
     renderInformesServicios();
+  }
+
+  // ---------- Retomar / editar un servicio existente ----------
+  let editandoServicioId = null;
+
+  function retomarServicio(id){
+    const s = state.servicios.find(x => x.id === id);
+    if(!s) return;
+    editandoServicioId = id;
+
+    const esListado = Object.keys({
+      "Trámite de garantía":1,"Recuperación de Cuenta Starlink":1,"Reubicación de Servicio Starlink":1,
+      "Traspaso de Cuenta":1,"Cambio de Datos de Contacto de la cuenta":1,
+      "Activación de Antena Starlink en Zona con Recargo":1,"Pago de Saldo Pendiente / Mensualidad":1
+    }).includes(s.servicio);
+    $("#servTipo").value = esListado ? s.servicio : "Otro";
+    $("#servOtroWrap").style.display = esListado ? "none" : "block";
+    $("#servOtroTexto").value = esListado ? "" : s.servicio;
+
+    const paisesListados = ["Colombia","Venezuela","Ecuador","Perú","Panamá","México","República Dominicana","Costa Rica","Guatemala","Honduras","El Salvador","Nicaragua","Bolivia","Paraguay","Chile","Argentina"];
+    const paisListado = paisesListados.includes(s.pais);
+    $("#servPais").value = paisListado ? s.pais : "Otro";
+    $("#servPaisOtroWrap").style.display = paisListado ? "none" : "block";
+    $("#servPaisOtroTexto").value = paisListado ? "" : s.pais;
+
+    $("#servCliente").value = s.cliente || "";
+    $("#servValor").value = s.valor || "";
+    $("#servFecha").value = s.fechaISO ? s.fechaISO.slice(0,10) : "";
+
+    $("#btnAddServicio").innerHTML = "💾 Guardar cambios";
+    $("#servEditandoNota").style.display = "block";
+    $("#btnCancelarEdicionServicio").style.display = "block";
+    goToTab("servicios");
+    window.scrollTo({ top: 0, behavior: "instant" });
+    toast(`Editando "${s.servicio}"`);
+  }
+
+  function cancelarEdicionServicio(){
+    editandoServicioId = null;
+    $("#servOtroTexto").value = "";
+    $("#servPaisOtroTexto").value = "";
+    $("#servCliente").value = "";
+    $("#servValor").value = "";
+    $("#servFecha").value = new Date().toISOString().slice(0,10);
+    $("#servTipo").value = "Trámite de garantía";
+    $("#servPais").value = "Colombia";
+    $("#servOtroWrap").style.display = "none";
+    $("#servPaisOtroWrap").style.display = "none";
+    $("#btnAddServicio").innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Registrar servicio';
+    $("#servEditandoNota").style.display = "none";
+    $("#btnCancelarEdicionServicio").style.display = "none";
   }
 
   function renderInformesServicios(){
@@ -3212,21 +3342,29 @@
       return;
     }
 
+    if(editandoServicioId){
+      const s = state.servicios.find(x => x.id === editandoServicioId);
+      if(s){
+        Object.assign(s, { servicio, pais, cliente, valor, fechaISO: fecha + "T00:00:00.000Z" });
+        logHistorial("Servicio actualizado", `${servicio} — ${pais} — ${formatCOP(valor)}` + (cliente ? ` (${cliente})` : ""));
+        cancelarEdicionServicio();
+        renderServicios();
+        renderInformesServicios();
+        renderHistorial();
+        renderFinanzas();
+        scheduleSync();
+        toast("Servicio actualizado");
+        return;
+      }
+    }
+
     state.servicios.unshift({
       id: uid("serv"), servicio, pais, cliente, valor,
       fechaISO: fecha + "T00:00:00.000Z", fecha: nowLabel()
     });
     logHistorial("Servicio registrado", `${servicio} — ${pais} — ${formatCOP(valor)}` + (cliente ? ` (${cliente})` : ""));
 
-    $("#servOtroTexto").value = "";
-    $("#servPaisOtroTexto").value = "";
-    $("#servCliente").value = "";
-    $("#servValor").value = "";
-    $("#servFecha").value = new Date().toISOString().slice(0,10);
-    $("#servTipo").value = "Trámite de garantía";
-    $("#servPais").value = "Colombia";
-    $("#servOtroWrap").style.display = "none";
-    $("#servPaisOtroWrap").style.display = "none";
+    cancelarEdicionServicio(); // limpia el formulario
 
     renderServicios();
     renderHistorial();
@@ -3377,24 +3515,40 @@
      RENDER — DESPLIEGUES
   ============================================================ */
   const DESPLIEGUE_BADGE = {
-    "Pendiente":"badge-pend",
+    "Cotizacion":"badge-vend",
+    "Agendada":"badge-pend",
     "Configuracion":"badge-sop",
-    "Operativo":"badge-op",
     "Fallas":"badge-fall",
     "Finalizado":"badge-fin"
   };
   const DESPLIEGUE_LABEL = {
-    "Pendiente":"Instalación pendiente",
+    "Cotizacion":"Instalación en cotización",
+    "Agendada":"Agendada",
     "Configuracion":"En configuración",
-    "Operativo":"Operativo",
     "Fallas":"Con fallas",
     "Finalizado":"Finalizado"
   };
+  const VALORES_RECOGIDA_BODEGA = {
+    base: 120000,
+    adaptador: 220000,
+    combo: 280000 // Base + Adaptador juntos (reemplaza la suma de los dos individuales)
+  };
+
+  // Base y Adaptador combinados cobran el combo ($280.000) en vez de sumar
+  // los dos valores individuales ($120.000 + $220.000 = $340.000).
+  function calcValorRecogida(recoger){
+    if(!recoger) return 0;
+    if(recoger.base && recoger.adaptador) return VALORES_RECOGIDA_BODEGA.combo;
+    if(recoger.base) return VALORES_RECOGIDA_BODEGA.base;
+    if(recoger.adaptador) return VALORES_RECOGIDA_BODEGA.adaptador;
+    return 0;
+  }
 
   function calcTotalCliente(d){
     const recogeAntena = !!(d.recoger && d.recoger.antena);
     const valorEquipo = recogeAntena ? (Number(d.valorEquipo) || 0) : 0;
-    return (Number(d.valorInstalacion) || 0) + (Number(d.valorTransporte) || 0) + valorEquipo;
+    const valorRecogida = calcValorRecogida(d.recoger);
+    return (Number(d.valorInstalacion) || 0) + (Number(d.valorTransporte) || 0) + valorEquipo + valorRecogida;
   }
 
   function calcMargenInstalacion(d){
@@ -3408,24 +3562,27 @@
     const transporte = Number($("#depValorTransporte").value) || 0;
     const recogeAntena = $("#depRecogeAntena").checked;
     const valorEquipo = recogeAntena ? (Number($("#depValorEquipo").value) || 0) : 0;
-    const total = instalacion + transporte + valorEquipo;
+    const recoger = { base: $("#depRecogeBase").checked, adaptador: $("#depRecogeAdaptador").checked };
+    const valorRecogida = calcValorRecogida(recoger);
+    const total = instalacion + transporte + valorEquipo + valorRecogida;
     box.innerHTML = `
       <div class="row"><span>Instalación</span><span class="cop">${formatCOP(instalacion)}</span></div>
       <div class="row"><span>Transporte</span><span class="cop">${formatCOP(transporte)}</span></div>
       ${recogeAntena ? `<div class="row"><span>Valor del equipo (antena vendida)</span><span class="cop">${formatCOP(valorEquipo)}</span></div>` : ""}
+      ${valorRecogida ? `<div class="row"><span>Recogida en bodega (${recoger.base && recoger.adaptador ? "combo base+adaptador" : recoger.base ? "base/soporte" : "adaptador"})</span><span class="cop">${formatCOP(valorRecogida)}</span></div>` : ""}
       <div class="row total"><span>Total a cobrar al cliente</span><span class="cop">${formatCOP(total)}</span></div>
     `;
   }
 
   function renderKpiDespliegues(){
     const total = state.despliegues.length;
-    const op = state.despliegues.filter(d => d.estado === "Operativo").length;
+    const cotizacion = state.despliegues.filter(d => d.estado === "Cotizacion").length;
+    const agendadas = state.despliegues.filter(d => d.estado === "Agendada").length;
     const fallas = state.despliegues.filter(d => d.estado === "Fallas").length;
-    const pend = state.despliegues.filter(d => d.estado === "Pendiente").length;
     $("#kpiDespliegues").innerHTML = `
       <div class="kpi accent"><div class="n">${total}</div><div class="l">Instalaciones totales</div></div>
-      <div class="kpi"><div class="n">${op}</div><div class="l">Operativas</div></div>
-      <div class="kpi"><div class="n">${pend}</div><div class="l">Pendientes</div></div>
+      <div class="kpi"><div class="n">${cotizacion}</div><div class="l">En cotización</div></div>
+      <div class="kpi"><div class="n">${agendadas}</div><div class="l">Agendadas</div></div>
       <div class="kpi"><div class="n">${fallas}</div><div class="l">Con fallas</div></div>
     `;
   }
@@ -3446,6 +3603,13 @@
         .filter(k => recoger[k])
         .map(k => `<span class="tag">${k === "antena" ? "Antena" : k === "base" ? "Base/soporte" : "Adaptador"}</span>`)
         .join("");
+      const docs = d.docs || {};
+      const docsTags = [
+        docs.arl ? "ARL" : null,
+        docs.salud ? "Afiliación Salud" : null,
+        docs.alturas ? "Curso en Alturas" : null,
+        docs.otros ? docs.otros : null
+      ].filter(Boolean).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
       const activacion = d.activacion || "Pendiente";
       const badgeAct = activacion === "Activada" ? "badge-activada" : "badge-pendiente-act";
       return `
@@ -3457,6 +3621,7 @@
           <select class="dep-estado-select" data-id="${d.id}">
             ${Object.keys(DESPLIEGUE_LABEL).map(k =>
               `<option value="${k}" ${k===d.estado?"selected":""}>${DESPLIEGUE_LABEL[k]}</option>`).join("")}
+            <option value="Cancelada">Cancelada (elimina el registro)</option>
           </select>
         </td>
         <td>
@@ -3466,12 +3631,16 @@
           </select>
         </td>
         <td style="white-space:normal; max-width:170px;">${recogerTags || "—"}</td>
+        <td style="white-space:normal; max-width:170px;">${docsTags || "—"}</td>
         <td class="cop">${formatCOP(calcTotalCliente(d))}</td>
         <td class="cop">${formatCOP(d.valorInstalador)}</td>
         <td class="cop">${formatCOP(calcMargenInstalacion(d))}</td>
         <td style="max-width:220px; white-space:normal;">${escapeHtml(d.notas || "—")}</td>
         <td>
           <div class="row-actions">
+            <button class="icon-btn" data-retomar-despliegue="${d.id}" title="Retomar para editar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 1 2.6 6.4M3 12v6h6"/></svg>
+            </button>
             <button class="icon-btn del" data-del-despliegue="${d.id}" title="Eliminar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
             </button>
@@ -3485,7 +3654,23 @@
         const id = e.target.dataset.id;
         const dep = state.despliegues.find(x => x.id === id);
         if(!dep) return;
-        const anterior = DESPLIEGUE_LABEL[dep.estado];
+
+        if(e.target.value === "Cancelada"){
+          if(!confirm(`¿Cancelar y eliminar la instalación "${dep.nombre}"? Esta acción no se puede deshacer.`)){
+            e.target.value = dep.estado; // revertir selección
+            return;
+          }
+          state.despliegues = state.despliegues.filter(x => x.id !== id);
+          logHistorial("Instalación cancelada", `${dep.nombre} — se eliminó el registro`);
+          renderDespliegues();
+          renderHistorial();
+          renderFinanzas();
+          scheduleSync();
+          toast("Instalación cancelada y eliminada");
+          return;
+        }
+
+        const anterior = DESPLIEGUE_LABEL[dep.estado] || dep.estado;
         dep.estado = e.target.value;
         logHistorial("Cambio de estado de red", `${dep.nombre}: ${anterior} → ${DESPLIEGUE_LABEL[dep.estado]}`);
         renderDespliegues();
@@ -3516,11 +3701,79 @@
         if(!confirm(`¿Eliminar la instalación "${dep.nombre}"?`)) return;
         state.despliegues = state.despliegues.filter(x => x.id !== id);
         logHistorial("Instalación eliminada", dep.nombre);
+        if(editandoDespliegueId === id) cancelarEdicionDespliegue();
         renderDespliegues();
         renderHistorial();
+        renderFinanzas();
         scheduleSync();
       });
     });
+
+    $all("[data-retomar-despliegue]").forEach(btn => {
+      btn.addEventListener("click", (e) => retomarDespliegue(e.currentTarget.dataset.retomarDespliegue));
+    });
+  }
+
+  // ---------- Retomar / editar una instalación existente ----------
+  let editandoDespliegueId = null;
+
+  function retomarDespliegue(id){
+    const dep = state.despliegues.find(x => x.id === id);
+    if(!dep) return;
+    editandoDespliegueId = id;
+
+    $("#depNombre").value = dep.nombre || "";
+    $("#depInstalador").value = dep.instalador || "";
+    $("#depUbicacion").value = dep.ubicacion || "";
+    $("#depEstado").value = dep.estado || "Cotizacion";
+    $("#depActivacion").value = dep.activacion || "Pendiente";
+    const recoger = dep.recoger || {};
+    $("#depRecogeAntena").checked = !!recoger.antena;
+    $("#depRecogeBase").checked = !!recoger.base;
+    $("#depRecogeAdaptador").checked = !!recoger.adaptador;
+    $("#depValorEquipo").value = dep.valorEquipo || "";
+    const docs = dep.docs || {};
+    $("#depDocARL").checked = !!docs.arl;
+    $("#depDocSalud").checked = !!docs.salud;
+    $("#depDocAlturas").checked = !!docs.alturas;
+    $("#depDocOtros").value = docs.otros || "";
+    $("#depValorInstalacion").value = dep.valorInstalacion || "";
+    $("#depValorTransporte").value = dep.valorTransporte || "";
+    $("#depValorInstalador").value = dep.valorInstalador || "";
+    $("#depNotas").value = dep.notas || "";
+    updateDepTotalPreview();
+
+    $("#btnAddDespliegue").innerHTML = "💾 Guardar cambios";
+    $("#btnCancelarEdicionDespliegue").style.display = "block";
+    $("#depEditandoNota").style.display = "block";
+    goToTab("despliegues");
+    window.scrollTo({ top: 0, behavior: "instant" });
+    toast(`Editando "${dep.nombre}"`);
+  }
+
+  function cancelarEdicionDespliegue(){
+    editandoDespliegueId = null;
+    $("#depNombre").value = "";
+    $("#depInstalador").value = "";
+    $("#depUbicacion").value = "";
+    $("#depEstado").value = "Cotizacion";
+    $("#depActivacion").value = "Pendiente";
+    $("#depRecogeAntena").checked = false;
+    $("#depRecogeBase").checked = false;
+    $("#depRecogeAdaptador").checked = false;
+    $("#depValorEquipo").value = "";
+    $("#depDocARL").checked = false;
+    $("#depDocSalud").checked = false;
+    $("#depDocAlturas").checked = false;
+    $("#depDocOtros").value = "";
+    $("#depValorInstalacion").value = "";
+    $("#depValorTransporte").value = "";
+    $("#depValorInstalador").value = "";
+    $("#depNotas").value = "";
+    updateDepTotalPreview();
+    $("#btnAddDespliegue").innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Registrar instalación';
+    $("#btnCancelarEdicionDespliegue").style.display = "none";
+    $("#depEditandoNota").style.display = "none";
   }
 
   function addDespliegue(){
@@ -3535,6 +3788,12 @@
       base: $("#depRecogeBase").checked,
       adaptador: $("#depRecogeAdaptador").checked
     };
+    const docs = {
+      arl: $("#depDocARL").checked,
+      salud: $("#depDocSalud").checked,
+      alturas: $("#depDocAlturas").checked,
+      otros: $("#depDocOtros").value.trim()
+    };
     const valorInstalacion = Number($("#depValorInstalacion").value) || 0;
     const valorTransporte = Number($("#depValorTransporte").value) || 0;
     const valorInstalador = Number($("#depValorInstalador").value) || 0;
@@ -3546,29 +3805,34 @@
       return;
     }
 
+    if(editandoDespliegueId){
+      const dep = state.despliegues.find(x => x.id === editandoDespliegueId);
+      if(dep){
+        Object.assign(dep, {
+          nombre, instalador, ubicacion, estado, activacion, notas,
+          recoger, docs, valorInstalacion, valorTransporte, valorInstalador, valorEquipo
+        });
+        logHistorial("Instalación actualizada", `${nombre} — total cliente ${formatCOP(calcTotalCliente(dep))}`);
+        cancelarEdicionDespliegue();
+        renderDespliegues();
+        renderHistorial();
+        renderFinanzas();
+        scheduleSync();
+        toast("Instalación actualizada");
+        return;
+      }
+    }
+
     const nuevo = {
       id: uid("dep"), nombre, instalador, ubicacion, estado, activacion, notas,
-      recoger, valorInstalacion, valorTransporte, valorInstalador, valorEquipo,
+      recoger, docs, valorInstalacion, valorTransporte, valorInstalador, valorEquipo,
       fechaISO: new Date().toISOString()
     };
     state.despliegues.unshift(nuevo);
     logHistorial("Instalación registrada", `${nombre} — ${DESPLIEGUE_LABEL[estado]} — total cliente ${formatCOP(calcTotalCliente(nuevo))} — margen ${formatCOP(calcMargenInstalacion(nuevo))}` +
       (recoger.antena ? ` — incluye venta de equipo por ${formatCOP(valorEquipo)}` : ""));
 
-    $("#depNombre").value = "";
-    $("#depInstalador").value = "";
-    $("#depUbicacion").value = "";
-    $("#depNotas").value = "";
-    $("#depEstado").value = "Pendiente";
-    $("#depActivacion").value = "Pendiente";
-    $("#depRecogeAntena").checked = false;
-    $("#depRecogeBase").checked = false;
-    $("#depRecogeAdaptador").checked = false;
-    $("#depValorInstalacion").value = "";
-    $("#depValorTransporte").value = "";
-    $("#depValorInstalador").value = "";
-    $("#depValorEquipo").value = "";
-    updateDepTotalPreview();
+    cancelarEdicionDespliegue(); // limpia el formulario (también sirve para el caso "agregar nuevo")
 
     renderDespliegues();
     renderHistorial();
@@ -3622,14 +3886,60 @@
     const utilidad = ingresosTotales - egresosTotales;
 
     $("#kpiFinanzas").innerHTML = `
-      <div class="kpi accent"><div class="n" style="font-size:15px;">${formatCOP(ingresosTotales)}</div><div class="l">Ingresos del mes</div></div>
-      <div class="kpi"><div class="n" style="font-size:15px;">${formatCOP(egresosTotales)}</div><div class="l">Egresos del mes</div></div>
+      <div class="kpi accent" id="kpiIngresosCard" style="cursor:pointer;"><div class="n" style="font-size:15px;">${formatCOP(ingresosTotales)}</div><div class="l">Ingresos del mes ▸ ver detalle</div></div>
+      <div class="kpi" id="kpiEgresosCard" style="cursor:pointer;"><div class="n" style="font-size:15px;">${formatCOP(egresosTotales)}</div><div class="l">Egresos del mes ▸ ver detalle</div></div>
       <div class="kpi"><div class="n" style="font-size:15px; color:${utilidad>=0?'var(--green)':'var(--red)'}">${formatCOP(utilidad)}</div><div class="l">Utilidad del mes</div></div>
       <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosArriendosAccesorios)}</div><div class="l">Utilidad accesorios de arriendo</div></div>
       <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosAdministracion)}</div><div class="l">Administración Alejandra</div></div>
       <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosVentasMes)}</div><div class="l">Ventas confirmadas (${ventasMes.length})</div></div>
       <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosServiciosMes)}</div><div class="l">Servicios (${serviciosMes.length})</div></div>
     `;
+
+    const desgloseIngresos = [
+      { label:"Instalaciones (total al cliente)", valor: ingresosInstalaciones },
+      { label:"Salidas de accesorios (ventas)", valor: ingresosAccesorios },
+      { label:"Salidas de licencias (ventas)", valor: ingresosLicencias },
+      { label:"Accesorios opcionales de arriendo", valor: ingresosArriendosAccesorios },
+      { label:"Administración Alejandra", valor: ingresosAdministracion },
+      { label:"Ventas confirmadas (recibo/cta. cobro pagada)", valor: ingresosVentasMes },
+      { label:"Servicios prestados", valor: ingresosServiciosMes }
+    ];
+    const desgloseEgresos = [
+      { label:"Costo del instalador", valor: egresosInstalador },
+      { label:"Entradas de accesorios (compras)", valor: egresosAccesorios },
+      { label:"Entradas de licencias (compras)", valor: egresosLicencias }
+    ];
+
+    function renderDesglose(titulo, items, total){
+      const filas = items.filter(x => x.valor !== 0).map(x => `
+        <div class="row"><span>${escapeHtml(x.label)}</span><span class="cop">${formatCOP(x.valor)}</span></div>
+      `).join("") || `<div class="row"><span style="color:var(--tx-2);">Sin movimientos este mes</span><span></span></div>`;
+      return `
+        <div class="summary-box" style="margin-top:10px;">
+          <div class="row" style="font-weight:700; color:var(--tx-0); border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:2px;">
+            <span>${titulo}</span><span></span>
+          </div>
+          ${filas}
+          <div class="row total"><span>Total</span><span class="cop">${formatCOP(total)}</span></div>
+        </div>
+      `;
+    }
+
+    const breakdownBox = $("#finDetalleBreakdown");
+    $("#kpiIngresosCard").addEventListener("click", () => {
+      const yaAbierto = breakdownBox.dataset.tipo === "ingresos" && breakdownBox.style.display !== "none";
+      if(yaAbierto){ breakdownBox.style.display = "none"; return; }
+      breakdownBox.dataset.tipo = "ingresos";
+      breakdownBox.innerHTML = renderDesglose("Desglose de ingresos del mes", desgloseIngresos, ingresosTotales);
+      breakdownBox.style.display = "block";
+    });
+    $("#kpiEgresosCard").addEventListener("click", () => {
+      const yaAbierto = breakdownBox.dataset.tipo === "egresos" && breakdownBox.style.display !== "none";
+      if(yaAbierto){ breakdownBox.style.display = "none"; return; }
+      breakdownBox.dataset.tipo = "egresos";
+      breakdownBox.innerHTML = renderDesglose("Desglose de egresos del mes", desgloseEgresos, egresosTotales);
+      breakdownBox.style.display = "block";
+    });
 
     const instBody = $("#finInstalacionesBody");
     const instEmpty = $("#finInstalacionesEmpty");
@@ -3877,6 +4187,12 @@
       $("#servPaisOtroWrap").style.display = e.target.value === "Otro" ? "block" : "none";
     });
     $("#servFecha").value = new Date().toISOString().slice(0,10);
+    $("#btnCancelarEdicionServicio").addEventListener("click", cancelarEdicionServicio);
+    $("#servFiltroMes").addEventListener("change", renderServicios);
+    $("#btnVerTodosServicios").addEventListener("click", () => {
+      $("#servFiltroMes").value = "";
+      renderServicios();
+    });
     $("#btnClearHistorial").addEventListener("click", clearHistorial);
     $("#btnForceSync").addEventListener("click", forceSync);
     $("#btnPullCloud").addEventListener("click", pullFromCloudManual);
@@ -3910,10 +4226,17 @@
     $("#antDepositoEstado").addEventListener("change", (e) => {
       $("#antDepositoFechaWrap").style.display = e.target.value === "Devuelto" ? "block" : "none";
     });
+    $("#btnVerPasswordAnt").addEventListener("click", () => {
+      const inp = $("#antCuentaPassword");
+      inp.type = inp.type === "password" ? "text" : "password";
+    });
     ["depValorInstalacion","depValorTransporte","depValorEquipo"].forEach(id => {
       $("#"+id).addEventListener("input", updateDepTotalPreview);
     });
     $("#depRecogeAntena").addEventListener("change", updateDepTotalPreview);
+    $("#depRecogeBase").addEventListener("change", updateDepTotalPreview);
+    $("#depRecogeAdaptador").addEventListener("change", updateDepTotalPreview);
+    $("#btnCancelarEdicionDespliegue").addEventListener("click", cancelarEdicionDespliegue);
 
     // Si este navegador/dispositivo nunca ha guardado nada localmente,
     // asumimos que es "nuevo" y traemos automáticamente el último respaldo de Firebase.
