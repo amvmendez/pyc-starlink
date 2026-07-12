@@ -265,7 +265,8 @@ async function discoverGithubFiles(){
           let arr=null, wrapKey=null;
           if(Array.isArray(parsed)) arr=parsed;
           else { for(const k of ['services','servicios','products','productos','items']){ if(Array.isArray(parsed[k])){arr=parsed[k]; wrapKey=k; break;} } }
-          if(arr && arr.length && looksLikeCatalog(arr[0])){
+          const nameLooksRight = /servic/i.test(item.path);
+          if(arr && (arr.length===0 ? nameLooksRight : looksLikeCatalog(arr[0]))){
             found.push({kind:'github', path:item.path, sha:fdata.sha, rawParsed:parsed, isWrapped:!!wrapKey, wrapKey, arr, count:arr.length, sample:arr.slice(0,2)});
           }
         }catch(e){/* skip unreadable file */}
@@ -300,8 +301,17 @@ async function discoverFirebaseNodes(){
       if(!childKeys.length){ diag.push({key, note:'vacío'}); continue; }
       const sampleRes = await fetch(`${fbUrl}/${key}/${childKeys[0]}.json`);
       const sample = await sampleRes.json();
-      const sampleFields = sample && typeof sample==='object' ? Object.keys(sample).join(', ') : String(sample);
-      diag.push({key, note:`${childKeys.length} elementos · campos: ${sampleFields}`});
+      let sampleFields;
+      if(sample && typeof sample==='object'){
+        sampleFields = Object.entries(sample).map(([k,v])=>{
+          let vs = typeof v==='object' ? JSON.stringify(v) : String(v);
+          if(vs.length>25) vs = vs.slice(0,25)+'…';
+          return `${k}: ${vs}`;
+        }).join(' · ');
+      } else {
+        sampleFields = String(sample);
+      }
+      diag.push({key, note:`${childKeys.length} elementos`, values: sampleFields});
       if(looksLikeCatalog(sample)){
         found.push({kind:'firebase', nodeKey:key, count:childKeys.length, sample:[sample], allKeys:childKeys});
       }
@@ -317,18 +327,20 @@ async function discoverFirebaseNodes(){
 
 function renderDiagnostic(){
   if(!lastDiagnostic) return '';
-  const rows = lastDiagnostic.map(d=>`<div style="margin-top:8px;"><b>${d.key}</b><br><span style="color:var(--sub);font-size:.78rem;">${d.note}</span></div>`).join('');
-  return `<div class="candidate"><div class="path">Esto encontré dentro de tu base de datos:</div>${rows}</div>`;
+  const rows = lastDiagnostic.map(d=>`<div style="margin-top:10px;"><b>${d.key}</b><br><span style="color:var(--sub);font-size:.78rem;">${d.note||''}</span>${d.values?`<br><span style="color:var(--text);font-size:.76rem;word-break:break-all;">${d.values}</span>`:''}</div>`).join('');
+  return `<div class="candidate"><div class="path">Esto encontré dentro de tu base de datos (un elemento de ejemplo por sección):</div>${rows}</div>`;
 }
 
 function showCandidate(){
   const c=candidates[candIndex];
   const box=$('candidateBox');
   if(!c){ box.innerHTML='<div class="status err">No hay más opciones para probar.</div>'; return; }
-  const f = c.kind==='github' ? detectFields(c.sample[0]) : detectFields(c.sample[0]);
-  const names = c.kind==='github'
-    ? c.sample.map(s=>s[f.nameField]).filter(Boolean).join(', ')
-    : c.sample.map(s=>s[f.nameField]).filter(Boolean).join(', ');
+  if(!c.sample || !c.sample.length){
+    box.innerHTML = `<div class="candidate"><div class="path">${c.kind==='github' ? c.path : 'Firebase: /'+c.nodeKey}</div><div class="count">Todavía no tiene elementos guardados — está vacío por ahora.</div></div>`;
+    return;
+  }
+  const f = detectFields(c.sample[0]);
+  const names = c.sample.map(s=>s[f.nameField]).filter(Boolean).join(', ');
   box.innerHTML = `
     <div class="candidate">
       <div class="path">${c.kind==='github' ? c.path : 'Firebase: /'+c.nodeKey}</div>
@@ -348,7 +360,7 @@ $('confirmBtn').addEventListener('click', async ()=>{
   if(!c) return;
   if(c.kind==='github'){
     source={kind:'github', path:c.path, sha:c.sha, rawParsed:c.rawParsed, isWrapped:c.isWrapped, wrapKey:c.wrapKey, arr:c.arr};
-    fields = detectFields(c.arr[0]);
+    fields = c.arr.length ? detectFields(c.arr[0]) : {idField:'id', nameField:'name', imageField:'image', catField:null};
   } else {
     // load full node
     const res = await fetch(`${fbUrl}/${c.nodeKey}.json`);
