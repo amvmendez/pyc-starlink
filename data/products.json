@@ -8,19 +8,20 @@
     "desc": "Gestión de garantía ante Starlink por antena o router defectuoso.",
     "image": "",
     "availability": null,
-    "type": "servicio"
+    "type": "servicio",
+    "visible": true
   },
   {
     "id": "svc-recuperacion",
     "name": "Recuperación de cuenta Starlink",
     "category": "Servicios Starlink",
-    "price": 90000,
+    "price": 80000,
     "sku": "SVC-RECUP-CTA",
     "desc": "Recuperamos el acceso a tu cuenta cuando perdiste el usuario o contraseña.",
-    "detalle": "",
     "image": "",
     "availability": null,
-    "type": "servicio"
+    "type": "servicio",
+    "visible": true
   },
   {
     "id": "svc-reubicacion",
@@ -31,7 +32,8 @@
     "desc": "Cambio de dirección de servicio o de zona de cobertura.",
     "image": "",
     "availability": null,
-    "type": "servicio"
+    "type": "servicio",
+    "visible": true
   },
   {
     "id": "sup-formateo",
@@ -42,7 +44,8 @@
     "desc": "Formateo completo de tu equipo por conexión remota, con respaldo previo.",
     "image": "",
     "availability": null,
-    "type": "servicio"
+    "type": "servicio",
+    "visible": true
   },
   {
     "id": "sup-optimizacion",
@@ -53,7 +56,8 @@
     "desc": "Limpieza de archivos, arranque e inicio para que tu PC vuelva a rendir.",
     "image": "",
     "availability": null,
-    "type": "servicio"
+    "type": "servicio",
+    "visible": true
   },
   {
     "id": "sup-instalacion",
@@ -64,6 +68,7 @@
     "desc": "Instalamos y configuramos los programas que necesites, sin salir de casa.",
     "image": "",
     "availability": null,
-    "type": "servicio"
+    "type": "servicio",
+    "visible": true
   }
 ]
