@@ -184,9 +184,9 @@
     padding:4px 8px; border-radius:100px; background:rgba(13,15,22,.82); border:1px solid var(--line);
     text-transform:uppercase;
   }
-  .badge.live{ color:#7CE0A8; border-color:rgba(124,224,168,.35); }
-  .badge.new{ color:var(--c-orange); border-color:rgba(255,122,69,.35); }
-  .badge.out{ color:#e8425f; border-color:rgba(232,66,95,.35); }
+  .badge.stock{ color:#7CE0A8; border-color:rgba(124,224,168,.35); }
+  .badge.pedido{ color:#66B3FF; border-color:rgba(102,179,255,.35); }
+  .badge.agotado{ color:#e8425f; border-color:rgba(232,66,95,.35); }
 
   .card-body{ padding:12px 12px 14px; display:flex; flex-direction:column; gap:8px; flex:1; }
   .card-cat{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted-2); text-transform:uppercase; letter-spacing:.08em; }
@@ -209,8 +209,8 @@
 
   /* ---------- footer ---------- */
   footer{ border-top:1px solid var(--line); padding:38px 0 120px; }
-  .foot-grid{ display:grid; gap:26px; grid-template-columns:1.3fr 1fr 1fr; }
-  @media (max-width:760px){ .foot-grid{ grid-template-columns:1fr; } }
+  .foot-grid{ display:grid; gap:26px; grid-template-columns:1.4fr 1fr; }
+  @media (max-width:600px){ .foot-grid{ grid-template-columns:1fr; } }
   footer h3{ font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0 0 12px; font-family:'IBM Plex Mono',monospace; font-weight:500; }
   footer .brand-name{ margin-bottom:8px; }
   footer p{ color:var(--muted); font-size:13.5px; line-height:1.6; margin:0; max-width:38ch; }
@@ -231,6 +231,55 @@
 
   .skiplink{ position:absolute; left:-999px; }
   .skiplink:focus{ left:12px; top:12px; z-index:100; background:var(--c-orange); color:#0d0f16; padding:8px 12px; border-radius:8px; }
+
+  /* ---------- carrito ---------- */
+  .cart-fab{
+    position:fixed; right:16px; bottom:96px; z-index:60;
+    width:52px; height:52px; border-radius:50%; background:var(--grad); color:#fff;
+    display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;
+    box-shadow:0 10px 24px -8px rgba(232,66,95,.55);
+  }
+  .cart-fab svg{ width:22px; height:22px; }
+  .cart-fab .count{
+    position:absolute; top:-4px; right:-4px; min-width:20px; height:20px; padding:0 4px;
+    background:#0d0f16; border:2px solid var(--ink); color:#fff; border-radius:100px;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; display:flex; align-items:center; justify-content:center;
+  }
+  @media (min-width:760px){ .cart-fab{ bottom:24px; } }
+
+  .cart-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:70; opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .cart-overlay.open{ opacity:1; pointer-events:auto; }
+  .cart-drawer{
+    position:fixed; right:0; top:0; bottom:0; width:min(400px, 92vw); z-index:71;
+    background:var(--panel); border-left:1px solid var(--line);
+    transform:translateX(100%); transition:transform .25s ease;
+    display:flex; flex-direction:column;
+  }
+  .cart-drawer.open{ transform:translateX(0); }
+  .cart-head{ display:flex; align-items:center; gap:10px; padding:16px; border-bottom:1px solid var(--line); }
+  .cart-head h3{ font-size:16px; flex:1; }
+  .cart-close{ background:none; border:none; color:var(--muted); cursor:pointer; padding:4px; }
+  .cart-items{ flex:1; overflow-y:auto; padding:10px 16px; }
+  .cart-empty{ text-align:center; color:var(--muted); font-size:13.5px; padding:40px 10px; }
+  .cart-row{ display:flex; gap:10px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--line); }
+  .cart-row .n{ font-size:13.5px; font-weight:600; margin-bottom:2px; }
+  .cart-row .p{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); }
+  .cart-row .qty{ display:flex; align-items:center; gap:8px; margin-top:6px; }
+  .qty-btn{ width:24px; height:24px; border-radius:6px; border:1px solid var(--line); background:var(--panel-2); color:var(--text); cursor:pointer; }
+  .cart-row .rm{ background:none; border:none; color:var(--muted-2); cursor:pointer; font-size:12px; text-decoration:underline; margin-left:auto; align-self:flex-start; }
+  .cart-foot{ padding:14px 16px calc(14px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); display:flex; flex-direction:column; gap:10px; }
+  .cart-total{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:15px; }
+  .cart-clear{ text-align:center; font-size:12px; color:var(--muted-2); background:none; border:none; cursor:pointer; text-decoration:underline; }
+
+  .toast{
+    position:fixed; left:50%; bottom:96px; transform:translate(-50%, 10px); z-index:80;
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:10px 16px; border-radius:100px; font-size:13px; opacity:0; pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%, 0); }
 </style>
 </head>
 <body>
@@ -309,18 +358,7 @@
         </a>
         <a class="foot-link" href="mailto:adrianamendezvargas@partesycomputadores.com.co">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
-          adrianamendezvargas@partesycomputadores.com.co
-        </a>
-      </div>
-      <div>
-        <h3>Herramientas</h3>
-        <a class="foot-link" href="/cotizador/">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-          Cotizador
-        </a>
-        <a class="foot-link" href="/inventario/">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Centro de operaciones
+          Enviar correo
         </a>
       </div>
     </div>
@@ -336,6 +374,30 @@
   <a class="btn btn-ghost" href="tel:+573157863409">Llamar</a>
   <a class="btn btn-ghost" href="mailto:adrianamendezvargas@partesycomputadores.com.co">Correo</a>
 </div>
+
+<button class="cart-fab" id="cartFabBtn" aria-label="Ver carrito">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+  <span class="count" id="cartCount">0</span>
+</button>
+
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer" aria-label="Carrito de pedido">
+  <div class="cart-head">
+    <h3>Tu pedido</h3>
+    <button class="cart-close" id="cartCloseBtn" aria-label="Cerrar carrito">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot" id="cartFoot">
+    <div class="cart-total"><span>Total</span><span id="cartTotal">$0</span></div>
+    <a class="btn btn-grad btn-block" id="cartWaBtn" href="#" target="_blank" rel="noopener">Enviar pedido por WhatsApp</a>
+    <a class="btn btn-ghost btn-block" id="cartMailBtn" href="#">Enviar pedido por correo</a>
+    <button class="cart-clear" id="cartClearBtn">Vaciar carrito</button>
+  </div>
+</aside>
+
+<div class="toast" id="toast"></div>
 
 <script>
 /* =========================================================================
@@ -412,7 +474,7 @@ async function loadStarlinkLive() {
         sku: (it.sku || name).toString().slice(0, 18).toUpperCase(),
         desc: stock > 0 ? `${stock} disponibles en stock.` : "Consultar disponibilidad.",
         image: it.imagen || it.image || "",
-        badge: stock > 0 ? "live" : "out"
+        availability: stock > 0 ? "stock" : "agotado"
       };
     });
   } catch (err) {
@@ -438,18 +500,17 @@ function placeholderIcon() {
     <path d="m21 15-5-5-4 4-3-3-6 6"/></svg>`;
 }
 
-function waLink(product) {
-  const msg = `Hola, quiero información sobre: ${product.name} (${product.sku})`;
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+function availabilityBadge(p) {
+  const map = {
+    stock: '<span class="badge stock">En stock</span>',
+    pedido: '<span class="badge pedido">Bajo pedido</span>',
+    agotado: '<span class="badge agotado">Agotado</span>'
+  };
+  return p.availability ? (map[p.availability] || "") : "";
 }
 
 function cardHTML(p) {
-  const badgeMap = {
-    live: '<span class="badge live">Stock en vivo</span>',
-    out: '<span class="badge out">Agotado</span>',
-    Nuevo: '<span class="badge new">Nuevo</span>'
-  };
-  const badge = p.badge ? (badgeMap[p.badge] || "") : "";
+  const badge = availabilityBadge(p);
   const media = p.image
     ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{innerHTML:\`${placeholderIcon()}\`}).firstChild)">`
     : placeholderIcon();
@@ -463,9 +524,9 @@ function cardHTML(p) {
       <div class="card-desc">${p.desc || ""}</div>
       <div class="card-foot">
         <div class="card-price">${p.price ? fmtCOP.format(p.price) : "Consultar"}<span class="from">precio aprox.</span></div>
-        <a class="mini-btn" href="${waLink(p)}" target="_blank" rel="noopener" aria-label="Pedir por WhatsApp">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.05-1.35A10 10 0 1 0 12 2Zm0 18.2a8.16 8.16 0 0 1-4.17-1.14l-.3-.18-3.1.83.82-3.02-.2-.31A8.2 8.2 0 1 1 12 20.2Zm4.52-6.13c-.25-.12-1.46-.72-1.68-.8-.23-.08-.39-.12-.56.12-.16.25-.64.8-.79.96-.14.16-.29.18-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.22-1.46-1.37-1.7-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.15.16-.25.24-.41.08-.16.04-.31-.02-.43-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43h-.48c-.16 0-.43.06-.65.31-.23.25-.86.84-.86 2.04 0 1.2.88 2.37 1 2.53.12.16 1.73 2.64 4.2 3.7.59.25 1.05.4 1.4.52.59.19 1.13.16 1.55.1.47-.07 1.46-.6 1.67-1.17.2-.58.2-1.08.14-1.18-.06-.1-.22-.16-.47-.28Z"/></svg>
-        </a>
+        <button class="mini-btn" data-add="${p.id}" aria-label="Agregar al carrito">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
       </div>
     </div>
   </article>`;
@@ -498,6 +559,13 @@ function renderGrid() {
   grid.innerHTML = list.length
     ? list.map(cardHTML).join("")
     : `<div class="empty">No encontramos productos con ese filtro.<br>Escríbenos por WhatsApp y te ayudamos a buscarlo.</div>`;
+
+  grid.querySelectorAll("[data-add]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const p = ALL_PRODUCTS.find(x => x.id === btn.dataset.add);
+      if (p) addToCart(p);
+    });
+  });
 }
 
 async function init() {
@@ -507,8 +575,131 @@ async function init() {
   statCount.textContent = ALL_PRODUCTS.length;
   renderPins();
   renderGrid();
+  initCart();
 }
 init();
+
+// ============================== CARRITO ====================================
+const CART_KEY = "pyc_cart_v1";
+let cart = [];
+
+function loadCart() {
+  try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { cart = []; }
+}
+function saveCart() {
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+}
+
+function addToCart(product) {
+  const existing = cart.find(i => i.id === product.id);
+  if (existing) existing.qty += 1;
+  else cart.push({ id: product.id, name: product.name, sku: product.sku, price: product.price, qty: 1 });
+  saveCart();
+  renderCart();
+  showToast(`Agregado: ${product.name}`);
+}
+function changeQty(id, delta) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+  saveCart();
+  renderCart();
+}
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  saveCart();
+  renderCart();
+}
+function clearCart() {
+  if (!cart.length) return;
+  if (!confirm("¿Vaciar el carrito?")) return;
+  cart = [];
+  saveCart();
+  renderCart();
+}
+
+function cartTotal() {
+  return cart.reduce((sum, i) => sum + (i.price || 0) * i.qty, 0);
+}
+
+function renderCart() {
+  const itemsEl = document.getElementById("cartItems");
+  const footEl = document.getElementById("cartFoot");
+  const countEl = document.getElementById("cartCount");
+  const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+  countEl.textContent = totalQty;
+  document.getElementById("cartFabBtn").style.display = "flex";
+
+  if (!cart.length) {
+    itemsEl.innerHTML = `<div class="cart-empty">Tu carrito está vacío.<br>Agrega productos con el botón + de cada tarjeta.</div>`;
+    footEl.style.display = "none";
+    return;
+  }
+  footEl.style.display = "flex";
+
+  itemsEl.innerHTML = cart.map(i => `
+    <div class="cart-row">
+      <div style="flex:1;">
+        <div class="n">${i.name}</div>
+        <div class="p">${i.price ? fmtCOP.format(i.price) : "Consultar"} · ${i.sku}</div>
+        <div class="qty">
+          <button class="qty-btn" data-qty-minus="${i.id}">−</button>
+          <span class="mono">${i.qty}</span>
+          <button class="qty-btn" data-qty-plus="${i.id}">+</button>
+        </div>
+      </div>
+      <button class="rm" data-remove="${i.id}">Quitar</button>
+    </div>
+  `).join("");
+
+  document.getElementById("cartTotal").textContent = fmtCOP.format(cartTotal());
+
+  itemsEl.querySelectorAll("[data-qty-plus]").forEach(b => b.addEventListener("click", () => changeQty(b.dataset.qtyPlus, 1)));
+  itemsEl.querySelectorAll("[data-qty-minus]").forEach(b => b.addEventListener("click", () => changeQty(b.dataset.qtyMinus, -1)));
+  itemsEl.querySelectorAll("[data-remove]").forEach(b => b.addEventListener("click", () => removeFromCart(b.dataset.remove)));
+
+  updateCheckoutLinks();
+}
+
+function buildOrderText() {
+  const lines = cart.map(i =>
+    `• ${i.qty}x ${i.name} (${i.sku}) — ${i.price ? fmtCOP.format(i.price * i.qty) : "consultar"}`
+  );
+  lines.push("", `Total: ${fmtCOP.format(cartTotal())}`);
+  return lines.join("\n");
+}
+
+function updateCheckoutLinks() {
+  const orderText = `Hola, quiero hacer este pedido:\n\n${buildOrderText()}`;
+  document.getElementById("cartWaBtn").href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderText)}`;
+  const mailSubject = "Pedido desde partesycomputadores.com.co";
+  document.getElementById("cartMailBtn").href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(orderText)}`;
+}
+
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+function initCart() {
+  loadCart();
+  renderCart();
+
+  const overlay = document.getElementById("cartOverlay");
+  const drawer = document.getElementById("cartDrawer");
+  const open = () => { overlay.classList.add("open"); drawer.classList.add("open"); };
+  const close = () => { overlay.classList.remove("open"); drawer.classList.remove("open"); };
+
+  document.getElementById("cartFabBtn").addEventListener("click", open);
+  document.getElementById("cartCloseBtn").addEventListener("click", close);
+  overlay.addEventListener("click", close);
+  document.getElementById("cartClearBtn").addEventListener("click", clearCart);
+}
 </script>
 </body>
 </html>

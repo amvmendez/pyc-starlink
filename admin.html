@@ -63,6 +63,7 @@
 
   .product-list{ margin-top:8px; display:flex; flex-direction:column; gap:8px; }
   .prow{ display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:8px 10px; }
+  .prow input[type="checkbox"]{ width:18px; height:18px; flex:0 0 auto; accent-color:var(--c-orange); }
   .prow .thumb{ width:42px; height:42px; border-radius:7px; object-fit:cover; background:var(--panel); flex:0 0 auto; }
   .prow .meta{ flex:1; min-width:0; }
   .prow .meta .n{ font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -119,8 +120,11 @@
 
     <div class="card">
       <h2>Productos (<span id="prodCount">0</span>)</h2>
-      <p class="hint">Toca ✎ para editar, 🗑 para borrar. Los cambios tardan 1-2 minutos en verse en la tienda.</p>
+      <p class="hint">Toca ✎ para editar, 🗑 para borrar uno. Marca varias casillas y usa "Borrar seleccionados" para borrar en lote. Los cambios tardan 1-2 minutos en verse en la tienda.</p>
       <div class="product-list" id="productList"></div>
+      <div class="form-actions">
+        <button class="btn btn-danger btn-block hidden" id="bulkDeleteBtn">Borrar seleccionados (<span id="bulkCount">0</span>)</button>
+      </div>
       <div class="form-actions">
         <button class="btn btn-ghost btn-block" id="reloadBtn">↻ Recargar lista</button>
       </div>
@@ -151,10 +155,12 @@
           <input id="fPrice" type="number" placeholder="Ej: 60000">
         </div>
         <div>
-          <label for="fBadge">Etiqueta</label>
-          <select id="fBadge">
-            <option value="">Ninguna</option>
-            <option value="Nuevo">Nuevo</option>
+          <label for="fAvailability">Disponibilidad</label>
+          <select id="fAvailability">
+            <option value="">Sin mostrar (servicios)</option>
+            <option value="stock">En stock</option>
+            <option value="pedido">Bajo pedido</option>
+            <option value="agotado">Agotado</option>
           </select>
         </div>
       </div>
@@ -299,6 +305,16 @@ $("logoutBtn").addEventListener("click", () => {
 // ---------------------------------------------------------------- product list
 let currentProducts = [];
 let currentSha = null;
+let busy = false;
+
+function lockUI(state) {
+  busy = state;
+  document.querySelectorAll(".icon-btn, #saveProductBtn, #reloadBtn, #bulkDeleteBtn").forEach(el => {
+    el.disabled = state;
+    el.style.opacity = state ? .45 : "";
+    el.style.pointerEvents = state ? "none" : "";
+  });
+}
 
 async function loadProducts() {
   const listEl = $("productList");
@@ -314,21 +330,25 @@ async function loadProducts() {
   }
 }
 
+let selectedIds = new Set();
+
 function renderList() {
   $("prodCount").textContent = currentProducts.length;
   const listEl = $("productList");
   if (!currentProducts.length) {
     listEl.innerHTML = `<div class="status show pending">Todavía no hay productos.</div>`;
+    updateBulkBar();
     return;
   }
   listEl.innerHTML = currentProducts.map((p, i) => `
     <div class="prow">
+      <input type="checkbox" data-select="${p.id}" ${selectedIds.has(p.id) ? "checked" : ""} aria-label="Seleccionar">
       ${p.image
         ? `<img class="thumb" src="${p.image}" alt="" onerror="this.style.visibility='hidden'">`
         : `<div class="thumb"></div>`}
       <div class="meta">
         <div class="n">${p.name}</div>
-        <div class="c">${p.category} · ${p.price ? "$" + Number(p.price).toLocaleString("es-CO") : "Consultar"}</div>
+        <div class="c">${p.category} · ${p.price ? "$" + Number(p.price).toLocaleString("es-CO") : "Consultar"}${p.availability ? " · " + ({stock:"En stock",pedido:"Bajo pedido",agotado:"Agotado"}[p.availability] || "") : ""}</div>
       </div>
       <div class="actions">
         <button class="icon-btn" data-edit="${i}" aria-label="Editar">
@@ -343,7 +363,46 @@ function renderList() {
 
   listEl.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => startEdit(+b.dataset.edit)));
   listEl.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => deleteProduct(+b.dataset.del)));
+  listEl.querySelectorAll("[data-select]").forEach(cb => cb.addEventListener("change", () => {
+    if (cb.checked) selectedIds.add(cb.dataset.select);
+    else selectedIds.delete(cb.dataset.select);
+    updateBulkBar();
+  }));
+  updateBulkBar();
 }
+
+function updateBulkBar() {
+  const btn = $("bulkDeleteBtn");
+  $("bulkCount").textContent = selectedIds.size;
+  btn.classList.toggle("hidden", selectedIds.size === 0);
+}
+
+$("bulkDeleteBtn").addEventListener("click", async () => {
+  if (busy || !selectedIds.size) return;
+  const names = currentProducts.filter(p => selectedIds.has(p.id)).map(p => p.name);
+  if (!confirm(`¿Borrar ${names.length} producto(s)?\n\n${names.join("\n")}`)) return;
+  const statusEl = $("formStatus");
+  lockUI(true);
+  setStatus(statusEl, "pending", `Borrando ${names.length} producto(s)…`);
+  try {
+    const fresh = await ghGetFile(PRODUCTS_PATH);
+    const freshList = JSON.parse(fresh.content);
+    const updated = freshList.filter(p => !selectedIds.has(p.id));
+    await ghPutFile(
+      PRODUCTS_PATH,
+      utf8ToB64(JSON.stringify(updated, null, 2)),
+      `Eliminar ${names.length} producto(s): ${names.join(", ")}`,
+      fresh.sha
+    );
+    selectedIds.clear();
+    setStatus(statusEl, "ok", "Productos eliminados. Se verán en la tienda en 1-2 min.");
+    await loadProducts();
+  } catch (err) {
+    setStatus(statusEl, "err", "No se pudo borrar: " + err.message + " — toca 'Recargar lista' e inténtalo de nuevo.");
+  } finally {
+    lockUI(false);
+  }
+});
 
 function renderCategoryOptions() {
   const cats = [...new Set(currentProducts.map(p => p.category))];
@@ -379,7 +438,7 @@ function resetForm() {
   $("fCategory").value = "";
   $("fSku").value = "";
   $("fPrice").value = "";
-  $("fBadge").value = "";
+  $("fAvailability").value = "stock";
   $("fDesc").value = "";
   $("fImage").value = "";
   $("imgPreviewWrap").style.display = "none";
@@ -396,7 +455,7 @@ function startEdit(index) {
   $("fCategory").value = p.category || "";
   $("fSku").value = p.sku || "";
   $("fPrice").value = p.price || "";
-  $("fBadge").value = p.badge === "Nuevo" ? "Nuevo" : "";
+  $("fAvailability").value = p.availability || "";
   $("fDesc").value = p.desc || "";
   $("fImage").value = "";
   pendingImageBase64 = null;
@@ -415,26 +474,35 @@ function startEdit(index) {
 $("cancelEditBtn").addEventListener("click", resetForm);
 
 async function deleteProduct(index) {
-  const p = currentProducts[index];
-  if (!confirm(`¿Borrar "${p.name}" del catálogo?`)) return;
+  if (busy) return;
+  const target = currentProducts[index];
+  if (!confirm(`¿Borrar "${target.name}" del catálogo?`)) return;
   const statusEl = $("formStatus");
+  lockUI(true);
   setStatus(statusEl, "pending", "Borrando…");
   try {
-    const updated = currentProducts.filter((_, i) => i !== index);
+    // Siempre lee la versión más reciente justo antes de escribir, para
+    // evitar el error "sha does not match" si hubo otro cambio reciente.
+    const fresh = await ghGetFile(PRODUCTS_PATH);
+    const freshList = JSON.parse(fresh.content);
+    const updated = freshList.filter(p => p.id !== target.id);
     await ghPutFile(
       PRODUCTS_PATH,
       utf8ToB64(JSON.stringify(updated, null, 2)),
-      `Eliminar producto: ${p.name}`,
-      currentSha
+      `Eliminar producto: ${target.name}`,
+      fresh.sha
     );
     setStatus(statusEl, "ok", "Producto eliminado. Se verá en la tienda en 1-2 min.");
     await loadProducts();
   } catch (err) {
-    setStatus(statusEl, "err", "No se pudo borrar: " + err.message);
+    setStatus(statusEl, "err", "No se pudo borrar: " + err.message + " — toca 'Recargar lista' e inténtalo de nuevo.");
+  } finally {
+    lockUI(false);
   }
 }
 
 $("saveProductBtn").addEventListener("click", async () => {
+  if (busy) return;
   const statusEl = $("formStatus");
   const name = $("fName").value.trim();
   const category = $("fCategory").value.trim();
@@ -453,10 +521,10 @@ $("saveProductBtn").addEventListener("click", async () => {
     sku: $("fSku").value.trim() || slugify(name).toUpperCase(),
     desc: $("fDesc").value.trim(),
     image: existing ? existing.image : "",
-    badge: $("fBadge").value || null
+    availability: $("fAvailability").value || null
   };
 
-  $("saveProductBtn").disabled = true;
+  lockUI(true);
   try {
     if (pendingImageBase64) {
       setStatus(statusEl, "pending", "Subiendo foto…");
@@ -466,28 +534,33 @@ $("saveProductBtn").addEventListener("click", async () => {
     }
 
     setStatus(statusEl, "pending", "Guardando en el catálogo…");
+    // Siempre lee la versión más reciente justo antes de escribir, para
+    // evitar el error "sha does not match" si hubo otro cambio reciente.
+    const fresh = await ghGetFile(PRODUCTS_PATH);
+    const freshList = JSON.parse(fresh.content);
+    const idx = existing ? freshList.findIndex(p => p.id === existing.id) : -1;
     let updated;
-    if (editingIndex !== null) {
-      updated = [...currentProducts];
-      updated[editingIndex] = product;
+    if (idx !== -1) {
+      updated = [...freshList];
+      updated[idx] = product;
     } else {
-      updated = [...currentProducts, product];
+      updated = [...freshList, product];
     }
 
     await ghPutFile(
       PRODUCTS_PATH,
       utf8ToB64(JSON.stringify(updated, null, 2)),
-      editingIndex !== null ? `Editar producto: ${name}` : `Agregar producto: ${name}`,
-      currentSha
+      existing ? `Editar producto: ${name}` : `Agregar producto: ${name}`,
+      fresh.sha
     );
 
     setStatus(statusEl, "ok", "Guardado. Se verá en la tienda en 1-2 min.");
     resetForm();
     await loadProducts();
   } catch (err) {
-    setStatus(statusEl, "err", "No se pudo guardar: " + err.message);
+    setStatus(statusEl, "err", "No se pudo guardar: " + err.message + " — toca 'Recargar lista' e inténtalo de nuevo.");
   } finally {
-    $("saveProductBtn").disabled = false;
+    lockUI(false);
   }
 });
 
