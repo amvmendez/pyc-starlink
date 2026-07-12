@@ -122,6 +122,16 @@
     background:rgba(13,15,22,.92); backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line);
   }
+  .typebar{
+    display:flex; gap:8px; padding:12px 18px 0;
+  }
+  .type-tab{
+    flex:1; text-align:center; font-family:'Chakra Petch',sans-serif; font-weight:600; font-size:14px;
+    padding:10px; border-radius:10px 10px 0 0; background:var(--panel); border:1px solid var(--line); border-bottom:none;
+    color:var(--muted); cursor:pointer;
+  }
+  .type-tab.active{ color:#fff; background:var(--panel-2); position:relative; }
+  .type-tab.active::after{ content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--grad); }
   .pinbar{
     display:flex; align-items:center; gap:8px; padding:12px 18px;
     overflow-x:auto; scrollbar-width:none;
@@ -326,6 +336,10 @@
 </section>
 
 <div class="pinbar-wrap">
+  <div class="typebar wrap" id="typebar">
+    <button class="type-tab active" data-type="producto">Productos</button>
+    <button class="type-tab" data-type="servicio">Servicios</button>
+  </div>
   <div class="pinbar wrap" id="pinbar">
     <!-- pins se generan por JS -->
     <input class="search-input" id="searchInput" type="search" placeholder="Buscar producto o referencia…" aria-label="Buscar producto">
@@ -333,7 +347,7 @@
 </div>
 
 <main class="wrap" id="catalogo">
-  <div class="section-title"><h2>Catálogo</h2><span class="count mono" id="resultCount"></span><div class="line"></div></div>
+  <div class="section-title"><h2 id="catalogTitle">Productos</h2><span class="count mono" id="resultCount"></span><div class="line"></div></div>
   <div class="grid" id="grid">
     <div class="empty">Cargando catálogo…</div>
   </div>
@@ -440,6 +454,22 @@ async function loadManualProducts() {
 const FIREBASE_BASE = "https://inventarioyfinanzas-default-rtdb.firebaseio.com";
 const FIREBASE_NODE = "inventario_starlink";
 
+function categorizeAccesorio(id, nombre) {
+  const s = ((id || "") + " " + (nombre || "")).toLowerCase();
+  if (/malet/.test(s)) return "Maletines y transporte";
+  if (/radio enlace|punto a punto/.test(s)) return "Otros";
+  if (/masonry|routing kit/.test(s)) return "Adaptadores y kits de instalación";
+  if (/^cable|cc_mini|cc mini/.test(s)) return "Cables";
+  if (/soporte/.test(s)) {
+    if (/router/.test(s)) return "Router 3 / genéricos";
+    if (/mini/.test(s)) return "Soportes — Mini";
+    return "Soportes — Standard 4";
+  }
+  if (/router|fuente/.test(s)) return "Alimentación y routers";
+  if (/adap|kit.?viaje/.test(s)) return "Adaptadores y kits de instalación";
+  return "Accesorios Starlink";
+}
+
 async function loadStarlinkLive() {
   try {
     const res = await fetch(`${FIREBASE_BASE}/${FIREBASE_NODE}.json`);
@@ -447,7 +477,6 @@ async function loadStarlinkLive() {
     const data = await res.json();
     if (!data) { console.warn("[Starlink live] Nodo vacío en Firebase."); return []; }
 
-    // Intenta ubicar la lista de accesorios bajo varios nombres posibles.
     const candidateKeys = ["accesorios", "accesorios_starlink", "inventario_accesorios", "accessories"];
     let raw = null, foundKey = null;
     for (const k of candidateKeys) {
@@ -455,26 +484,26 @@ async function loadStarlinkLive() {
     }
     if (!raw) {
       console.warn("[Starlink live] No se encontró un nodo de accesorios conocido. Claves disponibles en Firebase:", Object.keys(data));
-      console.warn("[Starlink live] Copia esa lista de claves y compártela para ajustar la conexión.");
       return [];
     }
 
     const items = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw);
-    console.info(`[Starlink live] ${items.length} ítems encontrados en "${foundKey}". Ejemplo:`, items[0]);
+    console.info(`[Starlink live] ${items.length} ítems encontrados en "${foundKey}".`);
 
     return items.map((it, i) => {
-      const name = it.nombre || it.name || it.accesorio || `Accesorio ${i + 1}`;
+      const name = it.nombre || it.name || `Accesorio ${i + 1}`;
       const price = Number(it.precioVenta ?? it.precio_venta ?? it.precio ?? it.price ?? 0);
       const stock = Number(it.stock ?? it.cantidad ?? it.qty ?? 0);
       return {
         id: "sl-" + (it.id || name).toString().toLowerCase().replace(/\s+/g, "-"),
         name,
-        category: "Accesorios Starlink",
+        category: categorizeAccesorio(it.id, name),
+        type: "producto",
         price,
-        sku: (it.sku || name).toString().slice(0, 18).toUpperCase(),
-        desc: stock > 0 ? `${stock} disponibles en stock.` : "Consultar disponibilidad.",
+        sku: (it.sku || it.id || name).toString().slice(0, 20).toUpperCase(),
+        desc: stock > 0 ? `${stock} disponibles en stock.` : "Disponible bajo pedido.",
         image: it.imagen || it.image || "",
-        availability: stock > 0 ? "stock" : "agotado"
+        availability: stock > 0 ? "stock" : "pedido"
       };
     });
   } catch (err) {
@@ -492,7 +521,19 @@ const resultCount = document.getElementById("resultCount");
 const statCount = document.getElementById("stat-count");
 
 let ALL_PRODUCTS = [];
+let activeType = "producto";
 let activeCategory = "Todos";
+
+document.querySelectorAll(".type-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    activeType = tab.dataset.type;
+    activeCategory = "Todos";
+    document.querySelectorAll(".type-tab").forEach(t => t.classList.toggle("active", t === tab));
+    document.getElementById("catalogTitle").textContent = activeType === "producto" ? "Productos" : "Servicios";
+    renderPins();
+    renderGrid();
+  });
+});
 
 function placeholderIcon() {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -533,7 +574,8 @@ function cardHTML(p) {
 }
 
 function renderPins() {
-  const cats = ["Todos", ...new Set(ALL_PRODUCTS.map(p => p.category))];
+  const scoped = ALL_PRODUCTS.filter(p => (p.type || "producto") === activeType);
+  const cats = ["Todos", ...new Set(scoped.map(p => p.category))];
   pinbar.innerHTML = cats.map(c =>
     `<button class="pin ${c === activeCategory ? "active" : ""}" data-cat="${c}">${c}</button>`
   ).join("") + pinbar.querySelector("#searchInput").outerHTML;
@@ -550,7 +592,7 @@ function renderPins() {
 
 function renderGrid() {
   const q = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
-  let list = ALL_PRODUCTS;
+  let list = ALL_PRODUCTS.filter(p => (p.type || "producto") === activeType);
   if (activeCategory !== "Todos") list = list.filter(p => p.category === activeCategory);
   if (q) list = list.filter(p => (p.name + " " + p.sku).toLowerCase().includes(q));
 
