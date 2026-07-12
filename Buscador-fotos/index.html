@@ -100,6 +100,12 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
   <div class="status" id="discoveryStatus"></div>
 </div>
 
+<div id="jumpPanel" class="panel hidden" style="padding:14px;">
+  <label style="margin:0 0 8px;">🔎 Buscar y editar cualquiera (aunque ya lo hayas hecho)</label>
+  <input id="jumpSearchInput" type="text" placeholder="Escribe el nombre...">
+  <div id="jumpResults"></div>
+</div>
+
 <!-- APP -->
 <div id="app" class="hidden">
   <div class="progress-wrap">
@@ -189,6 +195,8 @@ function resetToSetup(){
   $('app').classList.add('hidden');
   $('doneScreen').classList.add('hidden');
   $('discovery').classList.add('hidden');
+  $('jumpPanel').classList.add('hidden');
+  manualOverride=null;
   $('setup').classList.remove('hidden');
 }
 
@@ -373,6 +381,7 @@ $('confirmBtn').addEventListener('click', async ()=>{
   }
   buildQueue();
   $('discovery').classList.add('hidden');
+  $('jumpPanel').classList.remove('hidden');
   $('app').classList.remove('hidden');
   renderCurrent();
 });
@@ -393,7 +402,27 @@ function saveProgress(markId){
   progress.updated=updatedCount;
   localStorage.setItem(progressKey(), JSON.stringify(progress));
 }
-function currentProduct(){ return queue[currentIndex]; }
+let manualOverride=null;
+
+$('jumpSearchInput').addEventListener('input', ()=>{
+  const q = $('jumpSearchInput').value.trim().toLowerCase();
+  const box = $('jumpResults');
+  if(!q){ box.innerHTML=''; return; }
+  const matches = source.arr.filter(p=> String(p[fields.nameField]||'').toLowerCase().includes(q)).slice(0,8);
+  box.innerHTML = matches.map((p,i)=>`<div class="candidate" style="cursor:pointer;margin-top:8px;" data-jidx="${i}">${p[fields.nameField]}</div>`).join('') || '<div class="status" style="margin-top:8px;">Sin resultados</div>';
+  box.querySelectorAll('[data-jidx]').forEach((el,i)=>{
+    el.addEventListener('click', ()=>{
+      manualOverride = matches[i];
+      $('jumpSearchInput').value='';
+      box.innerHTML='';
+      $('doneScreen').classList.add('hidden');
+      $('app').classList.remove('hidden');
+      renderCurrent();
+    });
+  });
+});
+
+function currentProduct(){ return manualOverride || queue[currentIndex]; }
 
 function renderCurrent(){
   const total=source.arr.length;
@@ -402,13 +431,13 @@ function renderCurrent(){
   $('progressText').textContent = `${doneCount} / ${total}`;
   $('updatedText').textContent = `${updatedCount} actualizadas`;
 
-  if(currentIndex>=queue.length){
+  if(!manualOverride && currentIndex>=queue.length){
     $('app').classList.add('hidden');
     $('doneScreen').classList.remove('hidden');
     return;
   }
   const p=currentProduct();
-  $('prodName').textContent = p[fields.nameField] || '(sin nombre)';
+  $('prodName').textContent = (p[fields.nameField] || '(sin nombre)') + (manualOverride ? ' ✏️' : '');
   $('prodCat').textContent = fields.catField ? (p[fields.catField]||'General') : (mode==='servicios'?'Servicio':'Producto');
   $('currentImg').src = fields.imageField ? (p[fields.imageField]||'') : '';
   $('newImg').src=''; $('newBox').classList.add('empty');
@@ -483,10 +512,12 @@ async function uploadImageToGithub(file){
 }
 
 $('keepBtn').addEventListener('click', ()=>{
+  if(manualOverride){ manualOverride=null; renderCurrent(); return; }
   saveProgress(currentProduct()[fields.idField]);
   advance();
 });
 $('skipBtn').addEventListener('click', ()=>{
+  if(manualOverride){ manualOverride=null; renderCurrent(); return; }
   const p=queue.splice(currentIndex,1)[0];
   queue.push(p);
   renderCurrent();
@@ -503,6 +534,12 @@ $('saveBtn').addEventListener('click', async ()=>{
     if(source.kind==='github') await commitGithub();
     else await commitFirebase(p);
     updatedCount++;
+    if(manualOverride){
+      manualOverride=null;
+      setStat('status','¡Guardado!','ok');
+      setTimeout(renderCurrent,500);
+      return;
+    }
     saveProgress(p[fields.idField]);
     setStat('status','¡Guardado!','ok');
     setTimeout(advance,500);
