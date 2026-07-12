@@ -605,10 +605,28 @@ async function loadStarlinkLive() {
     const items = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw);
     console.info(`[Starlink live] ${items.length} ítems encontrados en "${foundKey}".`);
 
-    return items.map((it, i) => {
+    // "visible" (booleano, por defecto true si no existe) controla si el
+    // accesorio se muestra en el catálogo público — sigue existiendo en el
+    // inventario interno, solo se filtra aquí antes de renderizar.
+    const visibles = items.filter(it => it.visible !== false);
+    console.info(`[Starlink live] ${visibles.length} de ${items.length} visibles en la tienda (${items.length - visibles.length} ocultos).`);
+
+    return visibles.map((it, i) => {
       const name = it.nombre || it.name || `Accesorio ${i + 1}`;
       const price = Number(it.precioVenta ?? it.precio_venta ?? it.precio ?? it.price ?? 0);
       const stock = Number(it.stock ?? it.cantidad ?? it.qty ?? 0);
+
+      // "disponibilidad" ("importado" | "encargo") solo aplica cuando no hay
+      // stock — describe por qué no hay unidades listas para entrega inmediata.
+      let desc;
+      if (stock > 0) {
+        desc = `${stock} disponibles en stock.`;
+      } else if (it.disponibilidad === "encargo") {
+        desc = "Por encargo, 1-3 días hábiles.";
+      } else {
+        desc = "Producto importado — disponible bajo pedido.";
+      }
+
       return {
         id: "sl-" + (it.id || name).toString().toLowerCase().replace(/\s+/g, "-"),
         name,
@@ -616,7 +634,7 @@ async function loadStarlinkLive() {
         type: "producto",
         price,
         sku: (it.sku || it.id || name).toString().slice(0, 20).toUpperCase(),
-        desc: stock > 0 ? `${stock} disponibles en stock.` : "Disponible bajo pedido.",
+        desc,
         image: it.imagen || it.image || "",
         availability: stock > 0 ? "stock" : "pedido"
       };
