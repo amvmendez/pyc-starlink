@@ -87,6 +87,7 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
 
   <button class="btn btn-accent" id="connectBtn">Buscar y conectar</button>
   <div class="status" id="setupStatus"></div>
+  <div id="setupDiagnostic"></div>
 </div>
 
 <!-- DISCOVERY CONFIRM -->
@@ -229,9 +230,14 @@ async function startDiscovery(){
   localStorage.setItem('pyc_fb_url',fbUrl);
 
   setStat('setupStatus','Buscando...','');
+  $('setupDiagnostic').innerHTML='';
   try{
     candidates = mode==='servicios' ? await discoverGithubFiles() : await discoverFirebaseNodes();
-    if(!candidates.length){ setStat('setupStatus','No encontré nada automáticamente. Revisa el token/repositorio.','err'); return; }
+    if(!candidates.length){
+      setStat('setupStatus','No encontré nada que reconociera como catálogo. Mira abajo qué encontré, y mándame un pantallazo de esto:','err');
+      $('setupDiagnostic').innerHTML = renderDiagnostic();
+      return;
+    }
     candIndex=0;
     showCandidate();
     setStat('setupStatus','','');
@@ -276,8 +282,11 @@ async function discoverGithubFiles(){
   return found;
 }
 
+let lastDiagnostic=null;
+
 async function discoverFirebaseNodes(){
   const found=[];
+  const diag=[];
   const rootRes = await fetch(`${fbUrl}/.json?shallow=true`);
   if(!rootRes.ok) throw new Error(`Firebase respondió ${rootRes.status}`);
   const root = await rootRes.json();
@@ -286,21 +295,30 @@ async function discoverFirebaseNodes(){
     try{
       const childRes = await fetch(`${fbUrl}/${key}.json?shallow=true`);
       const child = await childRes.json();
-      if(!child || typeof child!=='object') continue;
+      if(!child || typeof child!=='object'){ diag.push({key, note:'no es una lista (valor suelto)'}); continue; }
       const childKeys=Object.keys(child);
-      if(!childKeys.length) continue;
+      if(!childKeys.length){ diag.push({key, note:'vacío'}); continue; }
       const sampleRes = await fetch(`${fbUrl}/${key}/${childKeys[0]}.json`);
       const sample = await sampleRes.json();
+      const sampleFields = sample && typeof sample==='object' ? Object.keys(sample).join(', ') : String(sample);
+      diag.push({key, note:`${childKeys.length} elementos · campos: ${sampleFields}`});
       if(looksLikeCatalog(sample)){
         found.push({kind:'firebase', nodeKey:key, count:childKeys.length, sample:[sample], allKeys:childKeys});
       }
-    }catch(e){/* skip */}
+    }catch(e){ diag.push({key, note:'error al leer: '+e.message}); }
   }
   found.sort((a,b)=>{
     const score=k=>/(accesor|product|invent)/i.test(k)?0:1;
     return score(a.nodeKey||'')-score(b.nodeKey||'');
   });
+  lastDiagnostic=diag;
   return found;
+}
+
+function renderDiagnostic(){
+  if(!lastDiagnostic) return '';
+  const rows = lastDiagnostic.map(d=>`<div style="margin-top:8px;"><b>${d.key}</b><br><span style="color:var(--sub);font-size:.78rem;">${d.note}</span></div>`).join('');
+  return `<div class="candidate"><div class="path">Esto encontré dentro de tu base de datos:</div>${rows}</div>`;
 }
 
 function showCandidate(){
