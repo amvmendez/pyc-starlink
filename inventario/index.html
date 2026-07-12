@@ -223,6 +223,15 @@
   .qty-btn.minus{color:var(--red);}
   .qty-btn.plus{color:var(--cyan);}
   .qty-input{width:46px; padding:6px 4px; font-size:13px; text-align:center;}
+  .mini-icon-btn{
+    flex:none; width:26px; height:26px; border-radius:7px;
+    background:var(--bg-1); border:1px solid var(--line);
+    font-size:12px; display:flex; align-items:center; justify-content:center;
+    padding:0; line-height:1;
+  }
+  .mini-icon-btn:active{transform:scale(0.9);}
+  .mini-icon-btn.mini-cyan{border-color:rgba(0,224,255,0.4);}
+  .mini-icon-btn.mini-red{border-color:rgba(255,93,108,0.4);}
   .link-btn{
     background:none; border:none; color:var(--cyan); font-size:10.5px; font-weight:600;
     text-decoration:underline; padding:2px 0; margin-top:2px;
@@ -1002,6 +1011,17 @@
           <label><input type="checkbox" id="newAccAfectaFinanzas" checked style="width:16px; height:16px; vertical-align:middle; margin-right:6px;"> El stock inicial registra una entrada (egreso) en Finanzas</label>
           <small class="hint">Desmarca esto si ya contabilizaste esa compra por otro lado y solo quieres que el número de stock quede correcto, sin duplicar el egreso.</small>
         </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label><input type="checkbox" id="newAccVisible" checked style="width:16px; height:16px; vertical-align:middle; margin-right:6px;"> Visible en la tienda</label>
+          <small class="hint">Si lo desmarcas, el accesorio se sigue guardando en el inventario, solo se deja de mostrar en el catálogo público.</small>
+        </div>
+        <div class="field" id="newAccDisponibilidadWrap" style="grid-column:1/-1; display:none;">
+          <label>Motivo si no hay stock</label>
+          <select id="newAccDisponibilidad">
+            <option value="importado">Importado</option>
+            <option value="encargo">Por encargo, 1-3 días</option>
+          </select>
+        </div>
       </div>
       <button class="btn btn-primary" id="btnAddAccesorio">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
@@ -1013,7 +1033,7 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Accesorio</th><th>Costo promedio</th><th>Precio venta</th><th>Stock</th><th>Valor stock (costo)</th><th></th>
+            <th>Accesorio</th><th>Costo promedio</th><th>Precio venta</th><th>Stock</th><th>Valor stock (costo)</th><th>Tienda</th><th></th>
           </tr></thead>
           <tbody id="accesoriosBody"></tbody>
         </table>
@@ -1038,6 +1058,10 @@
         <div class="field">
           <label>Instalador</label>
           <input type="text" id="depInstalador" placeholder="Nombre del técnico">
+        </div>
+        <div class="field">
+          <label>Teléfono del instalador (opcional)</label>
+          <input type="tel" id="depInstaladorTel" placeholder="Ej: 3001234567">
         </div>
         <div class="field">
           <label>Ubicación</label>
@@ -1068,8 +1092,9 @@
           <label><input type="checkbox" id="depRecogeAntena"> Antena (se vende al cliente)</label>
           <label><input type="checkbox" id="depRecogeBase"> Base / soporte (+$120.000)</label>
           <label><input type="checkbox" id="depRecogeAdaptador"> Adaptador (+$220.000)</label>
+          <label><input type="checkbox" id="depRecogeCombo"> COMBO Base + Adaptador (+$280.000)</label>
         </div>
-        <small class="hint">Si marcas Base y Adaptador juntos, se cobra el combo a $280.000 en vez de sumar los dos por separado.</small>
+        <small class="hint">El combo reemplaza a Base y Adaptador individuales — al marcarlo se desmarcan los otros dos automáticamente.</small>
       </div>
 
       <div class="field" style="margin-bottom:14px;">
@@ -1846,52 +1871,52 @@
 
   const CATALOGO_BASE = [
     // --- Alimentación / routers ---
-    { id:"fuente_std4",   nombre:"Fuente de alimentación avanzada | Standard 4", precio:1063000, precioCompra:0, stock:0, custom:false },
-    { id:"router3",       nombre:"Router 3 | Standard 4, Mini",                  precio:624000, precioCompra:0,  stock:0, custom:false },
-    { id:"router_mini",   nombre:"Router Mini",                                  precio:249790, precioCompra:0,  stock:0, custom:false },
+    { id:"fuente_std4",   nombre:"Fuente de alimentación avanzada | Standard 4", precio:1063000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"router3",       nombre:"Router 3 | Standard 4, Mini",                  precio:624000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"router_mini",   nombre:"Router Mini",                                  precio:249790, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
     // --- Cables ---
-    { id:"cable_15",      nombre:"Cable Starlink de 15 m",                       precio:341600, precioCompra:0,  stock:0, custom:false },
-    { id:"cable_45",      nombre:"Cable Starlink de 45 m",                       precio:630800, precioCompra:0,  stock:0, custom:false },
-    { id:"cc_mini_15",    nombre:"Cable de alimentación CC | Mini 15 m",         precio:210000, precioCompra:0,  stock:0, custom:false },
-    { id:"cc_mini_30",    nombre:"Cable de alimentación CC | Mini 30 m",         precio:265000, precioCompra:0,  stock:0, custom:false },
-    { id:"cable_eth_mini_15", nombre:"Cable Ethernet | Mini 15 m",               precio:211000, precioCompra:0,  stock:0, custom:false },
-    { id:"cable_usbc_mini_5", nombre:"Cable USB-C | Mini 5 m",                   precio:175000, precioCompra:0,  stock:0, custom:false },
+    { id:"cable_15",      nombre:"Cable Starlink de 15 m",                       precio:341600, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"cable_45",      nombre:"Cable Starlink de 45 m",                       precio:630800, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"cc_mini_15",    nombre:"Cable de alimentación CC | Mini 15 m",         precio:210000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"cc_mini_30",    nombre:"Cable de alimentación CC | Mini 30 m",         precio:265000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"cable_eth_mini_15", nombre:"Cable Ethernet | Mini 15 m",               precio:211000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"cable_usbc_mini_5", nombre:"Cable USB-C | Mini 5 m",                   precio:175000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
     // --- Kits y adaptadores ---
-    { id:"kit_viaje_mini", nombre:"Kit de viaje | Mini",                         precio:237000, precioCompra:0,  stock:0, custom:false },
-    { id:"adap_auto_mini", nombre:"Adaptador para automóvil | Mini",             precio:280000, precioCompra:0,  stock:0, custom:false },
-    { id:"adap_std4_a_mini", nombre:"Adaptador de soporte Standard 4/4X a Standard mini", precio:231000, precioCompra:0, stock:0, custom:false },
-    { id:"adap_tubo_std4", nombre:"Adaptador de tubo | Standard 4",              precio:286700, precioCompra:0,  stock:0, custom:false },
-    { id:"masonry_kit",   nombre:"Masonry Routing Kit",                         precio:374300, precioCompra:0,  stock:0, custom:false },
-    { id:"cable_routing_kit", nombre:"Cable Routing Kit",                       precio:262000, precioCompra:0,  stock:0, custom:false },
+    { id:"kit_viaje_mini", nombre:"Kit de viaje | Mini",                         precio:237000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"adap_auto_mini", nombre:"Adaptador para automóvil | Mini",             precio:280000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"adap_std4_a_mini", nombre:"Adaptador de soporte Standard 4/4X a Standard mini", precio:231000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"adap_tubo_std4", nombre:"Adaptador de tubo | Standard 4",              precio:286700, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"masonry_kit",   nombre:"Masonry Routing Kit",                         precio:374300, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"cable_routing_kit", nombre:"Cable Routing Kit",                       precio:262000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
     // --- Soportes Standard 4 ---
-    { id:"soporte_portaequip_std4", nombre:"Soporte para portaequipajes | Standard 4",     precio:355000, precioCompra:0, stock:0, custom:false },
-    { id:"soporte_giratorio_std4",  nombre:"Soporte giratorio | Standard 4 y 4X, Enterprise", precio:41000, precioCompra:0, stock:0, custom:false },
-    { id:"soporte_pared_std4",      nombre:"Soporte de pared | Standard 4",                precio:419600, precioCompra:0, stock:0, custom:false },
-    { id:"soporte_base_cruz_std4",  nombre:"Base de estructura en cruz | Standard 4/4X, Enterprise", precio:410000, precioCompra:0, stock:0, custom:false },
-    { id:"soporte_cresta_std4",     nombre:"Soporte para cresta | Standard 4/4X",          precio:420000, precioCompra:0, stock:0, custom:false },
-    { id:"soporte_router3",         nombre:"Soporte del Router 3",                         precio:228900, precioCompra:0, stock:0, custom:false },
-    { id:"soporte_movilidad_std4",  nombre:"Soporte para movilidad | Standard 4",          precio:41000, precioCompra:0,  stock:0, custom:false },
-    { id:"soporte_fuente_std4",     nombre:"Soporte de la fuente de alimentación | Standard 4", precio:221300, precioCompra:0, stock:0, custom:false },
+    { id:"soporte_portaequip_std4", nombre:"Soporte para portaequipajes | Standard 4",     precio:355000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_giratorio_std4",  nombre:"Soporte giratorio | Standard 4 y 4X, Enterprise", precio:41000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_pared_std4",      nombre:"Soporte de pared | Standard 4",                precio:419600, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_base_cruz_std4",  nombre:"Base de estructura en cruz | Standard 4/4X, Enterprise", precio:410000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_cresta_std4",     nombre:"Soporte para cresta | Standard 4/4X",          precio:420000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_router3",         nombre:"Soporte del Router 3",                         precio:228900, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_movilidad_std4",  nombre:"Soporte para movilidad | Standard 4",          precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_fuente_std4",     nombre:"Soporte de la fuente de alimentación | Standard 4", precio:221300, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
     // --- Soportes Mini ---
-    { id:"soporte_movilidad_mini",  nombre:"Soporte para movilidad | Mini",                precio:100000, precioCompra:0, stock:0, custom:false },
-    { id:"soporte_portaequip_mini", nombre:"Soporte para portaequipajes | Mini",           precio:110000, precioCompra:0, stock:0, custom:false },
-    { id:"soporte_giratorio_mini",  nombre:"Soporte giratorio | Mini",                     precio:41000, precioCompra:0,  stock:0, custom:false },
-    { id:"soporte_pared_mini",      nombre:"Soporte de pared | Mini",                      precio:41000, precioCompra:0,  stock:0, custom:false },
+    { id:"soporte_movilidad_mini",  nombre:"Soporte para movilidad | Mini",                precio:100000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_portaequip_mini", nombre:"Soporte para portaequipajes | Mini",           precio:110000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_giratorio_mini",  nombre:"Soporte giratorio | Mini",                     precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_pared_mini",      nombre:"Soporte de pared | Mini",                      precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", custom:false },
     // --- Varios ---
-    { id:"soporte_varios", nombre:"Soporte / trípode (otros)",                  precio:0, precioCompra:0,       stock:0, custom:false },
+    { id:"soporte_varios", nombre:"Soporte / trípode (otros)",                  precio:0, precioCompra:0,       stock:0, visible:true, disponibilidad:"importado", custom:false },
     // --- Kits con activación y accesorios importados/complementarios ---
-    { id:"kit_std4_activacion",       nombre:"Kit Antena Starlink Estándar V4 + Activación y Configuración", precio:1900000, precioCompra:0, stock:0, custom:false },
-    { id:"kit_mini_activacion",       nombre:"Kit Antena Starlink Mini + Activación y Configuración",        precio:1100000, precioCompra:0, stock:0, custom:false },
-    { id:"protector_acrilico_std4",   nombre:"Protector Acrílico de Antena Starlink Estándar V4",            precio:380000,  precioCompra:0, stock:0, custom:false },
-    { id:"adaptador_poe_v4",          nombre:"Adaptador PoE para Starlink V4 12V a 57V (Importado)",         precio:380000,  precioCompra:0, stock:0, custom:false },
-    { id:"maletin_camuflado",         nombre:"Maletín Camuflado de Transporte para Starlink",                precio:300000,  precioCompra:0, stock:0, custom:false },
-    { id:"soporte_acrilico_router3",  nombre:"Soporte Acrílico para Router Gen 3",                           precio:260000,  precioCompra:0, stock:0, custom:false },
-    { id:"radio_enlace_ptp",          nombre:"Radio Enlace Punto a Punto (1 KM de Alcance - Importado)",     precio:580000,  precioCompra:0, stock:0, custom:false },
-    { id:"soporte_pared_compat_v4",   nombre:"Soporte / Base de Pared Compatible V4",                        precio:280000,  precioCompra:0, stock:0, custom:false },
-    { id:"kit_mini_base_techo_carro", nombre:"Kit Starlink Mini para base de techo de carro",                precio:195000,  precioCompra:0, stock:0, custom:false },
-    { id:"cable_3puntas_mini",        nombre:"Cable de 3 puntas para Antena Starlink Mini",                  precio:195000,  precioCompra:0, stock:0, custom:false },
-    { id:"cable_generico_cigarrera",  nombre:"Cable genérico para conectar Antena en Cigarrera",             precio:185000,  precioCompra:0, stock:0, custom:false },
-    { id:"maletin_rigido_mini_imp",   nombre:"Maletín Rígido para Starlink Mini (Importado)",                precio:280000,  precioCompra:0, stock:0, custom:false },
+    { id:"kit_std4_activacion",       nombre:"Kit Antena Starlink Estándar V4 + Activación y Configuración", precio:1900000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"kit_mini_activacion",       nombre:"Kit Antena Starlink Mini + Activación y Configuración",        precio:1100000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"protector_acrilico_std4",   nombre:"Protector Acrílico de Antena Starlink Estándar V4",            precio:380000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"adaptador_poe_v4",          nombre:"Adaptador PoE para Starlink V4 12V a 57V (Importado)",         precio:380000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"maletin_camuflado",         nombre:"Maletín Camuflado de Transporte para Starlink",                precio:300000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_acrilico_router3",  nombre:"Soporte Acrílico para Router Gen 3",                           precio:260000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"radio_enlace_ptp",          nombre:"Radio Enlace Punto a Punto (1 KM de Alcance - Importado)",     precio:580000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"soporte_pared_compat_v4",   nombre:"Soporte / Base de Pared Compatible V4",                        precio:280000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"kit_mini_base_techo_carro", nombre:"Kit Starlink Mini para base de techo de carro",                precio:195000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"cable_3puntas_mini",        nombre:"Cable de 3 puntas para Antena Starlink Mini",                  precio:195000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"cable_generico_cigarrera",  nombre:"Cable genérico para conectar Antena en Cigarrera",             precio:185000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
+    { id:"maletin_rigido_mini_imp",   nombre:"Maletín Rígido para Starlink Mini (Importado)",                precio:280000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", custom:false },
   ];
 
   // Ítems que SOLO se alquilan, no se venden — independientes del catálogo de accesorios de inventario
@@ -2702,11 +2727,21 @@
             <button class="qty-btn minus" data-qty-minus="${a.id}" title="Restar 1 (salida)">−</button>
             <input type="number" min="0" step="1" class="qty-input acc-stock" data-id="${a.id}" value="${Number(a.stock)||0}">
             <button class="qty-btn plus" data-qty-plus="${a.id}" title="Sumar 1 al costo promedio actual (entrada)">+</button>
+            <button class="mini-icon-btn mini-cyan" data-entrada-precio="${a.id}" title="Entrada con precio de lote distinto">💲</button>
+            <button class="mini-icon-btn mini-red" data-ajuste-sin-fin="${a.id}" title="Ajustar stock SIN afectar Finanzas">⚠️</button>
           </div>
-          <button class="link-btn" data-entrada-precio="${a.id}">+ Entrada con precio</button><br>
-          <button class="btn-warn-noaffect" data-ajuste-sin-fin="${a.id}">⚠️ Ajustar SIN afectar Finanzas</button>
         </td>
         <td class="cop">${formatCOP((Number(a.stock)||0) * (Number(a.precioCompra)||0))}</td>
+        <td>
+          <label style="display:flex; align-items:center; gap:5px; font-size:11px; white-space:nowrap;">
+            <input type="checkbox" class="acc-visible" data-id="${a.id}" ${a.visible !== false ? "checked" : ""} style="width:15px; height:15px;">
+            Visible
+          </label>
+          <select class="acc-disponibilidad" data-id="${a.id}" style="margin-top:4px; font-size:11px; padding:4px 6px; ${(Number(a.stock)||0) === 0 ? "" : "display:none;"}">
+            <option value="importado" ${(a.disponibilidad||"importado")==="importado"?"selected":""}>Importado</option>
+            <option value="encargo" ${a.disponibilidad==="encargo"?"selected":""}>Por encargo, 1-3 días</option>
+          </select>
+        </td>
         <td>
           ${a.custom ? `<button class="icon-btn del" data-del-accesorio="${a.id}" title="Eliminar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
@@ -2722,6 +2757,26 @@
         acc.precioCompra = Number(e.target.value) || 0;
         renderKpiAccesorios();
         updateAccesorioRowTotal(acc);
+        scheduleSync();
+      });
+    });
+
+    $all(".acc-visible").forEach(chk => {
+      chk.addEventListener("change", (e) => {
+        const acc = state.accesorios.find(x => x.id === e.target.dataset.id);
+        if(!acc) return;
+        acc.visible = e.target.checked;
+        logHistorial("Visibilidad en tienda", `${acc.nombre}: ${acc.visible ? "Visible" : "Oculto"}`);
+        renderHistorial();
+        scheduleSync();
+      });
+    });
+
+    $all(".acc-disponibilidad").forEach(sel => {
+      sel.addEventListener("change", (e) => {
+        const acc = state.accesorios.find(x => x.id === e.target.dataset.id);
+        if(!acc) return;
+        acc.disponibilidad = e.target.value || "importado";
         scheduleSync();
       });
     });
@@ -2894,6 +2949,8 @@
     const precio = Number($("#newAccPrecio").value) || 0;
     const stock = Number($("#newAccStock").value) || 0;
     const afectaFinanzas = $("#newAccAfectaFinanzas").checked;
+    const visible = $("#newAccVisible").checked;
+    const disponibilidad = $("#newAccDisponibilidad").value || "importado";
 
     if(!nombre){
       toast("Ingresa el nombre del accesorio");
@@ -2905,7 +2962,7 @@
       return;
     }
 
-    const nuevo = { id: uid("acc"), nombre, precio, precioCompra, stock, custom:true };
+    const nuevo = { id: uid("acc"), nombre, precio, precioCompra, stock, visible, disponibilidad, custom:true };
     state.accesorios.push(nuevo);
     logHistorial("Accesorio agregado", `${nombre} — ${stock} unidades a costo ${formatCOP(precioCompra)}, venta ${formatCOP(precio)}` +
       (stock > 0 && !afectaFinanzas ? " (sin afectar Finanzas)" : ""));
@@ -2923,6 +2980,9 @@
     $("#newAccPrecio").value = "";
     $("#newAccStock").value = "";
     $("#newAccAfectaFinanzas").checked = true;
+    $("#newAccVisible").checked = true;
+    $("#newAccDisponibilidad").value = "importado";
+    $("#newAccDisponibilidadWrap").style.display = "none";
 
     renderAccesorios();
     renderHistorial();
@@ -2975,8 +3035,8 @@
             <button class="qty-btn minus" data-lic-qty-minus="${l.id}" title="Restar 1 (salida)">−</button>
             <input type="number" min="0" step="1" class="qty-input lic-stock" data-id="${l.id}" value="${Number(l.stock)||0}">
             <button class="qty-btn plus" data-lic-qty-plus="${l.id}" title="Sumar 1 (entrada)">+</button>
+            <button class="mini-icon-btn mini-red" data-lic-ajuste-sin-fin="${l.id}" title="Ajustar stock SIN afectar Finanzas">⚠️</button>
           </div>
-          <button class="btn-warn-noaffect" data-lic-ajuste-sin-fin="${l.id}">⚠️ Ajustar SIN afectar Finanzas</button>
         </td>
         <td class="cop">${formatCOP((Number(l.stock)||0) * (Number(l.precioCompra)||0))}</td>
         <td>
@@ -3534,14 +3594,15 @@
     combo: 280000 // Base + Adaptador juntos (reemplaza la suma de los dos individuales)
   };
 
-  // Base y Adaptador combinados cobran el combo ($280.000) en vez de sumar
-  // los dos valores individuales ($120.000 + $220.000 = $340.000).
+  // El combo es su propio checkbox explícito (reemplaza a Base+Adaptador
+  // individuales, que quedan mutuamente excluyentes con él en la interfaz).
   function calcValorRecogida(recoger){
     if(!recoger) return 0;
-    if(recoger.base && recoger.adaptador) return VALORES_RECOGIDA_BODEGA.combo;
-    if(recoger.base) return VALORES_RECOGIDA_BODEGA.base;
-    if(recoger.adaptador) return VALORES_RECOGIDA_BODEGA.adaptador;
-    return 0;
+    if(recoger.combo) return VALORES_RECOGIDA_BODEGA.combo;
+    let total = 0;
+    if(recoger.base) total += VALORES_RECOGIDA_BODEGA.base;
+    if(recoger.adaptador) total += VALORES_RECOGIDA_BODEGA.adaptador;
+    return total;
   }
 
   function calcTotalCliente(d){
@@ -3562,14 +3623,14 @@
     const transporte = Number($("#depValorTransporte").value) || 0;
     const recogeAntena = $("#depRecogeAntena").checked;
     const valorEquipo = recogeAntena ? (Number($("#depValorEquipo").value) || 0) : 0;
-    const recoger = { base: $("#depRecogeBase").checked, adaptador: $("#depRecogeAdaptador").checked };
+    const recoger = { base: $("#depRecogeBase").checked, adaptador: $("#depRecogeAdaptador").checked, combo: $("#depRecogeCombo").checked };
     const valorRecogida = calcValorRecogida(recoger);
     const total = instalacion + transporte + valorEquipo + valorRecogida;
     box.innerHTML = `
       <div class="row"><span>Instalación</span><span class="cop">${formatCOP(instalacion)}</span></div>
       <div class="row"><span>Transporte</span><span class="cop">${formatCOP(transporte)}</span></div>
       ${recogeAntena ? `<div class="row"><span>Valor del equipo (antena vendida)</span><span class="cop">${formatCOP(valorEquipo)}</span></div>` : ""}
-      ${valorRecogida ? `<div class="row"><span>Recogida en bodega (${recoger.base && recoger.adaptador ? "combo base+adaptador" : recoger.base ? "base/soporte" : "adaptador"})</span><span class="cop">${formatCOP(valorRecogida)}</span></div>` : ""}
+      ${valorRecogida ? `<div class="row"><span>Recogida en bodega (${recoger.combo ? "combo base+adaptador" : recoger.base && recoger.adaptador ? "base + adaptador" : recoger.base ? "base/soporte" : "adaptador"})</span><span class="cop">${formatCOP(valorRecogida)}</span></div>` : ""}
       <div class="row total"><span>Total a cobrar al cliente</span><span class="cop">${formatCOP(total)}</span></div>
     `;
   }
@@ -3599,9 +3660,9 @@
     empty.style.display = "none";
     body.innerHTML = state.despliegues.map(d => {
       const recoger = d.recoger || {};
-      const recogerTags = ["antena","base","adaptador"]
+      const recogerTags = ["antena","base","adaptador","combo"]
         .filter(k => recoger[k])
-        .map(k => `<span class="tag">${k === "antena" ? "Antena" : k === "base" ? "Base/soporte" : "Adaptador"}</span>`)
+        .map(k => `<span class="tag">${k === "antena" ? "Antena" : k === "base" ? "Base/soporte" : k === "adaptador" ? "Adaptador" : "Combo Base+Adaptador"}</span>`)
         .join("");
       const docs = d.docs || {};
       const docsTags = [
@@ -3638,6 +3699,10 @@
         <td style="max-width:220px; white-space:normal;">${escapeHtml(d.notas || "—")}</td>
         <td>
           <div class="row-actions">
+            ${d.estado === "Agendada" ? `
+            <button class="icon-btn" data-orden-whatsapp="${d.id}" title="Enviar orden de servicio por WhatsApp" style="color:var(--green);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20l1.1-5.5A8.5 8.5 0 1 1 21 11.5z"/></svg>
+            </button>` : ""}
             <button class="icon-btn" data-retomar-despliegue="${d.id}" title="Retomar para editar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 1 2.6 6.4M3 12v6h6"/></svg>
             </button>
@@ -3712,6 +3777,50 @@
     $all("[data-retomar-despliegue]").forEach(btn => {
       btn.addEventListener("click", (e) => retomarDespliegue(e.currentTarget.dataset.retomarDespliegue));
     });
+
+    $all("[data-orden-whatsapp]").forEach(btn => {
+      btn.addEventListener("click", (e) => enviarOrdenServicioWhatsapp(e.currentTarget.dataset.ordenWhatsapp));
+    });
+  }
+
+  // Arma el mensaje de la orden de servicio (qué recoger, qué documentos
+  // llevar y accesorios) y abre WhatsApp para mandársela al técnico.
+  function enviarOrdenServicioWhatsapp(id){
+    const d = state.despliegues.find(x => x.id === id);
+    if(!d) return;
+
+    const recoger = d.recoger || {};
+    const itemsRecoger = [];
+    if(recoger.antena) itemsRecoger.push("• Antena (se vende al cliente)");
+    if(recoger.combo) itemsRecoger.push("• COMBO Base + Adaptador");
+    else {
+      if(recoger.base) itemsRecoger.push("• Base / soporte");
+      if(recoger.adaptador) itemsRecoger.push("• Adaptador");
+    }
+    const textoRecoger = itemsRecoger.length ? itemsRecoger.join("\n") : "No hay que recoger nada en bodega.";
+
+    const docs = d.docs || {};
+    const itemsDocs = [];
+    if(docs.arl) itemsDocs.push("• ARL");
+    if(docs.salud) itemsDocs.push("• Afiliación a Salud");
+    if(docs.alturas) itemsDocs.push("• Curso en Alturas");
+    if(docs.otros) itemsDocs.push(`• ${docs.otros}`);
+    const textoDocs = itemsDocs.length ? itemsDocs.join("\n") : "No se piden documentos especiales.";
+
+    let mensaje = `*ORDEN DE SERVICIO — partesycomputadores.com.co*\n\n`;
+    mensaje += `*Proyecto/Cliente:* ${d.nombre}\n`;
+    if(d.ubicacion) mensaje += `*Ubicación:* ${d.ubicacion}\n`;
+    if(d.instalador) mensaje += `*Técnico asignado:* ${d.instalador}\n`;
+    mensaje += `\n*Recoger en bodega:*\n${textoRecoger}\n`;
+    mensaje += `\n*Documentos que debes llevar:*\n${textoDocs}\n`;
+    if(d.notas) mensaje += `\n*Notas de configuración:*\n${d.notas}\n`;
+    mensaje += `\n_Estado: Agendada_`;
+
+    const numero = (d.instaladorTel || "").replace(/\D/g,"");
+    const url = numero
+      ? `https://wa.me/57${numero.replace(/^57/,"")}?text=${encodeURIComponent(mensaje)}`
+      : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, "_blank");
   }
 
   // ---------- Retomar / editar una instalación existente ----------
@@ -3724,6 +3833,7 @@
 
     $("#depNombre").value = dep.nombre || "";
     $("#depInstalador").value = dep.instalador || "";
+    $("#depInstaladorTel").value = dep.instaladorTel || "";
     $("#depUbicacion").value = dep.ubicacion || "";
     $("#depEstado").value = dep.estado || "Cotizacion";
     $("#depActivacion").value = dep.activacion || "Pendiente";
@@ -3731,6 +3841,7 @@
     $("#depRecogeAntena").checked = !!recoger.antena;
     $("#depRecogeBase").checked = !!recoger.base;
     $("#depRecogeAdaptador").checked = !!recoger.adaptador;
+    $("#depRecogeCombo").checked = !!recoger.combo;
     $("#depValorEquipo").value = dep.valorEquipo || "";
     const docs = dep.docs || {};
     $("#depDocARL").checked = !!docs.arl;
@@ -3755,12 +3866,14 @@
     editandoDespliegueId = null;
     $("#depNombre").value = "";
     $("#depInstalador").value = "";
+    $("#depInstaladorTel").value = "";
     $("#depUbicacion").value = "";
     $("#depEstado").value = "Cotizacion";
     $("#depActivacion").value = "Pendiente";
     $("#depRecogeAntena").checked = false;
     $("#depRecogeBase").checked = false;
     $("#depRecogeAdaptador").checked = false;
+    $("#depRecogeCombo").checked = false;
     $("#depValorEquipo").value = "";
     $("#depDocARL").checked = false;
     $("#depDocSalud").checked = false;
@@ -3779,6 +3892,7 @@
   function addDespliegue(){
     const nombre = $("#depNombre").value.trim();
     const instalador = $("#depInstalador").value.trim();
+    const instaladorTel = $("#depInstaladorTel").value.trim();
     const ubicacion = $("#depUbicacion").value.trim();
     const estado = $("#depEstado").value;
     const activacion = $("#depActivacion").value;
@@ -3786,7 +3900,8 @@
     const recoger = {
       antena: $("#depRecogeAntena").checked,
       base: $("#depRecogeBase").checked,
-      adaptador: $("#depRecogeAdaptador").checked
+      adaptador: $("#depRecogeAdaptador").checked,
+      combo: $("#depRecogeCombo").checked
     };
     const docs = {
       arl: $("#depDocARL").checked,
@@ -3809,7 +3924,7 @@
       const dep = state.despliegues.find(x => x.id === editandoDespliegueId);
       if(dep){
         Object.assign(dep, {
-          nombre, instalador, ubicacion, estado, activacion, notas,
+          nombre, instalador, instaladorTel, ubicacion, estado, activacion, notas,
           recoger, docs, valorInstalacion, valorTransporte, valorInstalador, valorEquipo
         });
         logHistorial("Instalación actualizada", `${nombre} — total cliente ${formatCOP(calcTotalCliente(dep))}`);
@@ -3824,7 +3939,7 @@
     }
 
     const nuevo = {
-      id: uid("dep"), nombre, instalador, ubicacion, estado, activacion, notas,
+      id: uid("dep"), nombre, instalador, instaladorTel, ubicacion, estado, activacion, notas,
       recoger, docs, valorInstalacion, valorTransporte, valorInstalador, valorEquipo,
       fechaISO: new Date().toISOString()
     };
@@ -3888,11 +4003,11 @@
     $("#kpiFinanzas").innerHTML = `
       <div class="kpi accent" id="kpiIngresosCard" style="cursor:pointer;"><div class="n" style="font-size:15px;">${formatCOP(ingresosTotales)}</div><div class="l">Ingresos del mes ▸ ver detalle</div></div>
       <div class="kpi" id="kpiEgresosCard" style="cursor:pointer;"><div class="n" style="font-size:15px;">${formatCOP(egresosTotales)}</div><div class="l">Egresos del mes ▸ ver detalle</div></div>
-      <div class="kpi"><div class="n" style="font-size:15px; color:${utilidad>=0?'var(--green)':'var(--red)'}">${formatCOP(utilidad)}</div><div class="l">Utilidad del mes</div></div>
-      <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosArriendosAccesorios)}</div><div class="l">Utilidad accesorios de arriendo</div></div>
-      <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosAdministracion)}</div><div class="l">Administración Alejandra</div></div>
-      <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosVentasMes)}</div><div class="l">Ventas confirmadas (${ventasMes.length})</div></div>
-      <div class="kpi"><div class="n" style="font-size:14px;">${formatCOP(ingresosServiciosMes)}</div><div class="l">Servicios (${serviciosMes.length})</div></div>
+      <div class="kpi" id="kpiUtilidadCard" style="cursor:pointer;"><div class="n" style="font-size:15px; color:${utilidad>=0?'var(--green)':'var(--red)'}">${formatCOP(utilidad)}</div><div class="l">Utilidad del mes ▸ ver detalle</div></div>
+      <div class="kpi" id="kpiArriendoAccCard" style="cursor:pointer;"><div class="n" style="font-size:14px;">${formatCOP(ingresosArriendosAccesorios)}</div><div class="l">Utilidad accesorios de arriendo ▸ ver detalle</div></div>
+      <div class="kpi" id="kpiAdminCard" style="cursor:pointer;"><div class="n" style="font-size:14px;">${formatCOP(ingresosAdministracion)}</div><div class="l">Administración Alejandra ▸ ver detalle</div></div>
+      <div class="kpi" id="kpiVentasCard" style="cursor:pointer;"><div class="n" style="font-size:14px;">${formatCOP(ingresosVentasMes)}</div><div class="l">Ventas confirmadas (${ventasMes.length}) ▸ ver detalle</div></div>
+      <div class="kpi" id="kpiServiciosCard" style="cursor:pointer;"><div class="n" style="font-size:14px;">${formatCOP(ingresosServiciosMes)}</div><div class="l">Servicios (${serviciosMes.length}) ▸ ver detalle</div></div>
     `;
 
     const desgloseIngresos = [
@@ -3909,6 +4024,20 @@
       { label:"Entradas de accesorios (compras)", valor: egresosAccesorios },
       { label:"Entradas de licencias (compras)", valor: egresosLicencias }
     ];
+    const antenasConAccMes = antenasMes.filter(a => calcLiquidacionAntena(a).subElementos > 0);
+    const desgloseArriendoAcc = antenasConAccMes.map(a => {
+      const liq = calcLiquidacionAntena(a);
+      const nombresElementos = (a.elementos || []).map(e => e.nombre).join(", ") || "accesorios opcionales";
+      return { label: `${a.serial} — ${nombresElementos}`, valor: liq.subElementos };
+    });
+    const desgloseVentas = ventasMes.map(v => ({
+      label: `${v.tipo === "recibo" ? "Recibo" : "Cta. cobro pagada"} ${v.numero} — ${v.cliente || "cliente"}`,
+      valor: v.valor
+    }));
+    const desgloseServicios = serviciosMes.map(s => ({
+      label: `${s.servicio} — ${s.pais}${s.cliente ? " (" + s.cliente + ")" : ""}`,
+      valor: s.valor
+    }));
 
     function renderDesglose(titulo, items, total){
       const filas = items.filter(x => x.valor !== 0).map(x => `
@@ -3926,19 +4055,46 @@
     }
 
     const breakdownBox = $("#finDetalleBreakdown");
-    $("#kpiIngresosCard").addEventListener("click", () => {
-      const yaAbierto = breakdownBox.dataset.tipo === "ingresos" && breakdownBox.style.display !== "none";
+    function toggleDesglose(tipo, html){
+      const yaAbierto = breakdownBox.dataset.tipo === tipo && breakdownBox.style.display !== "none";
       if(yaAbierto){ breakdownBox.style.display = "none"; return; }
-      breakdownBox.dataset.tipo = "ingresos";
-      breakdownBox.innerHTML = renderDesglose("Desglose de ingresos del mes", desgloseIngresos, ingresosTotales);
+      breakdownBox.dataset.tipo = tipo;
+      breakdownBox.innerHTML = html;
       breakdownBox.style.display = "block";
+      breakdownBox.scrollIntoView({ behavior:"smooth", block:"nearest" });
+    }
+    $("#kpiIngresosCard").addEventListener("click", () => {
+      toggleDesglose("ingresos", renderDesglose("Desglose de ingresos del mes", desgloseIngresos, ingresosTotales));
     });
     $("#kpiEgresosCard").addEventListener("click", () => {
-      const yaAbierto = breakdownBox.dataset.tipo === "egresos" && breakdownBox.style.display !== "none";
-      if(yaAbierto){ breakdownBox.style.display = "none"; return; }
-      breakdownBox.dataset.tipo = "egresos";
-      breakdownBox.innerHTML = renderDesglose("Desglose de egresos del mes", desgloseEgresos, egresosTotales);
-      breakdownBox.style.display = "block";
+      toggleDesglose("egresos", renderDesglose("Desglose de egresos del mes", desgloseEgresos, egresosTotales));
+    });
+    $("#kpiUtilidadCard").addEventListener("click", () => {
+      const html = renderDesglose("Ingresos del mes", desgloseIngresos, ingresosTotales) +
+        renderDesglose("Egresos del mes", desgloseEgresos, egresosTotales) +
+        `<div class="summary-box" style="margin-top:10px;"><div class="row total"><span>Utilidad del mes (ingresos − egresos)</span><span class="cop" style="color:${utilidad>=0?'var(--green)':'var(--red)'}">${formatCOP(utilidad)}</span></div></div>`;
+      toggleDesglose("utilidad", html);
+    });
+    $("#kpiArriendoAccCard").addEventListener("click", () => {
+      toggleDesglose("arriendoacc", renderDesglose("Utilidad por accesorios de arriendo del mes", desgloseArriendoAcc, ingresosArriendosAccesorios));
+    });
+    $("#kpiAdminCard").addEventListener("click", () => {
+      const html = `
+        <div class="summary-box" style="margin-top:10px;">
+          <div class="row" style="font-weight:700; color:var(--tx-0); border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:2px;">
+            <span>Administración Alejandra</span><span></span>
+          </div>
+          <div class="row"><span>Cargo fijo mensual (se resta de su liquidación y suma a la utilidad de la empresa)</span><span class="cop">${formatCOP(ADMIN_FEE_ALEJANDRA)}</span></div>
+          <div class="row total"><span>Total</span><span class="cop">${formatCOP(ingresosAdministracion)}</span></div>
+        </div>
+      `;
+      toggleDesglose("admin", html);
+    });
+    $("#kpiVentasCard").addEventListener("click", () => {
+      toggleDesglose("ventas", renderDesglose("Ventas confirmadas del mes", desgloseVentas, ingresosVentasMes));
+    });
+    $("#kpiServiciosCard").addEventListener("click", () => {
+      toggleDesglose("servicios", renderDesglose("Servicios prestados del mes", desgloseServicios, ingresosServiciosMes));
     });
 
     const instBody = $("#finInstalacionesBody");
@@ -4177,6 +4333,9 @@
 
     $("#btnAddAntena").addEventListener("click", addAntena);
     $("#btnAddAccesorio").addEventListener("click", addAccesorio);
+    $("#newAccStock").addEventListener("input", (e) => {
+      $("#newAccDisponibilidadWrap").style.display = (Number(e.target.value) || 0) === 0 ? "block" : "none";
+    });
     $("#btnAddLicencia").addEventListener("click", addLicencia);
     $("#btnAddDespliegue").addEventListener("click", addDespliegue);
     $("#btnAddServicio").addEventListener("click", addServicio);
@@ -4234,8 +4393,21 @@
       $("#"+id).addEventListener("input", updateDepTotalPreview);
     });
     $("#depRecogeAntena").addEventListener("change", updateDepTotalPreview);
-    $("#depRecogeBase").addEventListener("change", updateDepTotalPreview);
-    $("#depRecogeAdaptador").addEventListener("change", updateDepTotalPreview);
+    $("#depRecogeBase").addEventListener("change", (e) => {
+      if(e.target.checked) $("#depRecogeCombo").checked = false;
+      updateDepTotalPreview();
+    });
+    $("#depRecogeAdaptador").addEventListener("change", (e) => {
+      if(e.target.checked) $("#depRecogeCombo").checked = false;
+      updateDepTotalPreview();
+    });
+    $("#depRecogeCombo").addEventListener("change", (e) => {
+      if(e.target.checked){
+        $("#depRecogeBase").checked = false;
+        $("#depRecogeAdaptador").checked = false;
+      }
+      updateDepTotalPreview();
+    });
     $("#btnCancelarEdicionDespliegue").addEventListener("click", cancelarEdicionDespliegue);
 
     // Si este navegador/dispositivo nunca ha guardado nada localmente,
