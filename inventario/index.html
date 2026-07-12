@@ -678,6 +678,18 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
     Historial
   </button>
+  <button class="tab-btn" id="navAltaDemanda">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+    Alta Demanda Checker ↗
+  </button>
+  <button class="tab-btn" id="navPanelAdmin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"/></svg>
+    Panel Administrativo de Tienda ↗
+  </button>
+  <button class="tab-btn" id="navVerTienda">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9M3 9h18M9 21v-6h6v6"/></svg>
+    Ver Tienda ↗
+  </button>
 </nav>
 
 <main>
@@ -763,6 +775,30 @@
         </div>
         <div class="home-card-title">Historial</div>
         <div class="home-card-desc">Registro cronológico de movimientos</div>
+      </button>
+
+      <button class="home-card" id="homeAltaDemanda">
+        <div class="home-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+        </div>
+        <div class="home-card-title">Alta Demanda Checker ↗</div>
+        <div class="home-card-desc">Herramienta externa — abre en pestaña nueva</div>
+      </button>
+
+      <button class="home-card" id="homePanelAdmin">
+        <div class="home-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"/></svg>
+        </div>
+        <div class="home-card-title">Panel Administrativo de Tienda ↗</div>
+        <div class="home-card-desc">Herramienta externa — abre en pestaña nueva</div>
+      </button>
+
+      <button class="home-card" id="homeVerTienda">
+        <div class="home-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9M3 9h18M9 21v-6h6v6"/></svg>
+        </div>
+        <div class="home-card-title">Ver Tienda ↗</div>
+        <div class="home-card-desc">Herramienta externa — abre en pestaña nueva</div>
       </button>
     </div>
   </section>
@@ -2136,7 +2172,7 @@
   }
 
   function initTabs(){
-    $all(".tab-btn").forEach(btn => {
+    $all(".tab-btn[data-tab]").forEach(btn => {
       btn.addEventListener("click", () => goToTab(btn.dataset.tab));
     });
     $all(".home-card[data-tab]").forEach(card => {
@@ -3849,6 +3885,20 @@
     $("#btnAddTarea").addEventListener("click", addTarea);
     $("#tareaNombre").addEventListener("keydown", (e) => { if(e.key === "Enter") addTarea(); });
     $("#btnLimpiarCompletadas").addEventListener("click", limpiarTareasCompletadas);
+
+    // Accesos directos a herramientas externas (páginas separadas del mismo
+    // sitio) — se abren en una pestaña nueva para no perder lo que tengas
+    // abierto aquí.
+    const ENLACES_EXTERNOS = {
+      AltaDemanda: "https://amvmendez.github.io/pyc-starlink/RecargoAltaDemanda/",
+      PanelAdmin: "https://amvmendez.github.io/pyc-starlink/admin.html",
+      VerTienda: "https://amvmendez.github.io/pyc-starlink/index.html"
+    };
+    ["nav", "home"].forEach(prefix => {
+      $(`#${prefix}AltaDemanda`).addEventListener("click", () => window.open(ENLACES_EXTERNOS.AltaDemanda, "_blank"));
+      $(`#${prefix}PanelAdmin`).addEventListener("click", () => window.open(ENLACES_EXTERNOS.PanelAdmin, "_blank"));
+      $(`#${prefix}VerTienda`).addEventListener("click", () => window.open(ENLACES_EXTERNOS.VerTienda, "_blank"));
+    });
 
     renderElementosChecklist();
     updateAntLiquidacionPreview();
