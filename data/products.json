@@ -3,7 +3,7 @@
     "id": "svc-garantia",
     "name": "Trámite de garantía Starlink",
     "category": "Servicios Starlink",
-    "price": 0,
+    "price": 150000,
     "sku": "SVC-GARANTIA",
     "desc": "Gestión de garantía ante Starlink por antena o router defectuoso.",
     "image": "",
