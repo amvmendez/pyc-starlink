@@ -468,6 +468,7 @@
     <div class="fine">
       <span>© <span id="year"></span> partesycomputadores.com.co</span>
       <span>Stock de Starlink en tiempo real vía inventario interno</span>
+      <span id="versionTag" class="mono"></span>
     </div>
   </div>
 </footer>
@@ -523,7 +524,12 @@
     <div class="pm-detail" id="pmDetail"></div>
     <div class="pm-foot">
       <div class="card-price" id="pmPrice"></div>
-      <button class="btn btn-grad" id="pmAddBtn">Agregar al carrito</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost" id="pmShareBtn" aria-label="Compartir">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </button>
+        <button class="btn btn-grad" id="pmAddBtn">Agregar al carrito</button>
+      </div>
     </div>
   </div>
 </div>
@@ -538,6 +544,10 @@
    3) Sube los cambios (commit) — Github Pages se actualiza solo en 1-2 min.
    No necesitas tocar nada más del archivo.
    ========================================================================= */
+
+const APP_VERSION = "1.0.0";
+const APP_BUILD_DATE = "2026-07-12";
+console.info(`Partes y Computadores — tienda v${APP_VERSION} (${APP_BUILD_DATE})`);
 
 const WHATSAPP_NUMBER = "573157863409";
 const CONTACT_EMAIL = "adrianamendezvargas@partesycomputadores.com.co";
@@ -605,28 +615,13 @@ async function loadStarlinkLive() {
     const items = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw);
     console.info(`[Starlink live] ${items.length} ítems encontrados en "${foundKey}".`);
 
-    // "visible" (booleano, por defecto true si no existe) controla si el
-    // accesorio se muestra en el catálogo público — sigue existiendo en el
-    // inventario interno, solo se filtra aquí antes de renderizar.
-    const visibles = items.filter(it => it.visible !== false);
-    console.info(`[Starlink live] ${visibles.length} de ${items.length} visibles en la tienda (${items.length - visibles.length} ocultos).`);
-
-    return visibles.map((it, i) => {
+    return items.map((it, i) => {
       const name = it.nombre || it.name || `Accesorio ${i + 1}`;
       const price = Number(it.precioVenta ?? it.precio_venta ?? it.precio ?? it.price ?? 0);
       const stock = Number(it.stock ?? it.cantidad ?? it.qty ?? 0);
-
-      // "disponibilidad" ("importado" | "encargo") solo aplica cuando no hay
-      // stock — describe por qué no hay unidades listas para entrega inmediata.
-      let desc;
-      if (stock > 0) {
-        desc = `${stock} disponibles en stock.`;
-      } else if (it.disponibilidad === "encargo") {
-        desc = "Por encargo, 1-3 días hábiles.";
-      } else {
-        desc = "Producto importado — disponible bajo pedido.";
-      }
-
+      const availability = stock > 0
+        ? "stock"
+        : (it.disponibilidad === "encargo" ? "pedido_encargo" : "pedido_importado");
       return {
         id: "sl-" + (it.id || name).toString().toLowerCase().replace(/\s+/g, "-"),
         name,
@@ -634,9 +629,10 @@ async function loadStarlinkLive() {
         type: "producto",
         price,
         sku: (it.sku || it.id || name).toString().slice(0, 20).toUpperCase(),
-        desc,
+        desc: stock > 0 ? `${stock} disponibles en stock.` : "Disponible bajo pedido.",
         image: it.imagen || it.image || "",
-        availability: stock > 0 ? "stock" : "pedido"
+        availability,
+        visible: it.visible !== false
       };
     });
   } catch (err) {
@@ -688,7 +684,8 @@ function placeholderIcon() {
 function availabilityBadge(p) {
   const map = {
     stock: '<span class="badge stock">En stock</span>',
-    pedido: '<span class="badge pedido">Bajo pedido</span>',
+    pedido_importado: '<span class="badge pedido">Bajo pedido · Importado</span>',
+    pedido_encargo: '<span class="badge pedido">Bajo pedido · 1-3 días</span>',
     agotado: '<span class="badge agotado">Agotado</span>'
   };
   return p.availability ? (map[p.availability] || "") : "";
@@ -764,11 +761,13 @@ function renderGrid() {
 
 async function init() {
   document.getElementById("year").textContent = new Date().getFullYear();
+  document.getElementById("versionTag").textContent = `v${APP_VERSION} · ${APP_BUILD_DATE}`;
   const [manual, live] = await Promise.all([loadManualProducts(), loadStarlinkLive()]);
-  ALL_PRODUCTS = [...manual, ...live];
+  ALL_PRODUCTS = [...manual, ...live].filter(p => p.visible !== false);
   renderPins();
   renderGrid();
   initCart();
+  openProductFromUrlIfPresent();
 }
 init();
 
@@ -882,7 +881,7 @@ function showToast(msg) {
 // ============================== MODAL DE PRODUCTO ==========================
 let modalProduct = null;
 
-function openProductModal(p) {
+function openProductModal(p, updateUrl = true) {
   modalProduct = p;
   document.getElementById("pmTitle").textContent = p.name;
   document.getElementById("pmCat").textContent = `${p.category} · ${p.sku}`;
@@ -922,26 +921,71 @@ function openProductModal(p) {
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
+
+  if (updateUrl) history.pushState({ producto: p.id }, "", "#producto=" + encodeURIComponent(p.id));
 }
 
-function closeProductModal() {
+function closeProductModal(updateUrl = true) {
   document.getElementById("modalOverlay").classList.remove("open");
   const modal = document.getElementById("productModal");
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
   modalProduct = null;
+  if (updateUrl && location.hash.startsWith("#producto=")) {
+    history.pushState(null, "", location.pathname + location.search);
+  }
 }
 
-document.getElementById("modalCloseBtn").addEventListener("click", closeProductModal);
-document.getElementById("modalOverlay").addEventListener("click", closeProductModal);
+document.getElementById("modalCloseBtn").addEventListener("click", () => closeProductModal());
+document.getElementById("modalOverlay").addEventListener("click", () => closeProductModal());
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeProductModal(); });
+
 document.getElementById("pmAddBtn").addEventListener("click", () => {
   if (modalProduct) {
     addToCart(modalProduct);
     closeProductModal();
   }
 });
+
+document.getElementById("pmShareBtn").addEventListener("click", async () => {
+  if (!modalProduct) return;
+  const url = `${location.origin}${location.pathname}#producto=${encodeURIComponent(modalProduct.id)}`;
+  const shareData = {
+    title: modalProduct.name,
+    text: `${modalProduct.name} — ${modalProduct.price ? fmtCOP.format(modalProduct.price) : "Consultar"}`,
+    url
+  };
+  if (navigator.share) {
+    try { await navigator.share(shareData); } catch { /* cancelado por el usuario */ }
+  } else {
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast("Link copiado");
+    } catch {
+      showToast(url);
+    }
+  }
+});
+
+// abre el producto directamente si se entra con un link tipo #producto=ID
+window.addEventListener("popstate", () => {
+  if (location.hash.startsWith("#producto=")) {
+    const id = decodeURIComponent(location.hash.replace("#producto=", ""));
+    const p = ALL_PRODUCTS.find(x => x.id === id);
+    if (p) openProductModal(p, false);
+  } else {
+    closeProductModal(false);
+  }
+});
+
+function openProductFromUrlIfPresent() {
+  if (location.hash.startsWith("#producto=")) {
+    const id = decodeURIComponent(location.hash.replace("#producto=", ""));
+    const p = ALL_PRODUCTS.find(x => x.id === id);
+    if (p) openProductModal(p, false);
+  }
+}
 
 function initCart() {
   loadCart();
