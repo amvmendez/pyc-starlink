@@ -222,17 +222,19 @@ function clearStatus(el) {
 async function ghFetch(path, options = {}) {
   const token = localStorage.getItem(TOKEN_KEY);
   return fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
+    cache: "no-store",
     ...options,
     headers: {
       "Authorization": `Bearer ${token}`,
       "Accept": "application/vnd.github+json",
+      "If-None-Match": "",
       ...(options.headers || {})
     }
   });
 }
 
 async function ghGetFile(path) {
-  const res = await ghFetch(`${path}?ref=${BRANCH}`);
+  const res = await ghFetch(`${path}?ref=${BRANCH}&_=${Date.now()}`);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`GitHub respondió ${res.status} al leer ${path}`);
   const data = await res.json();
@@ -248,6 +250,27 @@ async function ghPutFile(path, base64Content, message, sha) {
     throw new Error(errBody.message || `GitHub respondió ${res.status} al guardar ${path}`);
   }
   return res.json();
+}
+
+// Lee la versión más reciente de products.json, le aplica una transformación,
+// y la guarda. Si por caché o un cambio simultáneo el sha ya no coincide,
+// reintenta una vez automáticamente antes de mostrar error.
+async function updateProductsFile(mutatorFn, message) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const fresh = await ghGetFile(PRODUCTS_PATH);
+    const freshList = JSON.parse(fresh.content);
+    const updated = mutatorFn(freshList);
+    try {
+      return await ghPutFile(PRODUCTS_PATH, utf8ToB64(JSON.stringify(updated, null, 2)), message, fresh.sha);
+    } catch (err) {
+      const isShaConflict = /does not match|409/i.test(err.message);
+      if (isShaConflict && attempt === 1) {
+        await new Promise(r => setTimeout(r, 600));
+        continue;
+      }
+      throw err;
+    }
+  }
 }
 
 function resizeImageToJpegBase64(file, maxDim = 1600, quality = 0.85) {
@@ -391,14 +414,9 @@ $("bulkDeleteBtn").addEventListener("click", async () => {
   lockUI(true);
   setStatus(statusEl, "pending", `Borrando ${names.length} producto(s)…`);
   try {
-    const fresh = await ghGetFile(PRODUCTS_PATH);
-    const freshList = JSON.parse(fresh.content);
-    const updated = freshList.filter(p => !selectedIds.has(p.id));
-    await ghPutFile(
-      PRODUCTS_PATH,
-      utf8ToB64(JSON.stringify(updated, null, 2)),
-      `Eliminar ${names.length} producto(s): ${names.join(", ")}`,
-      fresh.sha
+    await updateProductsFile(
+      list => list.filter(p => !selectedIds.has(p.id)),
+      `Eliminar ${names.length} producto(s): ${names.join(", ")}`
     );
     selectedIds.clear();
     setStatus(statusEl, "ok", "Productos eliminados. Se verán en la tienda en 1-2 min.");
@@ -502,16 +520,9 @@ async function deleteProduct(index) {
   lockUI(true);
   setStatus(statusEl, "pending", "Borrando…");
   try {
-    // Siempre lee la versión más reciente justo antes de escribir, para
-    // evitar el error "sha does not match" si hubo otro cambio reciente.
-    const fresh = await ghGetFile(PRODUCTS_PATH);
-    const freshList = JSON.parse(fresh.content);
-    const updated = freshList.filter(p => p.id !== target.id);
-    await ghPutFile(
-      PRODUCTS_PATH,
-      utf8ToB64(JSON.stringify(updated, null, 2)),
-      `Eliminar producto: ${target.name}`,
-      fresh.sha
+    await updateProductsFile(
+      list => list.filter(p => p.id !== target.id),
+      `Eliminar producto: ${target.name}`
     );
     setStatus(statusEl, "ok", "Producto eliminado. Se verá en la tienda en 1-2 min.");
     await loadProducts();
@@ -556,25 +567,15 @@ $("saveProductBtn").addEventListener("click", async () => {
     }
 
     setStatus(statusEl, "pending", "Guardando en el catálogo…");
-    // Siempre lee la versión más reciente justo antes de escribir, para
-    // evitar el error "sha does not match" si hubo otro cambio reciente.
-    const fresh = await ghGetFile(PRODUCTS_PATH);
-    const freshList = JSON.parse(fresh.content);
-    const idx = existing ? freshList.findIndex(p => p.id === existing.id) : -1;
-    let updated;
-    if (idx !== -1) {
-      updated = [...freshList];
-      updated[idx] = product;
-    } else {
-      updated = [...freshList, product];
-    }
-
-    await ghPutFile(
-      PRODUCTS_PATH,
-      utf8ToB64(JSON.stringify(updated, null, 2)),
-      existing ? `Editar producto: ${name}` : `Agregar producto: ${name}`,
-      fresh.sha
-    );
+    await updateProductsFile(freshList => {
+      const idx = existing ? freshList.findIndex(p => p.id === existing.id) : -1;
+      if (idx !== -1) {
+        const updated = [...freshList];
+        updated[idx] = product;
+        return updated;
+      }
+      return [...freshList, product];
+    }, existing ? `Editar producto: ${name}` : `Agregar producto: ${name}`);
 
     setStatus(statusEl, "ok", "Guardado. Se verá en la tienda en 1-2 min.");
     resetForm();
