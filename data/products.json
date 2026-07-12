@@ -7,17 +7,19 @@
     "sku": "SVC-GARANTIA",
     "desc": "Gestión de garantía ante Starlink por antena o router defectuoso.",
     "image": "",
-    "availability": null
+    "availability": null,
+    "type": "servicio"
   },
   {
     "id": "svc-recuperacion",
     "name": "Recuperación de cuenta Starlink",
     "category": "Servicios Starlink",
-    "price": 150000,
+    "price": 80000,
     "sku": "SVC-RECUP-CTA",
     "desc": "Recuperamos el acceso a tu cuenta cuando perdiste el usuario o contraseña.",
-    "image": "productos/recuperacion-de-cuenta-starlink-mrh3go2b.jpg",
-    "availability": null
+    "image": "",
+    "availability": null,
+    "type": "servicio"
   },
   {
     "id": "svc-reubicacion",
@@ -27,7 +29,8 @@
     "sku": "SVC-REUBICACION",
     "desc": "Cambio de dirección de servicio o de zona de cobertura.",
     "image": "",
-    "availability": null
+    "availability": null,
+    "type": "servicio"
   },
   {
     "id": "sup-formateo",
@@ -37,7 +40,8 @@
     "sku": "SUP-FORMATEO",
     "desc": "Formateo completo de tu equipo por conexión remota, con respaldo previo.",
     "image": "",
-    "availability": null
+    "availability": null,
+    "type": "servicio"
   },
   {
     "id": "sup-optimizacion",
@@ -47,7 +51,8 @@
     "sku": "SUP-OPTIMIZA",
     "desc": "Limpieza de archivos, arranque e inicio para que tu PC vuelva a rendir.",
     "image": "",
-    "availability": null
+    "availability": null,
+    "type": "servicio"
   },
   {
     "id": "sup-instalacion",
@@ -57,396 +62,7 @@
     "sku": "SUP-INSTALA",
     "desc": "Instalamos y configuramos los programas que necesites, sin salir de casa.",
     "image": "",
-    "availability": null
-  },
-  {
-    "id": "kit-antena-starlink-estandar-v4-activacion-y-confi",
-    "name": "Kit Antena Starlink Estándar V4 + Activación y Configuración",
-    "category": "Kits completos",
-    "price": 1900000,
-    "sku": "KIT-01",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "kit-antena-starlink-mini-activacion-y-configuracio",
-    "name": "Kit Antena Starlink Mini + Activación y Configuración",
-    "category": "Kits completos",
-    "price": 1100000,
-    "sku": "KIT-02",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "kit-starlink-mini-para-base-de-techo-de-carro",
-    "name": "Kit Starlink Mini para base de techo de carro",
-    "category": "Kits completos",
-    "price": 195000,
-    "sku": "KIT-03",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "fuente-de-alimentacion-avanzada-standard-4",
-    "name": "Fuente de alimentación avanzada — Standard 4",
-    "category": "Alimentación y routers",
-    "price": 1063000,
-    "sku": "ALI-01",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "router-3-standard-4-mini",
-    "name": "Router 3 — Standard 4, Mini",
-    "category": "Alimentación y routers",
-    "price": 624000,
-    "sku": "ALI-02",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "router-mini",
-    "name": "Router Mini",
-    "category": "Alimentación y routers",
-    "price": 249790,
-    "sku": "ALI-03",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "adaptador-poe-starlink-v4-12v-a-57v-importado",
-    "name": "Adaptador PoE Starlink V4 12V a 57V (Importado)",
-    "category": "Alimentación y routers",
-    "price": 380000,
-    "sku": "ALI-04",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "cable-starlink-de-15-m",
-    "name": "Cable Starlink de 15 m",
-    "category": "Cables",
-    "price": 341600,
-    "sku": "CAB-01",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "cable-starlink-de-45-m",
-    "name": "Cable Starlink de 45 m",
-    "category": "Cables",
-    "price": 630800,
-    "sku": "CAB-02",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "cable-de-alimentacion-cc-mini-15-m",
-    "name": "Cable de alimentación CC — Mini 15 m",
-    "category": "Cables",
-    "price": 210000,
-    "sku": "CAB-03",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "cable-de-alimentacion-cc-mini-30-m",
-    "name": "Cable de alimentación CC — Mini 30 m",
-    "category": "Cables",
-    "price": 265000,
-    "sku": "CAB-04",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "cable-ethernet-mini-15-m",
-    "name": "Cable Ethernet — Mini 15 m",
-    "category": "Cables",
-    "price": 211000,
-    "sku": "CAB-05",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "cable-usb-c-mini-5-m",
-    "name": "Cable USB-C — Mini 5 m",
-    "category": "Cables",
-    "price": 175000,
-    "sku": "CAB-06",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "cable-de-3-puntas-para-antena-starlink-mini",
-    "name": "Cable de 3 puntas para Antena Starlink Mini",
-    "category": "Cables",
-    "price": 195000,
-    "sku": "CAB-07",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "cable-generico-para-conectar-antena-en-cigarrera",
-    "name": "Cable genérico para conectar Antena en Cigarrera",
-    "category": "Cables",
-    "price": 185000,
-    "sku": "CAB-08",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-para-portaequipajes-standard-4",
-    "name": "Soporte para portaequipajes — Standard 4",
-    "category": "Soportes — Standard 4",
-    "price": 355000,
-    "sku": "SOP4-01",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-giratorio-standard-4-y-4x-enterprise",
-    "name": "Soporte giratorio — Standard 4 y 4X, Enterprise",
-    "category": "Soportes — Standard 4",
-    "price": 41000,
-    "sku": "SOP4-02",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-de-pared-standard-4",
-    "name": "Soporte de pared — Standard 4",
-    "category": "Soportes — Standard 4",
-    "price": 419600,
-    "sku": "SOP4-03",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "base-de-estructura-en-cruz-standard-4-4x-enterpris",
-    "name": "Base de estructura en cruz — Standard 4/4X, Enterprise",
-    "category": "Soportes — Standard 4",
-    "price": 410000,
-    "sku": "SOP4-04",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-para-cresta-standard-4-4x",
-    "name": "Soporte para cresta — Standard 4/4X",
-    "category": "Soportes — Standard 4",
-    "price": 420000,
-    "sku": "SOP4-05",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-para-movilidad-standard-4",
-    "name": "Soporte para movilidad — Standard 4",
-    "category": "Soportes — Standard 4",
-    "price": 41000,
-    "sku": "SOP4-06",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-de-la-fuente-de-alimentacion-standard-4",
-    "name": "Soporte de la fuente de alimentación — Standard 4",
-    "category": "Soportes — Standard 4",
-    "price": 221300,
-    "sku": "SOP4-07",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-base-de-pared-compatible-v4",
-    "name": "Soporte / Base de pared compatible V4",
-    "category": "Soportes — Standard 4",
-    "price": 280000,
-    "sku": "SOP4-08",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "protector-acrilico-antena-starlink-estandar-v4",
-    "name": "Protector Acrílico Antena Starlink Estándar V4",
-    "category": "Soportes — Standard 4",
-    "price": 380000,
-    "sku": "SOP4-09",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-para-movilidad-mini",
-    "name": "Soporte para movilidad — Mini",
-    "category": "Soportes — Mini",
-    "price": 100000,
-    "sku": "SOPM-01",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-para-portaequipajes-mini",
-    "name": "Soporte para portaequipajes — Mini",
-    "category": "Soportes — Mini",
-    "price": 110000,
-    "sku": "SOPM-02",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-giratorio-mini",
-    "name": "Soporte giratorio — Mini",
-    "category": "Soportes — Mini",
-    "price": 41000,
-    "sku": "SOPM-03",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-de-pared-mini",
-    "name": "Soporte de pared — Mini",
-    "category": "Soportes — Mini",
-    "price": 41000,
-    "sku": "SOPM-04",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-del-router-3",
-    "name": "Soporte del Router 3",
-    "category": "Router 3 / genéricos",
-    "price": 228900,
-    "sku": "RT3-01",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "soporte-acrilico-para-router-gen-3",
-    "name": "Soporte Acrílico para Router Gen 3",
-    "category": "Router 3 / genéricos",
-    "price": 260000,
-    "sku": "RT3-02",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "adaptador-de-soporte-standard-4-4x-a-standard-mini",
-    "name": "Adaptador de soporte Standard 4/4X a Standard mini",
-    "category": "Adaptadores y kits de instalación",
-    "price": 231000,
-    "sku": "ADA-01",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "adaptador-de-tubo-standard-4",
-    "name": "Adaptador de tubo — Standard 4",
-    "category": "Adaptadores y kits de instalación",
-    "price": 286700,
-    "sku": "ADA-02",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "masonry-routing-kit",
-    "name": "Masonry Routing Kit",
-    "category": "Adaptadores y kits de instalación",
-    "price": 374300,
-    "sku": "ADA-03",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "cable-routing-kit",
-    "name": "Cable Routing Kit",
-    "category": "Adaptadores y kits de instalación",
-    "price": 262000,
-    "sku": "ADA-04",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "adaptador-para-automovil-mini",
-    "name": "Adaptador para automóvil — Mini",
-    "category": "Adaptadores y kits de instalación",
-    "price": 280000,
-    "sku": "ADA-05",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "kit-de-viaje-mini",
-    "name": "Kit de viaje — Mini",
-    "category": "Adaptadores y kits de instalación",
-    "price": 237000,
-    "sku": "ADA-06",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "maletin-camuflado-de-transporte-para-starlink",
-    "name": "Maletín Camuflado de Transporte para Starlink",
-    "category": "Maletines y transporte",
-    "price": 300000,
-    "sku": "MAL-01",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "maletin-rigido-para-starlink-mini-importado",
-    "name": "Maletín Rígido para Starlink Mini (Importado)",
-    "category": "Maletines y transporte",
-    "price": 280000,
-    "sku": "MAL-02",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
-  },
-  {
-    "id": "radio-enlace-punto-a-punto-1-km-importado",
-    "name": "Radio Enlace Punto a Punto (1 KM, Importado)",
-    "category": "Otros",
-    "price": 580000,
-    "sku": "OTR-01",
-    "desc": "",
-    "image": "",
-    "availability": "pedido"
+    "availability": null,
+    "type": "servicio"
   }
 ]
