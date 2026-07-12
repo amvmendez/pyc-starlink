@@ -225,14 +225,14 @@
   .qty-btn.plus{color:var(--cyan);}
   .qty-input{width:46px; padding:6px 4px; font-size:13px; text-align:center;}
   .mini-icon-btn{
-    flex:none; width:26px; height:26px; border-radius:7px;
-    background:var(--bg-1); border:1px solid var(--line);
-    font-size:12px; display:flex; align-items:center; justify-content:center;
+    flex:none; width:34px; height:34px; border-radius:9px;
+    background:var(--bg-1); border:1.5px solid var(--line);
+    font-size:16px; display:flex; align-items:center; justify-content:center;
     padding:0; line-height:1;
   }
   .mini-icon-btn:active{transform:scale(0.9);}
-  .mini-icon-btn.mini-cyan{border-color:rgba(0,224,255,0.4);}
-  .mini-icon-btn.mini-red{border-color:rgba(255,93,108,0.4);}
+  .mini-icon-btn.mini-cyan{border-color:var(--cyan); background:rgba(0,224,255,0.14);}
+  .mini-icon-btn.mini-red{border-color:var(--red); background:rgba(255,93,108,0.16);}
   .link-btn{
     background:none; border:none; color:var(--cyan); font-size:10.5px; font-weight:600;
     text-decoration:underline; padding:2px 0; margin-top:2px;
@@ -248,6 +248,7 @@
   .price-input{width:110px; padding:7px 8px; font-size:13px;}
   .mono{font-family:var(--mono);}
   .cop{color:var(--green); font-weight:600;}
+  .cop-egreso{color:var(--blue); font-weight:600;}
 
   .badge{padding:4px 9px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; display:inline-block;}
   .badge-disp{background:rgba(46,230,166,0.14); color:var(--green);}
@@ -1086,6 +1087,14 @@
             <option value="Activada">Ya está activada</option>
           </select>
         </div>
+        <div class="field" id="depFechaServicioWrap" style="display:none;">
+          <label>Fecha del servicio</label>
+          <input type="date" id="depFechaServicio">
+        </div>
+        <div class="field" id="depHoraServicioWrap" style="display:none;">
+          <label>Hora del servicio</label>
+          <input type="time" id="depHoraServicio">
+        </div>
       </div>
 
       <div class="field" style="margin-bottom:10px;">
@@ -1876,8 +1885,8 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-1";
-  const APP_VERSION_NOTA = "Combo bodega, orden WhatsApp, botones compactos, Finanzas clicable";
+  const APP_VERSION = "2026.07.12-2";
+  const APP_VERSION_NOTA = "Fecha/hora de servicio agendado, botones más grandes, egresos en azul";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
@@ -2001,6 +2010,14 @@
   function formatCOP(n){
     n = Number(n) || 0;
     return n.toLocaleString('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 });
+  }
+
+  // Para Finanzas: los egresos se muestran en azul con signo menos, para
+  // distinguirlos de un vistazo de los ingresos (verdes, sin signo).
+  function formatEgresoHTML(n){
+    n = Number(n) || 0;
+    if(n === 0) return `<span class="cop-egreso">${formatCOP(0)}</span>`;
+    return `<span class="cop-egreso">−${formatCOP(n)}</span>`;
   }
 
   function nowLabel(){
@@ -3746,9 +3763,22 @@
           return;
         }
 
+        if(e.target.value === "Agendada" && !dep.fechaServicio){
+          const fechaStr = prompt(`¿Para qué fecha queda agendada la instalación "${dep.nombre}"? (formato: AAAA-MM-DD)`, new Date().toISOString().slice(0,10));
+          if(fechaStr === null || !fechaStr.trim()){
+            e.target.value = dep.estado; // revertir selección si cancela o no da fecha
+            toast("Necesitas dar una fecha para agendar");
+            return;
+          }
+          const horaStr = prompt(`¿A qué hora? (formato: HH:MM, 24 horas — deja en blanco si aún no se sabe)`, "");
+          dep.fechaServicio = fechaStr.trim();
+          dep.horaServicio = (horaStr || "").trim();
+        }
+
         const anterior = DESPLIEGUE_LABEL[dep.estado] || dep.estado;
         dep.estado = e.target.value;
-        logHistorial("Cambio de estado de red", `${dep.nombre}: ${anterior} → ${DESPLIEGUE_LABEL[dep.estado]}`);
+        logHistorial("Cambio de estado de red", `${dep.nombre}: ${anterior} → ${DESPLIEGUE_LABEL[dep.estado]}` +
+          (dep.estado === "Agendada" ? ` — servicio el ${dep.fechaServicio}${dep.horaServicio ? " a las " + dep.horaServicio : ""}` : ""));
         renderDespliegues();
         renderHistorial();
         scheduleSync();
@@ -3820,6 +3850,10 @@
 
     let mensaje = `*ORDEN DE SERVICIO — partesycomputadores.com.co*\n\n`;
     mensaje += `*Proyecto/Cliente:* ${d.nombre}\n`;
+    if(d.fechaServicio){
+      const fechaFmt = new Date(d.fechaServicio + "T00:00:00").toLocaleDateString("es-CO", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+      mensaje += `*Fecha del servicio:* ${fechaFmt}${d.horaServicio ? " a las " + d.horaServicio : ""}\n`;
+    }
     if(d.ubicacion) mensaje += `*Ubicación:* ${d.ubicacion}\n`;
     if(d.instalador) mensaje += `*Técnico asignado:* ${d.instalador}\n`;
     mensaje += `\n*Recoger en bodega:*\n${textoRecoger}\n`;
@@ -3837,6 +3871,12 @@
   // ---------- Retomar / editar una instalación existente ----------
   let editandoDespliegueId = null;
 
+  function actualizarVisibilidadFechaServicio(){
+    const esAgendada = $("#depEstado").value === "Agendada";
+    $("#depFechaServicioWrap").style.display = esAgendada ? "block" : "none";
+    $("#depHoraServicioWrap").style.display = esAgendada ? "block" : "none";
+  }
+
   function retomarDespliegue(id){
     const dep = state.despliegues.find(x => x.id === id);
     if(!dep) return;
@@ -3848,6 +3888,9 @@
     $("#depUbicacion").value = dep.ubicacion || "";
     $("#depEstado").value = dep.estado || "Cotizacion";
     $("#depActivacion").value = dep.activacion || "Pendiente";
+    $("#depFechaServicio").value = dep.fechaServicio || "";
+    $("#depHoraServicio").value = dep.horaServicio || "";
+    actualizarVisibilidadFechaServicio();
     const recoger = dep.recoger || {};
     $("#depRecogeAntena").checked = !!recoger.antena;
     $("#depRecogeBase").checked = !!recoger.base;
@@ -3881,6 +3924,9 @@
     $("#depUbicacion").value = "";
     $("#depEstado").value = "Cotizacion";
     $("#depActivacion").value = "Pendiente";
+    $("#depFechaServicio").value = "";
+    $("#depHoraServicio").value = "";
+    actualizarVisibilidadFechaServicio();
     $("#depRecogeAntena").checked = false;
     $("#depRecogeBase").checked = false;
     $("#depRecogeAdaptador").checked = false;
@@ -3908,6 +3954,14 @@
     const estado = $("#depEstado").value;
     const activacion = $("#depActivacion").value;
     const notas = $("#depNotas").value.trim();
+    const fechaServicio = $("#depFechaServicio").value;
+    const horaServicio = $("#depHoraServicio").value;
+
+    if(estado === "Agendada" && !fechaServicio){
+      toast("Ingresa la fecha del servicio para poder agendar");
+      $("#depFechaServicio").focus();
+      return;
+    }
     const recoger = {
       antena: $("#depRecogeAntena").checked,
       base: $("#depRecogeBase").checked,
@@ -3935,7 +3989,7 @@
       const dep = state.despliegues.find(x => x.id === editandoDespliegueId);
       if(dep){
         Object.assign(dep, {
-          nombre, instalador, instaladorTel, ubicacion, estado, activacion, notas,
+          nombre, instalador, instaladorTel, ubicacion, estado, activacion, notas, fechaServicio, horaServicio,
           recoger, docs, valorInstalacion, valorTransporte, valorInstalador, valorEquipo
         });
         logHistorial("Instalación actualizada", `${nombre} — total cliente ${formatCOP(calcTotalCliente(dep))}`);
@@ -3950,7 +4004,7 @@
     }
 
     const nuevo = {
-      id: uid("dep"), nombre, instalador, instaladorTel, ubicacion, estado, activacion, notas,
+      id: uid("dep"), nombre, instalador, instaladorTel, ubicacion, estado, activacion, notas, fechaServicio, horaServicio,
       recoger, docs, valorInstalacion, valorTransporte, valorInstalador, valorEquipo,
       fechaISO: new Date().toISOString()
     };
@@ -4013,7 +4067,7 @@
 
     $("#kpiFinanzas").innerHTML = `
       <div class="kpi accent" id="kpiIngresosCard" style="cursor:pointer;"><div class="n" style="font-size:15px;">${formatCOP(ingresosTotales)}</div><div class="l">Ingresos del mes ▸ ver detalle</div></div>
-      <div class="kpi" id="kpiEgresosCard" style="cursor:pointer;"><div class="n" style="font-size:15px;">${formatCOP(egresosTotales)}</div><div class="l">Egresos del mes ▸ ver detalle</div></div>
+      <div class="kpi" id="kpiEgresosCard" style="cursor:pointer;"><div class="n" style="font-size:15px;">${formatEgresoHTML(egresosTotales)}</div><div class="l">Egresos del mes ▸ ver detalle</div></div>
       <div class="kpi" id="kpiUtilidadCard" style="cursor:pointer;"><div class="n" style="font-size:15px; color:${utilidad>=0?'var(--green)':'var(--red)'}">${formatCOP(utilidad)}</div><div class="l">Utilidad del mes ▸ ver detalle</div></div>
       <div class="kpi" id="kpiArriendoAccCard" style="cursor:pointer;"><div class="n" style="font-size:14px;">${formatCOP(ingresosArriendosAccesorios)}</div><div class="l">Utilidad accesorios de arriendo ▸ ver detalle</div></div>
       <div class="kpi" id="kpiAdminCard" style="cursor:pointer;"><div class="n" style="font-size:14px;">${formatCOP(ingresosAdministracion)}</div><div class="l">Administración Alejandra ▸ ver detalle</div></div>
@@ -4050,9 +4104,10 @@
       valor: s.valor
     }));
 
-    function renderDesglose(titulo, items, total){
+    function renderDesglose(titulo, items, total, esEgreso){
+      const fmt = esEgreso ? formatEgresoHTML : (v => `<span class="cop">${formatCOP(v)}</span>`);
       const filas = items.filter(x => x.valor !== 0).map(x => `
-        <div class="row"><span>${escapeHtml(x.label)}</span><span class="cop">${formatCOP(x.valor)}</span></div>
+        <div class="row"><span>${escapeHtml(x.label)}</span><span>${fmt(x.valor)}</span></div>
       `).join("") || `<div class="row"><span style="color:var(--tx-2);">Sin movimientos este mes</span><span></span></div>`;
       return `
         <div class="summary-box" style="margin-top:10px;">
@@ -4060,7 +4115,7 @@
             <span>${titulo}</span><span></span>
           </div>
           ${filas}
-          <div class="row total"><span>Total</span><span class="cop">${formatCOP(total)}</span></div>
+          <div class="row total"><span>Total</span><span>${fmt(total)}</span></div>
         </div>
       `;
     }
@@ -4078,11 +4133,11 @@
       toggleDesglose("ingresos", renderDesglose("Desglose de ingresos del mes", desgloseIngresos, ingresosTotales));
     });
     $("#kpiEgresosCard").addEventListener("click", () => {
-      toggleDesglose("egresos", renderDesglose("Desglose de egresos del mes", desgloseEgresos, egresosTotales));
+      toggleDesglose("egresos", renderDesglose("Desglose de egresos del mes", desgloseEgresos, egresosTotales, true));
     });
     $("#kpiUtilidadCard").addEventListener("click", () => {
       const html = renderDesglose("Ingresos del mes", desgloseIngresos, ingresosTotales) +
-        renderDesglose("Egresos del mes", desgloseEgresos, egresosTotales) +
+        renderDesglose("Egresos del mes", desgloseEgresos, egresosTotales, true) +
         `<div class="summary-box" style="margin-top:10px;"><div class="row total"><span>Utilidad del mes (ingresos − egresos)</span><span class="cop" style="color:${utilidad>=0?'var(--green)':'var(--red)'}">${formatCOP(utilidad)}</span></div></div>`;
       toggleDesglose("utilidad", html);
     });
@@ -4120,7 +4175,7 @@
           <td>${escapeHtml(d.nombre)}</td>
           <td class="mono">${d.fechaISO ? d.fechaISO.slice(0,10) : "—"}</td>
           <td class="cop">${formatCOP(calcTotalCliente(d))}</td>
-          <td class="cop">${formatCOP(d.valorInstalador)}</td>
+          <td>${formatEgresoHTML(d.valorInstalador)}</td>
           <td class="cop">${formatCOP(calcMargenInstalacion(d))}</td>
         </tr>
       `).join("");
@@ -4156,8 +4211,8 @@
           <td class="mono">${en.fechaISO ? en.fechaISO.slice(0,10) : "—"}</td>
           <td>${escapeHtml(en.nombre)}</td>
           <td>${en.cantidad}</td>
-          <td class="cop">${formatCOP(en.valorUnitario)}</td>
-          <td class="cop">${formatCOP(en.valorTotal)}</td>
+          <td>${formatEgresoHTML(en.valorUnitario)}</td>
+          <td>${formatEgresoHTML(en.valorTotal)}</td>
         </tr>
       `).join("");
     }
@@ -4175,8 +4230,8 @@
           <td>${escapeHtml(m.nombre)}</td>
           <td><span class="badge ${m.tipo==='entrada'?'badge-sop':'badge-op'}">${m.tipo==='entrada'?'Entrada':'Salida'}</span></td>
           <td>${m.cantidad}</td>
-          <td class="cop">${formatCOP(m.valorUnitario)}</td>
-          <td class="cop">${formatCOP(m.valorTotal)}</td>
+          <td>${m.tipo==='entrada' ? formatEgresoHTML(m.valorUnitario) : `<span class="cop">${formatCOP(m.valorUnitario)}</span>`}</td>
+          <td>${m.tipo==='entrada' ? formatEgresoHTML(m.valorTotal) : `<span class="cop">${formatCOP(m.valorTotal)}</span>`}</td>
         </tr>
       `).join("");
     }
@@ -4435,6 +4490,7 @@
       updateDepTotalPreview();
     });
     $("#btnCancelarEdicionDespliegue").addEventListener("click", cancelarEdicionDespliegue);
+    $("#depEstado").addEventListener("change", actualizarVisibilidadFechaServicio);
 
     // Si este navegador/dispositivo nunca ha guardado nada localmente,
     // asumimos que es "nuevo" y traemos automáticamente el último respaldo de Firebase.
