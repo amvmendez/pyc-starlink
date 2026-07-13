@@ -25,7 +25,7 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
 .btn-warn{background:transparent;color:var(--warn);border:1px solid var(--warn);}
 .btn:active{transform:scale(.98);}
 .mode-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
-.mode-btn{padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--sub);text-align:center;font-weight:600;cursor:pointer;}
+.mode-btn{padding:14px 6px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--sub);text-align:center;font-weight:600;cursor:pointer;font-size:.86rem;}
 .mode-btn.active{background:var(--accent-dim);color:var(--text);border-color:var(--accent);}
 .status{text-align:center;font-size:.82rem;color:var(--sub);margin-top:10px;min-height:18px;}
 .status.err{color:var(--warn);}
@@ -76,13 +76,14 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
   <input id="tokenInput" type="password" placeholder="github_pat_...">
   <label>Repositorio</label>
   <input id="repoInput" type="text" value="amvmendez/pyc-starlink">
-  <label>Base de datos Firebase (solo para Productos)</label>
+  <label>Base de datos Firebase (para Productos y Licencias)</label>
   <input id="fbInput" type="text" value="https://inventarioyfinanzas-default-rtdb.firebaseio.com/inventario_starlink">
 
   <label style="margin-top:16px;">¿Qué quieres revisar?</label>
-  <div class="mode-row">
+  <div class="mode-row" style="grid-template-columns:1fr 1fr 1fr;">
     <div class="mode-btn active" id="modeServicios" data-mode="servicios">🛠️ Servicios</div>
     <div class="mode-btn" id="modeProductos" data-mode="productos">📦 Productos</div>
+    <div class="mode-btn" id="modeLicencias" data-mode="licencias">💿 Licencias</div>
   </div>
 
   <button class="btn btn-accent" id="connectBtn">Buscar y conectar</button>
@@ -228,6 +229,26 @@ async function ghApi(path, opts={}){
 }
 
 // ---------- discovery ----------
+async function connectFixedFirebasePath(relativePath){
+  const base = new URL(fbUrl).origin;
+  const fullUrl = `${base}/${relativePath}`;
+  const res = await fetch(`${fullUrl}.json`);
+  if(!res.ok) throw new Error(`Firebase respondió ${res.status}`);
+  const data = await res.json();
+  if(!data) throw new Error('Esa ruta está vacía o no existe todavía.');
+  const entries = Object.entries(data).map(([k,v])=>({...v, __fbKey:k}));
+  const parts = relativePath.split('/');
+  source={kind:'firebase', nodeKey:parts[parts.length-1], nodeBase: parts.slice(0,-1).join('/'), originBase: base, arr:entries};
+  fields = detectFields(entries[0]);
+  fields.idField='__fbKey';
+  if(!fields.imageField) fields.imageField='foto';
+  buildQueue();
+  setStat('setupStatus','','');
+  $('jumpPanel').classList.remove('hidden');
+  $('app').classList.remove('hidden');
+  renderCurrent();
+}
+
 async function startDiscovery(){
   gh.token=$('tokenInput').value.trim();
   gh.repo=$('repoInput').value.trim();
@@ -240,6 +261,10 @@ async function startDiscovery(){
   setStat('setupStatus','Buscando...','');
   $('setupDiagnostic').innerHTML='';
   try{
+    if(mode==='licencias'){
+      await connectFixedFirebasePath('inventario_licencias/licencias');
+      return;
+    }
     candidates = mode==='servicios' ? await discoverGithubFiles() : await discoverFirebaseNodes();
     if(!candidates.length){
       setStat('setupStatus','No encontré nada que reconociera como catálogo. Mira abajo qué encontré, y mándame un pantallazo de esto:','err');
@@ -374,10 +399,10 @@ $('confirmBtn').addEventListener('click', async ()=>{
     const res = await fetch(`${fbUrl}/${c.nodeKey}.json`);
     const fullData = await res.json();
     const entries = Object.entries(fullData).map(([k,v])=>({...v, __fbKey:k}));
-    source={kind:'firebase', nodeKey:c.nodeKey, arr:entries};
+    source={kind:'firebase', nodeKey:c.nodeKey, nodeBase:'', originBase:fbUrl, arr:entries};
     fields = detectFields(entries[0]);
     fields.idField='__fbKey';
-    if(!fields.imageField) fields.imageField='imagen';
+    if(!fields.imageField) fields.imageField='foto';
   }
   buildQueue();
   $('discovery').classList.add('hidden');
@@ -527,7 +552,7 @@ $('saveBtn').addEventListener('click', async ()=>{
   const url=$('urlInput').value.trim();
   if(!url){ setStat('status','Pega o sube primero la nueva foto.','err'); return; }
   const p=currentProduct();
-  if(!fields.imageField) fields.imageField='imagen';
+  if(!fields.imageField) fields.imageField='foto';
   p[fields.imageField]=url;
   setStat('status','Guardando...','');
   try{
@@ -567,7 +592,9 @@ async function commitGithub(){
 
 async function commitFirebase(p){
   const key=p.__fbKey;
-  const res = await fetch(`${fbUrl}/${source.nodeKey}/${key}.json`, {
+  const pathParts=[source.originBase, source.nodeBase, source.nodeKey, key].filter(Boolean);
+  const url = pathParts.join('/') + '.json';
+  const res = await fetch(url, {
     method:'PATCH',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ [fields.imageField]: p[fields.imageField] })
