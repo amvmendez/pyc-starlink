@@ -125,14 +125,26 @@
   }
   .hero p{ color:var(--muted); font-size:16px; line-height:1.6; max-width:52ch; margin:0 0 26px; }
   .hero-ctas{ display:flex; flex-wrap:wrap; gap:10px; }
-  .trust-row{
-    margin-top:30px; display:flex; flex-wrap:wrap; gap:10px 22px;
+  .flow-row{
+    margin-top:32px; display:flex; align-items:flex-start; gap:0;
+    overflow-x:auto; scrollbar-width:none; padding-bottom:4px;
   }
-  .trust-row span{
-    font-family:'IBM Plex Sans',sans-serif; font-size:13px; color:var(--muted);
-    display:flex; align-items:center; gap:6px;
+  .flow-row::-webkit-scrollbar{ display:none; }
+  .flow-step{
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    flex:0 0 auto; width:96px; text-align:center;
   }
-  .trust-row span::before{ color:var(--c-orange); font-weight:700; }
+  .flow-circle{
+    width:34px; height:34px; border-radius:50%; background:var(--grad); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; flex:0 0 auto;
+  }
+  .flow-title{ font-family:'Chakra Petch',sans-serif; font-weight:600; font-size:12.5px; line-height:1.3; }
+  .flow-desc{ font-size:10.5px; color:var(--muted); line-height:1.4; }
+  .flow-connector{
+    flex:1 1 auto; height:2px; min-width:20px; margin-top:17px;
+    background:linear-gradient(90deg, var(--line), var(--muted-2), var(--line));
+  }
 
   /* ---------- pin nav (category selector = connector pins, signature element) ---------- */
   .pinbar-wrap{
@@ -177,6 +189,25 @@
   }
   .search-input::placeholder{ color:var(--muted-2); }
   .search-input:focus{ border-color:var(--c-orange); }
+
+  .availbar{
+    display:flex; align-items:center; gap:6px; padding:0 18px 12px;
+    overflow-x:auto; scrollbar-width:none;
+  }
+  .availbar:empty{ padding:0; }
+  .availbar::-webkit-scrollbar{ display:none; }
+  .avail-chip{
+    flex:0 0 auto; font-family:'IBM Plex Sans',sans-serif; font-size:11.5px; font-weight:600;
+    padding:6px 12px; border-radius:100px; background:transparent; border:1px solid var(--line);
+    color:var(--muted); cursor:pointer; white-space:nowrap; transition:.15s ease;
+  }
+  .avail-chip:hover{ border-color:var(--muted-2); color:var(--text); }
+  .avail-chip.active{ color:#0d0f16; border-color:transparent; }
+  .avail-chip.active[data-avail="stock"]{ background:#7CE0A8; }
+  .avail-chip.active[data-avail="pedido_importado"]{ background:#66B3FF; }
+  .avail-chip.active[data-avail="pedido_encargo"]{ background:#66B3FF; }
+  .avail-chip.active[data-avail="agotado"]{ background:#e8425f; color:#fff; }
+  .avail-chip.active[data-avail="Todos"]{ background:var(--panel-2); color:var(--text); border-color:var(--line); }
 
   /* ---------- catalog grid ---------- */
   main{ padding:30px 0 90px; }
@@ -357,6 +388,23 @@
   .pm-media img{ width:100%; height:100%; object-fit:contain; padding:16px; }
   .pm-media svg{ width:64px; height:64px; opacity:.25; }
   .pm-media .badge{ position:absolute; top:12px; left:12px; }
+  .pm-nav{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:2;
+    width:32px; height:32px; border-radius:50%; background:rgba(13,15,22,.7);
+    border:1px solid var(--line); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .pm-nav-prev{ left:10px; }
+  .pm-nav-next{ right:10px; }
+  .pm-thumbs{
+    display:flex; gap:8px; padding:10px 20px 0; overflow-x:auto; scrollbar-width:none; flex:0 0 auto;
+  }
+  .pm-thumbs::-webkit-scrollbar{ display:none; }
+  .pm-thumb{
+    width:46px; height:46px; border-radius:8px; object-fit:cover; cursor:pointer; flex:0 0 auto;
+    border:2px solid transparent; opacity:.6; transition:.15s ease;
+  }
+  .pm-thumb:hover{ opacity:.9; }
+  .pm-thumb.active{ border-color:var(--c-orange); opacity:1; }
   .pm-body{ padding:18px 20px calc(20px + env(safe-area-inset-bottom)); overflow-y:auto; }
   .pm-body h3{ font-size:19px; margin:6px 0 10px; line-height:1.25; }
   .pm-desc-short{ color:var(--muted); font-size:14px; line-height:1.55; margin:0 0 14px; }
@@ -375,6 +423,40 @@
   .card-details-link{
     background:none; border:none; color:var(--muted); font-family:'IBM Plex Mono',monospace;
     font-size:10.5px; text-decoration:underline; cursor:pointer; padding:0; align-self:flex-start;
+  }
+  /* ---------- ajustes para pantallas de computador ---------- */
+  @media (min-width:1000px){
+    body{ font-size:16px; }
+    .brand-name{ font-size:16px; }
+    .hero{ padding:72px 0 48px; }
+    .hero h1{ font-size:clamp(38px, 3.4vw, 58px); max-width:20ch; }
+    .hero p{ font-size:18px; max-width:58ch; }
+    .eyebrow{ font-size:12.5px; padding:7px 12px; }
+    .btn{ font-size:14.5px; padding:12px 18px; }
+    .flow-row{ gap:6px; }
+    .flow-step{ width:130px; }
+    .flow-circle{ width:40px; height:40px; font-size:15px; }
+    .flow-title{ font-size:14.5px; }
+    .flow-desc{ font-size:12.5px; }
+    .pin{ font-size:13.5px; padding:10px 16px 12px; }
+    .avail-chip{ font-size:12.5px; padding:7px 14px; }
+    .search-input{ font-size:14.5px; }
+    .section-title h2{ font-size:22px; }
+    .card-name{ font-size:15.5px; }
+    .card-desc{ font-size:13.5px; }
+    .card-cat{ font-size:11px; }
+    .card-price{ font-size:16px; }
+    .card-body{ padding:14px 14px 16px; gap:9px; }
+    footer p{ font-size:14.5px; }
+    .foot-link{ font-size:14.5px; }
+    footer h3{ font-size:13.5px; }
+    .fine{ font-size:12px; }
+    .pm-body h3{ font-size:22px; }
+    .pm-desc-short{ font-size:15px; }
+    .pm-detail{ font-size:14.5px; }
+  }
+  @media (min-width:1300px){
+    .grid{ gap:18px; }
   }
 </style>
 </head>
@@ -410,13 +492,25 @@
         Ver catálogo
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </a>
-      <a class="btn btn-ghost" href="https://wa.me/573157863409" target="_blank" rel="noopener">Escribir por WhatsApp</a>
-      <a class="btn btn-ghost" href="mailto:adrianamendezvargas@partesycomputadores.com.co">Escribir por correo</a>
     </div>
-    <div class="trust-row">
-      <span>✓ Envíos a toda Colombia</span>
-      <span>✓ Atención directa por WhatsApp</span>
-      <span>✓ Precios en pesos colombianos</span>
+    <div class="flow-row">
+      <div class="flow-step">
+        <div class="flow-circle">1</div>
+        <div class="flow-title">Elige</div>
+        <div class="flow-desc">En el catálogo</div>
+      </div>
+      <div class="flow-connector"></div>
+      <div class="flow-step">
+        <div class="flow-circle">2</div>
+        <div class="flow-title">Pide</div>
+        <div class="flow-desc">Por WhatsApp</div>
+      </div>
+      <div class="flow-connector"></div>
+      <div class="flow-step">
+        <div class="flow-circle">3</div>
+        <div class="flow-title">Recibe</div>
+        <div class="flow-desc">Coordinamos entrega</div>
+      </div>
     </div>
   </div>
 </section>
@@ -430,6 +524,7 @@
     <!-- pins se generan por JS -->
     <input class="search-input" id="searchInput" type="search" placeholder="Buscar producto o referencia…" aria-label="Buscar producto">
   </div>
+  <div class="availbar wrap" id="availbar"></div>
 </div>
 
 <main class="wrap" id="catalogo">
@@ -513,7 +608,14 @@
     <span class="badge" id="pmBadge" style="display:none;"></span>
     <img id="pmImage" src="" alt="" style="display:none;">
     <div id="pmIconFallback"></div>
+    <button class="pm-nav pm-nav-prev" id="pmPrevBtn" aria-label="Foto anterior" style="display:none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
+    <button class="pm-nav pm-nav-next" id="pmNextBtn" aria-label="Foto siguiente" style="display:none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
   </div>
+  <div class="pm-thumbs" id="pmThumbs" style="display:none;"></div>
   <div class="pm-body">
     <div class="card-cat" id="pmCat"></div>
     <h3 id="pmTitle"></h3>
@@ -542,7 +644,7 @@
    No necesitas tocar nada más del archivo.
    ========================================================================= */
 
-const APP_VERSION = "1.1.4";
+const APP_VERSION = "1.5.0";
 const APP_BUILD_DATE = "2026-07-12";
 console.info(`PARTESYCOMPUTADORES.COM.CO — tienda v${APP_VERSION} (${APP_BUILD_DATE})`);
 
@@ -628,12 +730,59 @@ async function loadStarlinkLive() {
         sku: (it.sku || it.id || name).toString().slice(0, 20).toUpperCase(),
         desc: stock > 0 ? `${stock} disponibles en stock.` : "Disponible bajo pedido.",
         image: it.foto || it.imagen || it.image || "",
+        images: Array.isArray(it.fotos) ? it.fotos.filter(Boolean) : [],
         availability,
         visible: it.visible !== false
       };
     });
   } catch (err) {
     console.warn("[Starlink live] No se pudo conectar a Firebase:", err.message);
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Licencias: siempre se muestran como disponibles (no dependen de stock),
+// salvo que se marquen visible:false desde el Centro de Operaciones.
+const FIREBASE_LICENCIAS_NODE = "inventario_licencias";
+
+async function loadLicenciasLive() {
+  try {
+    const res = await fetch(`${FIREBASE_BASE}/${FIREBASE_LICENCIAS_NODE}.json`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if (!data) { console.info("[Licencias live] Nodo aún no existe en Firebase (normal si no lo has configurado)."); return []; }
+
+    const raw = data.licencias;
+    if (!raw) {
+      console.warn("[Licencias live] No se encontró el arreglo 'licencias'. Claves disponibles:", Object.keys(data));
+      return [];
+    }
+
+    const items = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw);
+    console.info(`[Licencias live] ${items.length} licencia(s) encontradas.`);
+
+    return items
+      .filter(it => it.visible !== false)
+      .map((it, i) => {
+        const name = it.nombre || it.name || `Licencia ${i + 1}`;
+        const price = Number(it.precio ?? it.price ?? 0);
+        return {
+          id: "lic-" + (it.id || name).toString().toLowerCase().replace(/\s+/g, "-"),
+          name,
+          category: "Licencias de Software",
+          type: "producto",
+          price,
+          sku: (it.sku || it.id || name).toString().slice(0, 20).toUpperCase(),
+          desc: "Disponible bajo pedido con el proveedor.",
+          image: it.foto || it.imagen || it.image || "",
+          images: Array.isArray(it.fotos) ? it.fotos.filter(Boolean) : [],
+          availability: "stock",
+          visible: true
+        };
+      });
+  } catch (err) {
+    console.warn("[Licencias live] No se pudo conectar a Firebase:", err.message);
     return [];
   }
 }
@@ -648,17 +797,25 @@ const resultCount = document.getElementById("resultCount");
 let ALL_PRODUCTS = [];
 let activeType = "producto";
 let activeCategory = "Todos";
+let activeAvailability = "Todos";
 
 document.querySelectorAll(".type-tab").forEach(tab => {
   tab.addEventListener("click", () => {
     activeType = tab.dataset.type;
     activeCategory = "Todos";
+    activeAvailability = "Todos";
     document.querySelectorAll(".type-tab").forEach(t => t.classList.toggle("active", t === tab));
     document.getElementById("catalogTitle").textContent = activeType === "producto" ? "Productos" : "Servicios";
     renderPins();
+    renderAvailBar();
     renderGrid();
   });
 });
+
+function galleryOf(p) {
+  if (Array.isArray(p.images) && p.images.length) return p.images;
+  return p.image ? [p.image] : [];
+}
 
 function placeholderIcon() {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -678,8 +835,9 @@ function availabilityBadge(p) {
 
 function cardHTML(p) {
   const badge = availabilityBadge(p);
-  const media = p.image
-    ? `<img src="${p.image}" alt="${p.name}" loading="lazy" data-img-fallback="1">`
+  const gallery = galleryOf(p);
+  const media = gallery.length
+    ? `<img src="${gallery[0]}" alt="${p.name}" loading="lazy" data-img-fallback="1">`
     : placeholderIcon();
 
   return `
@@ -700,6 +858,32 @@ function cardHTML(p) {
   </article>`;
 }
 
+function renderAvailBar() {
+  const bar = document.getElementById("availbar");
+  if (activeType !== "producto") { bar.innerHTML = ""; return; }
+
+  const scoped = ALL_PRODUCTS.filter(p => (p.type || "producto") === activeType
+    && (activeCategory === "Todos" || p.category === activeCategory));
+  const present = new Set(scoped.map(p => p.availability).filter(Boolean));
+  if (!present.size) { bar.innerHTML = ""; return; }
+
+  const labels = { stock: "Disponibles", pedido_importado: "Importados", pedido_encargo: "Por encargo", agotado: "Agotados" };
+  const order = ["stock", "pedido_importado", "pedido_encargo", "agotado"];
+  const options = ["Todos", ...order.filter(k => present.has(k))];
+
+  bar.innerHTML = options.map(k =>
+    `<button class="avail-chip ${k === activeAvailability ? "active" : ""}" data-avail="${k}">${k === "Todos" ? "Todos" : labels[k]}</button>`
+  ).join("");
+
+  bar.querySelectorAll(".avail-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeAvailability = btn.dataset.avail;
+      renderAvailBar();
+      renderGrid();
+    });
+  });
+}
+
 function renderPins() {
   const scoped = ALL_PRODUCTS.filter(p => (p.type || "producto") === activeType);
   const cats = ["Todos", ...new Set(scoped.map(p => p.category))];
@@ -710,7 +894,9 @@ function renderPins() {
   pinbar.querySelectorAll(".pin").forEach(btn => {
     btn.addEventListener("click", () => {
       activeCategory = btn.dataset.cat;
+      activeAvailability = "Todos";
       renderPins();
+      renderAvailBar();
       renderGrid();
     });
   });
@@ -721,6 +907,7 @@ function renderGrid() {
   const q = (document.getElementById("searchInput")?.value || "").toLowerCase().trim();
   let list = ALL_PRODUCTS.filter(p => (p.type || "producto") === activeType);
   if (activeCategory !== "Todos") list = list.filter(p => p.category === activeCategory);
+  if (activeAvailability !== "Todos") list = list.filter(p => p.availability === activeAvailability);
   if (q) list = list.filter(p => (p.name + " " + p.sku).toLowerCase().includes(q));
 
   resultCount.textContent = `${list.length} resultado${list.length === 1 ? "" : "s"}`;
@@ -755,9 +942,10 @@ function renderGrid() {
 async function init() {
   document.getElementById("year").textContent = new Date().getFullYear();
   document.getElementById("versionTag").textContent = `v${APP_VERSION} · ${APP_BUILD_DATE}`;
-  const [manual, live] = await Promise.all([loadManualProducts(), loadStarlinkLive()]);
-  ALL_PRODUCTS = [...manual, ...live].filter(p => p.visible !== false);
+  const [manual, live, licencias] = await Promise.all([loadManualProducts(), loadStarlinkLive(), loadLicenciasLive()]);
+  ALL_PRODUCTS = [...manual, ...live, ...licencias].filter(p => p.visible !== false);
   renderPins();
+  renderAvailBar();
   renderGrid();
   initCart();
   openProductFromUrlIfPresent();
@@ -873,6 +1061,7 @@ function showToast(msg) {
 
 // ============================== MODAL DE PRODUCTO ==========================
 let modalProduct = null;
+let modalGallery = [];
 
 function openProductModal(p, updateUrl = true) {
   modalProduct = p;
@@ -896,17 +1085,50 @@ function openProductModal(p, updateUrl = true) {
     badgeEl.style.display = "none";
   }
 
-  const imgEl = document.getElementById("pmImage");
-  const fallbackEl = document.getElementById("pmIconFallback");
-  if (p.image) {
-    imgEl.src = p.image;
-    imgEl.alt = p.name;
-    imgEl.style.display = "block";
-    imgEl.onerror = () => { imgEl.style.display = "none"; fallbackEl.innerHTML = placeholderIcon(); };
-    fallbackEl.innerHTML = "";
+  const gallery = galleryOf(p);
+  let galleryIndex = 0;
+  modalGallery = gallery;
+
+  function showGalleryImage(i) {
+    galleryIndex = i;
+    const imgEl = document.getElementById("pmImage");
+    const fallbackEl = document.getElementById("pmIconFallback");
+    if (gallery.length) {
+      imgEl.src = gallery[i];
+      imgEl.alt = p.name;
+      imgEl.style.display = "block";
+      imgEl.onerror = () => { imgEl.style.display = "none"; fallbackEl.innerHTML = placeholderIcon(); };
+      fallbackEl.innerHTML = "";
+    } else {
+      imgEl.style.display = "none";
+      fallbackEl.innerHTML = placeholderIcon();
+    }
+    document.querySelectorAll(".pm-thumb").forEach((t, ti) => t.classList.toggle("active", ti === i));
+  }
+
+  showGalleryImage(0);
+
+  const prevBtn = document.getElementById("pmPrevBtn");
+  const nextBtn = document.getElementById("pmNextBtn");
+  const thumbsEl = document.getElementById("pmThumbs");
+
+  if (gallery.length > 1) {
+    prevBtn.style.display = "flex";
+    nextBtn.style.display = "flex";
+    thumbsEl.style.display = "flex";
+    thumbsEl.innerHTML = gallery.map((src, i) =>
+      `<img class="pm-thumb ${i === 0 ? "active" : ""}" src="${src}" data-i="${i}" alt="Foto ${i + 1}">`
+    ).join("");
+    thumbsEl.querySelectorAll(".pm-thumb").forEach(t => {
+      t.addEventListener("click", () => showGalleryImage(+t.dataset.i));
+    });
+    prevBtn.onclick = () => showGalleryImage((galleryIndex - 1 + gallery.length) % gallery.length);
+    nextBtn.onclick = () => showGalleryImage((galleryIndex + 1) % gallery.length);
   } else {
-    imgEl.style.display = "none";
-    fallbackEl.innerHTML = placeholderIcon();
+    prevBtn.style.display = "none";
+    nextBtn.style.display = "none";
+    thumbsEl.style.display = "none";
+    thumbsEl.innerHTML = "";
   }
 
   document.getElementById("modalOverlay").classList.add("open");
