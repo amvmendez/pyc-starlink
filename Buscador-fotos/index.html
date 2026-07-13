@@ -165,7 +165,7 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
 </main>
 
 <script>
-const APP_VERSION = 'v2026.07.13-1';
+const APP_VERSION = 'v2026.07.13-2';
 document.addEventListener('DOMContentLoaded', ()=>{ $('versionTag').textContent = APP_VERSION; });
 
 const $=id=>document.getElementById(id);
@@ -342,40 +342,56 @@ let lastDiagnostic=null;
 async function discoverFirebaseNodes(){
   const found=[];
   const diag=[];
-  const rootRes = await fetch(`${fbUrl}/.json?shallow=true`);
-  if(!rootRes.ok) throw new Error(`Firebase respondió ${rootRes.status}`);
-  const root = await rootRes.json();
-  if(!root) throw new Error('La base de datos está vacía o no es accesible.');
-  for(const key of Object.keys(root)){
-    try{
-      const childRes = await fetch(`${fbUrl}/${key}.json?shallow=true`);
-      const child = await childRes.json();
-      if(!child || typeof child!=='object'){ diag.push({key, note:'no es una lista (valor suelto)'}); continue; }
-      const childKeys=Object.keys(child);
-      if(!childKeys.length){ diag.push({key, note:'vacío'}); continue; }
-      const sampleRes = await fetch(`${fbUrl}/${key}/${childKeys[0]}.json`);
-      const sample = await sampleRes.json();
-      let sampleFields;
-      if(sample && typeof sample==='object'){
-        sampleFields = Object.entries(sample).map(([k,v])=>{
+  const MAX_DEPTH=3;
+
+  async function shallowKeys(path){
+    const url = path ? `${fbUrl}/${path}.json?shallow=true` : `${fbUrl}/.json?shallow=true`;
+    const res = await fetch(url);
+    if(!res.ok) return null;
+    const data = await res.json();
+    if(!data || typeof data!=='object') return null;
+    return Object.keys(data);
+  }
+  async function fetchTiny(path){
+    const res = await fetch(`${fbUrl}/${path}.json`);
+    if(!res.ok) return null;
+    return res.json();
+  }
+
+  async function explore(path, depth){
+    const childKeys = await shallowKeys(path);
+    if(!childKeys){ diag.push({key:path||'(raíz)', note:'vacío o no es una lista'}); return; }
+    if(!childKeys.length){ diag.push({key:path||'(raíz)', note:'vacío'}); return; }
+    if(depth>=MAX_DEPTH){ diag.push({key:path, note:`${childKeys.length} elementos (no revisé más profundo)`}); return; }
+
+    let anyMatch=false;
+    for(const ck of childKeys.slice(0,20)){
+      const childPath = path ? `${path}/${ck}` : ck;
+      const grandKeys = await shallowKeys(childPath);
+      if(!grandKeys || !grandKeys.length) continue; // valor suelto, no una colección
+      const leaf = await fetchTiny(`${childPath}/${grandKeys[0]}`);
+      if(leaf && typeof leaf==='object' && looksLikeCatalog(leaf)){
+        anyMatch=true;
+        const fieldsSample = Object.entries(leaf).map(([k,v])=>{
           let vs = typeof v==='object' ? JSON.stringify(v) : String(v);
           if(vs.length>25) vs = vs.slice(0,25)+'…';
           return `${k}: ${vs}`;
         }).join(' · ');
+        diag.push({key:childPath, note:`${grandKeys.length} elementos`, values:fieldsSample});
+        found.push({kind:'firebase', nodeKey:childPath, count:grandKeys.length, sample:[leaf]});
       } else {
-        sampleFields = String(sample);
+        // no es catálogo directo; puede que haya otra capa envolviendo adentro
+        await explore(childPath, depth+1);
       }
-      diag.push({key, note:`${childKeys.length} elementos`, values: sampleFields});
-      if(looksLikeCatalog(sample)){
-        found.push({kind:'firebase', nodeKey:key, count:childKeys.length, sample:[sample], allKeys:childKeys});
-      }
-    }catch(e){ diag.push({key, note:'error al leer: '+e.message}); }
+    }
   }
+
+  await explore('', 0);
+  lastDiagnostic=diag;
   found.sort((a,b)=>{
-    const score=k=>/(accesor|product|invent)/i.test(k)?0:1;
+    const score=k=>/(accesor|product|invent|licenc)/i.test(k)?0:1;
     return score(a.nodeKey||'')-score(b.nodeKey||'');
   });
-  lastDiagnostic=diag;
   return found;
 }
 
