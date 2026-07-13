@@ -896,9 +896,11 @@ let db = JSON.parse(localStorage.getItem('pyc_starlink_db') || '{}');
 function genKey(dept,muni){ return `${dept}__${muni}`; }
 function saveDB(){ localStorage.setItem('pyc_starlink_db', JSON.stringify(db)); }
 
-// Pre-set Firebase URL if not already configured
-if (!localStorage.getItem('pyc_endpoint_id')) {
-  localStorage.setItem('pyc_endpoint_id', 'https://pycnuevo-default-rtdb.firebaseio.com');
+const FIREBASE_URL = 'https://pycnuevo-default-rtdb.firebaseio.com';
+
+function getConfig() {
+  const raw = localStorage.getItem('pyc_endpoint_id') || FIREBASE_URL;
+  return { endpointId: raw.replace(/\/+$/, '') };
 }
 
 // ========== INIT SELECTS ==========
@@ -1375,10 +1377,6 @@ function setCloudStatus(state, msg) {
   document.getElementById('driveStatusText').textContent = '☁ Firebase: ' + msg;
 }
 
-function getConfig() {
-  const raw = localStorage.getItem('pyc_endpoint_id') || '';
-  return { endpointId: raw.replace(/\/+$/, '') }; // always strip trailing slashes
-}
 
 async function cloudPull(force = false) {
   const { endpointId } = getConfig();
