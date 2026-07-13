@@ -65,6 +65,7 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
 <header>
   <h1>📸 Revisor de Fotos</h1>
   <p>Partes y Computadores · un producto a la vez</p>
+  <p style="margin-top:4px;font-size:.7rem;color:var(--accent-dim);" id="versionTag"></p>
 </header>
 
 <main>
@@ -164,6 +165,9 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
 </main>
 
 <script>
+const APP_VERSION = 'v2026.07.13-1';
+document.addEventListener('DOMContentLoaded', ()=>{ $('versionTag').textContent = APP_VERSION; });
+
 const $=id=>document.getElementById(id);
 let gh={token:'',repo:''};
 let fbUrl='';
