@@ -896,13 +896,6 @@ let db = JSON.parse(localStorage.getItem('pyc_starlink_db') || '{}');
 function genKey(dept,muni){ return `${dept}__${muni}`; }
 function saveDB(){ localStorage.setItem('pyc_starlink_db', JSON.stringify(db)); }
 
-const FIREBASE_URL = 'https://pycnuevo-default-rtdb.firebaseio.com';
-
-function getConfig() {
-  const raw = localStorage.getItem('pyc_endpoint_id') || FIREBASE_URL;
-  return { endpointId: raw.replace(/\/+$/, '') };
-}
-
 // ========== INIT SELECTS ==========
 const deptSel = document.getElementById('deptSelect');
 const muniSel = document.getElementById('muniSelect');
@@ -1323,60 +1316,18 @@ function renderList(containerId, records, type){
   });
 }
 
-// ========== TOAST ==========
-document.getElementById('exportBtn').addEventListener('click', () => {
-  const records = Object.values(db);
-  if(records.length===0){ showToast('⚠ No hay datos para exportar'); return; }
-  const txt  = buildExportText();
-  const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = `starlink_precios_${new Date().toISOString().slice(0,10)}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('⬇ Archivo descargado', 'green');
-});
+// ========== CLOUD SYNC (Firebase Realtime Database) ==========
+const FIREBASE_URL = 'https://pycnuevo-default-rtdb.firebaseio.com';
 
-// ========== JSONBIN CLOUD SYNC ==========
-// JSONbin.io — base de datos gratuita en la nube compartida
-// BIN_ID y API_KEY se configuran una sola vez aquí:
-const JSONBIN_BIN_ID  = localStorage.getItem('pyc_bin_id')  || '';
-const JSONBIN_API_KEY = localStorage.getItem('pyc_api_key') || '';
-
-// Datos precargados del archivo exportado (45 registros)
-const SEED_RECORDS = [{"municipio":"El Encanto","departamento":"Amazonas","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T02:42:04.075Z"},{"municipio":"La Chorrera","departamento":"Amazonas","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T02:44:10.479Z"},{"municipio":"La Pedrera","departamento":"Amazonas","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T02:46:45.885Z"},{"municipio":"La Victoria","departamento":"Amazonas","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T02:50:47.506Z"},{"municipio":"Leticia","departamento":"Amazonas","precio_recargo_mini_usd":3000000,"precio_recargo_v4_usd":2000000,"estado":"done","ultima_actualizacion":"2026-05-21T02:52:28.684Z"},{"municipio":"Mirití-Paraná","departamento":"Amazonas","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T02:57:42.118Z"},{"municipio":"Puerto Alegría","departamento":"Amazonas","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T02:58:53.328Z"},{"municipio":"Puerto Arica","departamento":"Amazonas","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T03:00:06.720Z"},{"municipio":"Puerto Nariño","departamento":"Amazonas","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T03:01:30.321Z"},{"municipio":"Puerto Santander","departamento":"Amazonas","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T03:02:52.594Z"},{"municipio":"Tarapacá","departamento":"Amazonas","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T03:03:55.818Z"},{"municipio":"Abejorral","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T03:05:43.336Z"},{"municipio":"Abriaquí","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T03:07:18.427Z"},{"municipio":"Alejandría","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:06:09.170Z"},{"municipio":"Amagá","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:08:31.755Z"},{"municipio":"Amalfi","departamento":"Antioquia","precio_recargo_mini_usd":3000000,"precio_recargo_v4_usd":2000000,"estado":"done","ultima_actualizacion":"2026-05-21T04:09:45.575Z"},{"municipio":"Andes","departamento":"Antioquia","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:11:32.498Z"},{"municipio":"Angelópolis","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:12:37.586Z"},{"municipio":"Angostura","departamento":"Antioquia","precio_recargo_mini_usd":3000000,"precio_recargo_v4_usd":2000000,"estado":"done","ultima_actualizacion":"2026-05-21T04:13:45.517Z"},{"municipio":"Anorí","departamento":"Antioquia","precio_recargo_mini_usd":3000000,"precio_recargo_v4_usd":2000000,"estado":"done","ultima_actualizacion":"2026-05-21T04:14:53.673Z"},{"municipio":"Anzá","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:16:49.347Z"},{"municipio":"Apartadó","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":500000,"estado":"done","ultima_actualizacion":"2026-05-21T04:18:31.662Z"},{"municipio":"Arboletes","departamento":"Antioquia","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:19:15.068Z"},{"municipio":"Armenia","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:20:07.186Z"},{"municipio":"Barbosa","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:21:04.667Z"},{"municipio":"Bello","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:21:51.196Z"},{"municipio":"Betania","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":500000,"estado":"done","ultima_actualizacion":"2026-05-21T04:22:53.443Z"},{"municipio":"Betulia","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:23:41.053Z"},{"municipio":"Bojayá","departamento":"Antioquia","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:24:48.873Z"},{"municipio":"Briceño","departamento":"Antioquia","precio_recargo_mini_usd":3000000,"precio_recargo_v4_usd":2000000,"estado":"done","ultima_actualizacion":"2026-05-21T04:25:54.520Z"},{"municipio":"Buriticá","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:27:35.002Z"},{"municipio":"Caicedo","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:30:04.343Z"},{"municipio":"Caldas","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-21T04:31:34.080Z"},{"municipio":"Campamento","departamento":"Antioquia","precio_recargo_mini_usd":3000000,"precio_recargo_v4_usd":2000000,"estado":"done","ultima_actualizacion":"2026-05-21T04:33:18.227Z"},{"municipio":"Cañasgordas","departamento":"Antioquia","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-24T19:55:00.565Z"},{"municipio":"Caracolí","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":500000,"estado":"done","ultima_actualizacion":"2026-05-24T19:48:50.302Z"},{"municipio":"Carepa","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":500000,"estado":"done","ultima_actualizacion":"2026-05-24T19:50:25.632Z"},{"municipio":"Carolina del Príncipe","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":0,"estado":"done","ultima_actualizacion":"2026-05-24T19:51:38.518Z"},{"municipio":"Caucasia","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":500000,"estado":"done","ultima_actualizacion":"2026-05-24T19:54:07.004Z"},{"municipio":"Chigorodó","departamento":"Antioquia","precio_recargo_mini_usd":900000,"precio_recargo_v4_usd":500000,"estado":"done","ultima_actualizacion":"2026-05-24T19:56:04.104Z"},{"municipio":"Medellín","departamento":"Antioquia","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"pending","ultima_actualizacion":"2026-05-24T19:44:20.427Z"},{"municipio":"Rionegro","departamento":"Antioquia","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"pending","ultima_actualizacion":"2026-05-24T19:44:20.427Z"},{"municipio":"Barranquilla","departamento":"Atlántico","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"pending","ultima_actualizacion":"2026-05-24T19:44:20.428Z"},{"municipio":"Bogotá D.C.","departamento":"Cundinamarca","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"pending","ultima_actualizacion":"2026-05-24T19:44:20.428Z"},{"municipio":"Cali","departamento":"Valle del Cauca","precio_recargo_mini_usd":0,"precio_recargo_v4_usd":0,"estado":"pending","ultima_actualizacion":"2026-05-24T19:44:20.428Z"}];
-
-function buildExportText() {
-  const records = Object.values(db).sort((a,b) => a.dept.localeCompare(b.dept)||a.muni.localeCompare(b.muni));
-  const now = new Date().toLocaleString('es-CO',{hour12:false});
-  const done = records.filter(r=>r.status==='done');
-  const pend = records.filter(r=>r.status==='pending');
-  const avgMini = done.length ? (done.reduce((s,r)=>s+r.mini,0)/done.length).toFixed(2) : 'N/A';
-  const avgV4   = done.length ? (done.reduce((s,r)=>s+r.v4,0)/done.length).toFixed(2)   : 'N/A';
-  let txt = '# BASE DE DATOS STARLINK — PARTES Y COMPUTADORES\n';
-  txt += `# Exportado: ${now}\n# Total registros: ${records.length}\n#\n`;
-  txt += '# FORMATO: municipio | departamento | pais | precio_mini_usd | precio_v4_usd | estado | timestamp\n';
-  txt += '# ============================================================\n\n## DATOS JSON (para procesamiento automático)\n';
-  txt += JSON.stringify(records.map(r => ({
-    municipio: r.muni, departamento: r.dept, pais: 'Colombia',
-    formato_starlink: `${r.muni}, ${r.dept}, Colombia`,
-    precio_recargo_mini_usd: r.mini, precio_recargo_v4_usd: r.v4,
-    estado: r.status, ultima_actualizacion: r.ts
-  })), null, 2);
-  txt += '\n\n## DATOS CSV (para hojas de cálculo)\nmunicipio,departamento,pais,formato_starlink,precio_mini_usd,precio_v4_usd,estado,timestamp\n';
-  records.forEach(r => {
-    txt += `"${r.muni}","${r.dept}","Colombia","${r.muni}, ${r.dept}, Colombia",${r.mini},${r.v4},${r.status},"${r.ts}"\n`;
-  });
-  txt += `\n## RESUMEN ESTADÍSTICO\nTotal municipios: ${records.length}\nCompletados: ${done.length}\nPendientes: ${pend.length}\nPromedio recargo Mini: $${avgMini} USD\nPromedio recargo V4: $${avgV4} USD\n`;
-  return txt;
+function getConfig() {
+  const raw = localStorage.getItem('pyc_endpoint_id') || FIREBASE_URL;
+  return { endpointId: raw.replace(/\/+$/, '') };
 }
 
 function setCloudStatus(state, msg) {
   document.getElementById('driveDot').className = 'drive-dot ' + state;
   document.getElementById('driveStatusText').textContent = '☁ Firebase: ' + msg;
 }
-
 
 async function cloudPull(force = false) {
   const { endpointId } = getConfig();
