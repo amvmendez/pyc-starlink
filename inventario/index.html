@@ -1984,8 +1984,8 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-8";
-  const APP_VERSION_NOTA = "Borrar licencias, fix categoría duplicada, burbuja de tareas, retomar tareas, catálogo de servicios";
+  const APP_VERSION = "2026.07.12-9";
+  const APP_VERSION_NOTA = "Servicios del desplegable agregados al catálogo publicable (ocultos hasta poner precio)";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
@@ -2087,6 +2087,18 @@
     { id:"instalacion_win",    nombre:"Instalación de Programa Activado en Windows",    precio:90000,  visible:true, foto:"", custom:false },
     { id:"instalacion_mac",    nombre:"Instalación de Programa Activado en Mac",        precio:120000, visible:true, foto:"", custom:false },
     { id:"backup_pc",          nombre:"Backup de Información de PC (hasta 3 TB)",       precio:300000, visible:true, foto:"", custom:false },
+    // --- Servicios del desplegable de "Registrar servicio prestado" ---
+    // Su precio real varía caso a caso (por eso el desplegable de arriba no
+    // tiene precio fijo), así que quedan OCULTOS por defecto (visible:false)
+    // con precio en 0 — edita el precio con un valor representativo y marca
+    // "Visible" cuando quieras que aparezcan en la tienda con ese precio fijo.
+    { id:"svc_tramite_garantia",   nombre:"Trámite de garantía",                                precio:0, visible:false, foto:"", custom:false },
+    { id:"svc_recuperacion_cta",   nombre:"Recuperación de Cuenta Starlink",                    precio:0, visible:false, foto:"", custom:false },
+    { id:"svc_reubicacion",        nombre:"Reubicación de Servicio Starlink",                   precio:0, visible:false, foto:"", custom:false },
+    { id:"svc_traspaso_cta",       nombre:"Traspaso de Cuenta",                                 precio:0, visible:false, foto:"", custom:false },
+    { id:"svc_cambio_datos",       nombre:"Cambio de Datos de Contacto de la cuenta",           precio:0, visible:false, foto:"", custom:false },
+    { id:"svc_activacion_recargo", nombre:"Activación de Antena Starlink en Zona con Recargo",   precio:0, visible:false, foto:"", custom:false },
+    { id:"svc_pago_saldo",         nombre:"Pago de Saldo Pendiente / Mensualidad",               precio:0, visible:false, foto:"", custom:false },
   ];
 
   /* ============================================================
@@ -2457,14 +2469,6 @@
       card.addEventListener("click", () => goToTab(card.dataset.tab));
     });
     $("#btnVolverInicio").addEventListener("click", () => goToTab("inicio"));
-
-    // Permite abrir una pestaña específica directo desde la URL, ej:
-    // inventario/#accesorios o inventario/#licencias
-    const VALID_TABS = ["antenas","despliegues","servicios","accesorios","licencias","finanzas","cotizador","tareas","historial"];
-    const hashTab = (location.hash || "").replace("#", "");
-    if (VALID_TABS.includes(hashTab)) {
-      goToTab(hashTab);
-    }
   }
 
   /* ============================================================
