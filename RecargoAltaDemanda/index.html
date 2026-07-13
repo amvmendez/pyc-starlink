@@ -107,6 +107,18 @@ body::after{
   color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;
 }
 
+/* ===== STATS COMPACT ===== */
+.stats-compact{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:12px 14px;
+  margin-bottom:16px;
+}
+.stat-c{display:flex;flex-direction:column;align-items:center;flex:1;}
+.stat-c .stat-num{font-family:var(--display);font-size:18px;font-weight:800;line-height:1;}
+.stat-c .stat-label{font-family:var(--mono);font-size:8px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.stat-div{width:1px;height:32px;background:var(--border);flex-shrink:0;}
+
 /* ===== SECTION LABEL ===== */
 .section-label{
   font-family:var(--mono);font-size:10px;
@@ -193,26 +205,27 @@ input::placeholder{color:var(--text-3);}
 
 /* ===== PRICE INPUTS ===== */
 .price-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 2px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 6px;
+  margin-top: 4px;
 }
 .chip {
-  flex: 1 1 calc(50% - 4px);
-  padding: 13px 8px;
+  padding: 9px 4px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   color: var(--text-2);
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: .5px;
+  letter-spacing: .3px;
   cursor: pointer;
   text-align: center;
   transition: all .15s;
   -webkit-tap-highlight-color: transparent;
+  line-height: 1.2;
 }
 .chip:hover { border-color: var(--border-hi); color: var(--text-1); }
 .chip.selected-none {
@@ -225,8 +238,15 @@ input::placeholder{color:var(--text-3);}
   color: var(--accent);
   background: var(--accent-glow);
 }
-/* "Sin recargo" takes full width */
-.chip:first-child { flex: 1 1 100%; }
+/* "Sin recargo" — columna 1, ocupa 2 filas */
+.chip:first-child {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
 
 /* ===== BUTTONS ===== */
 .btn{
@@ -418,6 +438,63 @@ input::placeholder{color:var(--text-3);}
 .toast.green{border-color:var(--green);color:var(--green);}
 .toast.blue{border-color:var(--accent);color:var(--accent);}
 
+/* ===== SEARCH ===== */
+.search-wrap {
+  position: relative;
+  margin-bottom: 12px;
+}
+.search-icon {
+  position: absolute; left: 14px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px; pointer-events: none;
+}
+#searchInput {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 13px 40px 13px 40px;
+  color: var(--text-1);
+  font-family: var(--mono);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  box-sizing: border-box;
+}
+#searchInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.search-clear {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--text-2); font-size: 14px;
+  cursor: pointer; padding: 4px;
+}
+
+/* ===== MAP TAB ===== */
+.tab.map { color: var(--text-2); }
+.tab.active.map { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+.map-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.map-legend {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-top: 12px;
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text-2); letter-spacing: 1px;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+
 /* ===== TABS ===== */
 .tabs{display:flex;gap:6px;margin-bottom:14px;}
 .tab{
@@ -461,30 +538,20 @@ footer{
     </div>
   </div>
 
-  <!-- STATS -->
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-num blue" id="statTotal">0</div>
-      <div class="stat-label">Total</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num amber" id="statPending">0</div>
-      <div class="stat-label">Pendientes</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num green" id="statDone">0</div>
-      <div class="stat-label">Completados</div>
-    </div>
-  </div>
-
-  <!-- PROGRESS -->
-  <div class="progress-wrap">
-    <div class="progress-row">
-      <span class="progress-label">Progreso general</span>
-      <span class="progress-pct" id="progressPct">0%</span>
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  <!-- STATS + PROGRESS COMPACTO -->
+  <div class="stats-compact">
+    <div class="stat-c"><span class="stat-num blue" id="statTotal">0</span><span class="stat-label">Total</span></div>
+    <div class="stat-div"></div>
+    <div class="stat-c"><span class="stat-num green" id="statDone">0</span><span class="stat-label">Listos</span></div>
+    <div class="stat-div"></div>
+    <div class="stat-c"><span class="stat-num amber" id="statPending">0</span><span class="stat-label">Pendientes</span></div>
+    <div class="stat-div"></div>
+    <div class="stat-c" style="flex:2">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1px;">PROGRESO</span>
+        <span class="stat-num green" id="progressPct" style="font-size:13px;">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
     </div>
   </div>
 
@@ -525,7 +592,7 @@ footer{
     <div class="field" style="margin-top:14px;">
       <label class="lbl">Recargo Mini — Alta Demanda (COP)</label>
       <div class="price-chips" id="chipsMini">
-        <button class="chip" data-value="0" data-field="mini">Sin recargo</button>
+        <button class="chip" data-value="0" data-field="mini">Sin<br>recargo</button>
         <button class="chip" data-value="500000" data-field="mini">$500.000</button>
         <button class="chip" data-value="900000" data-field="mini">$900.000</button>
         <button class="chip" data-value="2000000" data-field="mini">$2.000.000</button>
@@ -534,10 +601,10 @@ footer{
       <input type="hidden" id="priceMini" value=""/>
     </div>
 
-    <div class="field" style="margin-top:4px;">
+    <div class="field" style="margin-top:8px;">
       <label class="lbl">Recargo V4 — Alta Demanda (COP)</label>
       <div class="price-chips" id="chipsV4">
-        <button class="chip" data-value="0" data-field="v4">Sin recargo</button>
+        <button class="chip" data-value="0" data-field="v4">Sin<br>recargo</button>
         <button class="chip" data-value="500000" data-field="v4">$500.000</button>
         <button class="chip" data-value="900000" data-field="v4">$900.000</button>
         <button class="chip" data-value="2000000" data-field="v4">$2.000.000</button>
@@ -556,15 +623,24 @@ footer{
   <!-- LISTS -->
   <div class="section-label" style="margin-top:24px;">Municipios registrados</div>
 
+  <!-- SEARCH BOX -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar municipio o departamento..." autocomplete="off"/>
+    <button class="search-clear" id="searchClear" style="display:none">✕</button>
+  </div>
+
   <div class="tabs">
     <div class="tab active pending" id="tabPending" onclick="switchTab('pending')">⏳ Pendientes</div>
     <div class="tab done" id="tabDone" onclick="switchTab('done')">✅ Completados</div>
+    <div class="tab map" id="tabMap" onclick="switchTab('map')">🗺 Mapa</div>
   </div>
 
   <div id="listPending" class="list-wrap"></div>
   <div id="listDone" class="list-wrap" style="display:none"></div>
+  <div id="listMap" style="display:none"></div>
 
-  <!-- EXPORT / IMPORT / RESET -->
+  <!-- CLOUD SYNC -->
   <div style="margin-top:20px;">
     <div class="drive-status-bar" id="driveStatusBar">
       <span class="drive-icon">☁️</span>
@@ -572,10 +648,6 @@ footer{
       <span class="drive-dot" id="driveDot"></span>
     </div>
     <button class="btn btn-drive" id="driveSyncBtn">☁ Sincronizar con la Nube</button>
-    <button class="btn btn-export" id="exportBtn">⬇ Descargar copia local (.txt)</button>
-    <button class="btn btn-import" id="importBtn">⬆ Importar archivo de avance (.txt)</button>
-    <input type="file" id="importFile" accept=".txt" style="display:none"/>
-    <button class="btn btn-reset" id="resetBtn">✕ Reiniciar todos los datos</button>
   </div>
 
   <footer>Partes y Computadores · partesycomputadores.com.co · v1.0</footer>
@@ -1004,18 +1076,156 @@ saveBtn.addEventListener('click', () => {
 
 // ========== RENDER LISTS ==========
 let currentTab = 'pending';
+let searchQuery = '';
+
 function switchTab(tab){
   currentTab = tab;
   document.getElementById('tabPending').className = 'tab' + (tab==='pending' ? ' active pending' : '');
   document.getElementById('tabDone').className    = 'tab' + (tab==='done'    ? ' active done'    : '');
+  document.getElementById('tabMap').className     = 'tab' + (tab==='map'     ? ' active map'     : '');
   document.getElementById('listPending').style.display = tab==='pending' ? 'flex' : 'none';
   document.getElementById('listDone').style.display    = tab==='done'    ? 'flex' : 'none';
+  document.getElementById('listMap').style.display     = tab==='map'     ? 'block': 'none';
+  if (tab === 'map') renderMap();
+}
+
+// ========== SEARCH ==========
+document.getElementById('searchInput').addEventListener('input', function() {
+  searchQuery = this.value.trim().toLowerCase();
+  document.getElementById('searchClear').style.display = searchQuery ? 'block' : 'none';
+  renderAll();
+});
+document.getElementById('searchClear').addEventListener('click', function() {
+  document.getElementById('searchInput').value = '';
+  searchQuery = '';
+  this.style.display = 'none';
+  renderAll();
+});
+
+// ========== MAP ==========
+const DEPT_COORDS = {
+  "Amazonas":              { cx: 480, cy: 720 },
+  "Antioquia":             { cx: 230, cy: 310 },
+  "Arauca":                { cx: 390, cy: 175 },
+  "Atlántico":             { cx: 195, cy: 125 },
+  "Bolívar":               { cx: 220, cy: 200 },
+  "Boyacá":                { cx: 360, cy: 280 },
+  "Caldas":                { cx: 250, cy: 360 },
+  "Caquetá":               { cx: 390, cy: 560 },
+  "Casanare":              { cx: 420, cy: 280 },
+  "Cauca":                 { cx: 240, cy: 500 },
+  "Cesar":                 { cx: 300, cy: 165 },
+  "Chocó":                 { cx: 145, cy: 320 },
+  "Córdoba":               { cx: 205, cy: 210 },
+  "Cundinamarca":          { cx: 335, cy: 340 },
+  "Guainía":               { cx: 570, cy: 380 },
+  "Guaviare":              { cx: 460, cy: 470 },
+  "Huila":                 { cx: 320, cy: 480 },
+  "La Guajira":            { cx: 285, cy: 100 },
+  "Magdalena":             { cx: 265, cy: 145 },
+  "Meta":                  { cx: 410, cy: 385 },
+  "Nariño":                { cx: 215, cy: 590 },
+  "Norte de Santander":    { cx: 345, cy: 210 },
+  "Putumayo":              { cx: 300, cy: 600 },
+  "Quindío":               { cx: 245, cy: 385 },
+  "Risaralda":             { cx: 230, cy: 375 },
+  "San Andrés y Providencia": { cx: 80, cy: 200 },
+  "Santander":             { cx: 320, cy: 250 },
+  "Sucre":                 { cx: 225, cy: 185 },
+  "Tolima":                { cx: 295, cy: 415 },
+  "Valle del Cauca":       { cx: 210, cy: 430 },
+  "Vaupés":                { cx: 520, cy: 530 },
+  "Vichada":               { cx: 520, cy: 310 }
+};
+
+function getDeptColor(dept) {
+  const records = Object.values(db).filter(r => r.dept === dept && r.status === 'done');
+  const total   = DEPTS[dept] ? DEPTS[dept].length : 0;
+  if (records.length === 0) return { fill: '#1a232e', stroke: '#2e4055', label: 'Sin datos' };
+  const withRecargo = records.filter(r => r.mini > 0 || r.v4 > 0);
+  const pct = withRecargo.length / records.length;
+  if (pct === 0)   return { fill: '#14532d', stroke: '#22c55e', label: 'Sin recargos' };
+  if (pct < 0.4)   return { fill: '#713f12', stroke: '#f59e0b', label: 'Recargo bajo' };
+  if (pct < 0.8)   return { fill: '#7c2d12', stroke: '#f97316', label: 'Recargo medio' };
+  return             { fill: '#7f1d1d', stroke: '#ef4444', label: 'Recargo alto' };
+}
+
+function renderMap() {
+  const wrap = document.getElementById('listMap');
+  const depts = Object.keys(DEPT_COORDS);
+
+  let circles = '';
+  depts.forEach(dept => {
+    const { cx, cy } = DEPT_COORDS[dept];
+    const { fill, stroke } = getDeptColor(dept);
+    const done  = Object.values(db).filter(r => r.dept === dept && r.status === 'done').length;
+    const total = DEPTS[dept] ? DEPTS[dept].length : 0;
+    const shortName = dept.replace('Norte de Santander','N. Santander')
+                          .replace('San Andrés y Providencia','San Andrés')
+                          .replace('Valle del Cauca','Valle');
+    circles += `
+      <g class="dept-bubble" onclick="mapClick('${dept}')">
+        <circle cx="${cx}" cy="${cy}" r="22" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="cursor:pointer"/>
+        <text x="${cx}" y="${cy - 4}" text-anchor="middle" fill="#e8edf4" font-size="6.5" font-family="JetBrains Mono,monospace" font-weight="600">${shortName}</text>
+        <text x="${cx}" y="${cy + 7}" text-anchor="middle" fill="${stroke}" font-size="8" font-family="JetBrains Mono,monospace" font-weight="700">${done}/${total}</text>
+      </g>`;
+  });
+
+  wrap.innerHTML = `
+    <div class="map-container">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">
+        Concentración de Alta Demanda por Departamento
+      </div>
+      <svg viewBox="0 60 660 720" width="100%" style="display:block;">
+        ${circles}
+      </svg>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>Sin recargos</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Recargo bajo</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Recargo medio</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Recargo alto</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1a232e;border:1px solid #2e4055"></div>Sin datos</div>
+      </div>
+    </div>
+    <div id="mapDetail" class="card" style="display:none;margin-top:0;"></div>`;
+}
+
+function mapClick(dept) {
+  const records = Object.values(db).filter(r => r.dept === dept && r.status === 'done')
+    .sort((a,b) => a.muni.localeCompare(b.muni));
+  const detail = document.getElementById('mapDetail');
+  if (!records.length) {
+    detail.style.display = 'none'; return;
+  }
+  const { stroke } = getDeptColor(dept);
+  detail.style.display = 'block';
+  detail.style.borderColor = stroke;
+  detail.innerHTML = `
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text-2);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">
+      📍 ${dept} — ${records.length} municipios
+    </div>
+    ${records.map(r => `
+      <div class="result-row">
+        <span class="result-key">${r.muni}</span>
+        <span style="text-align:right;font-family:var(--mono);font-size:11px;">
+          <span style="color:${r.mini > 0 ? '#f59e0b' : '#22c55e'}">Mini: ${r.mini > 0 ? '$'+r.mini.toLocaleString('es-CO') : '✓'}</span>
+          &nbsp;
+          <span style="color:${r.v4 > 0 ? '#f59e0b' : '#22c55e'}">V4: ${r.v4 > 0 ? '$'+r.v4.toLocaleString('es-CO') : '✓'}</span>
+        </span>
+      </div>`).join('')}`;
+  detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function renderAll(){
-  const pending = [];
-  const done    = [];
-  Object.values(db).forEach(r => r.status==='pending' ? pending.push(r) : done.push(r));
+  const allRecords = Object.values(db);
+  const filtered = searchQuery
+    ? allRecords.filter(r =>
+        r.muni.toLowerCase().includes(searchQuery) ||
+        r.dept.toLowerCase().includes(searchQuery))
+    : allRecords;
+
+  const pending = filtered.filter(r => r.status === 'pending');
+  const done    = filtered.filter(r => r.status === 'done');
   pending.sort((a,b) => a.dept.localeCompare(b.dept) || a.muni.localeCompare(b.muni));
   done.sort((a,b)    => a.dept.localeCompare(b.dept) || a.muni.localeCompare(b.muni));
 
@@ -1023,7 +1233,7 @@ function renderAll(){
   renderList('listDone',    done,    'done');
 
   const totalMunis = Object.values(DEPTS).reduce((sum, arr) => sum + arr.length, 0);
-  const doneCount  = done.length;
+  const doneCount  = Object.values(db).filter(r => r.status === 'done').length;
   const pendCount  = totalMunis - doneCount;
   document.getElementById('statTotal').textContent   = totalMunis;
   document.getElementById('statPending').textContent = pendCount;
@@ -1032,8 +1242,8 @@ function renderAll(){
   document.getElementById('progressPct').textContent = pct + '%';
   document.getElementById('progressFill').style.width = pct + '%';
 
-  // Refresh muni dropdown if a dept is selected
   if (deptSel && deptSel.value) populateMunis();
+  if (currentTab === 'map') renderMap();
 }
 
 
@@ -1291,14 +1501,30 @@ function showConfigModal() {
 }
 
 // Cargar datos semilla del archivo exportado si la DB está vacía
+const FAKE_SEEDS = [
+  'Antioquia__Medellín','Antioquia__Rionegro',
+  'Cundinamarca__Bogotá D.C.','Valle del Cauca__Cali','Atlántico__Barranquilla'
+];
+
 function seedFromFile() {
+  // Always remove fake pending seeds if they exist
+  let changed = false;
+  FAKE_SEEDS.forEach(key => {
+    if (db[key] && db[key].status === 'pending') {
+      delete db[key]; changed = true;
+    }
+  });
+  if (changed) saveDB();
+
   if (Object.keys(db).length > 0) return;
+
   SEED_RECORDS.forEach(r => {
+    if (r.estado !== 'done') return;
     const key = genKey(r.departamento, r.municipio);
     db[key] = {
       dept: r.departamento, muni: r.municipio,
       mini: r.precio_recargo_mini_usd, v4: r.precio_recargo_v4_usd,
-      status: r.estado, ts: r.ultima_actualizacion
+      status: 'done', ts: r.ultima_actualizacion
     };
   });
   saveDB();
@@ -1322,75 +1548,6 @@ function seedFromFile() {
     setCloudStatus('warn', 'no configurada — clic en Sincronizar');
   }
 })();
-
-// ========== IMPORT ==========
-document.getElementById('importBtn').addEventListener('click', () => {
-  document.getElementById('importFile').click();
-});
-
-document.getElementById('importFile').addEventListener('change', function() {
-  const file = this.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const text = e.target.result;
-    try {
-      // Extract the JSON block from the exported .txt
-      const jsonStart = text.indexOf('## DATOS JSON');
-      const csvStart  = text.indexOf('## DATOS CSV');
-      if (jsonStart === -1) throw new Error('Formato no reconocido');
-
-      const jsonBlock = text.slice(jsonStart, csvStart !== -1 ? csvStart : undefined);
-      const jsonMatch = jsonBlock.match(/\[\s*\{[\s\S]*\]\s*/);
-      if (!jsonMatch) throw new Error('No se encontró bloque JSON válido');
-
-      const records = JSON.parse(jsonMatch[0]);
-      if (!Array.isArray(records) || records.length === 0) throw new Error('Sin registros');
-
-      const mode = confirm(
-        `Se encontraron ${records.length} registros.\n\n` +
-        `¿Quieres COMBINAR con los datos actuales?\n` +
-        `(Aceptar = Combinar · Cancelar = Reemplazar todo)`
-      );
-
-      let imported = 0;
-      records.forEach(r => {
-        const dept = r.departamento;
-        const muni = r.municipio;
-        if (!dept || !muni) return;
-        const key = genKey(dept, muni);
-        if (!mode || !db[key]) {          // combinar: solo escribe si no existe; reemplazar: siempre
-          db[key] = {
-            dept,
-            muni,
-            mini: parseFloat(r.precio_recargo_mini_usd) || 0,
-            v4:   parseFloat(r.precio_recargo_v4_usd)   || 0,
-            status: r.estado === 'done' ? 'done' : 'pending',
-            ts: r.ultima_actualizacion || new Date().toISOString()
-          };
-          imported++;
-        }
-      });
-
-      saveDB();
-      renderAll();
-      showToast(`⬆ ${imported} registros importados`, 'green');
-    } catch(err) {
-      showToast('⚠ Error al leer el archivo: ' + err.message);
-    }
-    // reset input so same file can be re-imported
-    this.value = '';
-  };
-  reader.readAsText(file, 'utf-8');
-});
-document.getElementById('resetBtn').addEventListener('click', () => {
-  if(confirm('¿Seguro que quieres borrar TODOS los datos? Esta acción no se puede deshacer.')){
-    db = {};
-    saveDB();
-    renderAll();
-    showToast('Datos reiniciados');
-  }
-});
 
 // ========== TOAST ==========
 function showToast(msg, type=''){
