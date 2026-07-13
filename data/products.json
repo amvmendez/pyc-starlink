@@ -15,13 +15,15 @@
     "id": "svc-recuperacion",
     "name": "Recuperación de cuenta Starlink",
     "category": "Servicios Starlink",
-    "price": 80000,
+    "price": 150000,
     "sku": "SVC-RECUP-CTA",
     "desc": "Recuperamos el acceso a tu cuenta cuando perdiste el usuario o contraseña.",
+    "detalle": "",
     "image": "",
+    "images": [],
     "availability": null,
-    "type": "servicio",
-    "visible": true
+    "visible": true,
+    "type": "servicio"
   },
   {
     "id": "svc-reubicacion",
