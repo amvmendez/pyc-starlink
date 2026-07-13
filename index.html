@@ -644,7 +644,7 @@
    No necesitas tocar nada más del archivo.
    ========================================================================= */
 
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.6.0";
 const APP_BUILD_DATE = "2026-07-12";
 console.info(`PARTESYCOMPUTADORES.COM.CO — tienda v${APP_VERSION} (${APP_BUILD_DATE})`);
 
@@ -783,6 +783,51 @@ async function loadLicenciasLive() {
       });
   } catch (err) {
     console.warn("[Licencias live] No se pudo conectar a Firebase:", err.message);
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Servicios técnicos: precio fijo, sin stock ni disponibilidad, nodo separado.
+const FIREBASE_SERVICIOS_NODE = "inventario_servicios";
+
+async function loadServiciosLive() {
+  try {
+    const res = await fetch(`${FIREBASE_BASE}/${FIREBASE_SERVICIOS_NODE}.json`);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if (!data) { console.info("[Servicios live] Nodo aún no existe en Firebase (normal si no lo has configurado)."); return []; }
+
+    const raw = data.servicios;
+    if (!raw) {
+      console.warn("[Servicios live] No se encontró el arreglo 'servicios'. Claves disponibles:", Object.keys(data));
+      return [];
+    }
+
+    const items = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw);
+    console.info(`[Servicios live] ${items.length} servicio(s) encontrados.`);
+
+    return items
+      .filter(it => it.visible !== false)
+      .map((it, i) => {
+        const name = it.nombre || it.name || `Servicio ${i + 1}`;
+        const price = Number(it.precio ?? it.price ?? 0);
+        return {
+          id: "svc-" + (it.id || name).toString().toLowerCase().replace(/\s+/g, "-"),
+          name,
+          category: "Servicios técnicos",
+          type: "servicio",
+          price,
+          sku: (it.sku || it.id || name).toString().slice(0, 20).toUpperCase(),
+          desc: "",
+          image: it.foto || it.imagen || it.image || "",
+          images: Array.isArray(it.fotos) ? it.fotos.filter(Boolean) : [],
+          availability: "servicio",
+          visible: true
+        };
+      });
+  } catch (err) {
+    console.warn("[Servicios live] No se pudo conectar a Firebase:", err.message);
     return [];
   }
 }
@@ -942,8 +987,8 @@ function renderGrid() {
 async function init() {
   document.getElementById("year").textContent = new Date().getFullYear();
   document.getElementById("versionTag").textContent = `v${APP_VERSION} · ${APP_BUILD_DATE}`;
-  const [manual, live, licencias] = await Promise.all([loadManualProducts(), loadStarlinkLive(), loadLicenciasLive()]);
-  ALL_PRODUCTS = [...manual, ...live, ...licencias].filter(p => p.visible !== false);
+  const [manual, live, licencias, servicios] = await Promise.all([loadManualProducts(), loadStarlinkLive(), loadLicenciasLive(), loadServiciosLive()]);
+  ALL_PRODUCTS = [...manual, ...live, ...licencias, ...servicios].filter(p => p.visible !== false);
   renderPins();
   renderAvailBar();
   renderGrid();
