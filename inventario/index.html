@@ -701,6 +701,10 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9M3 9h18M9 21v-6h6v6"/></svg>
     Ver Tienda ↗
   </button>
+  <button class="tab-btn" id="navBuscadorFotos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M14.5 14.5L17 12l4 4"/></svg>
+    Buscador de Fotos ↗
+  </button>
 </nav>
 
 <main>
@@ -810,6 +814,14 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l1-5h16l1 5M3 9v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9M3 9h18M9 21v-6h6v6"/></svg>
         </div>
         <div class="home-card-title">Ver Tienda ↗</div>
+        <div class="home-card-desc">Herramienta externa — abre en pestaña nueva</div>
+      </button>
+
+      <button class="home-card" id="homeBuscadorFotos">
+        <div class="home-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M14.5 14.5L17 12l4 4"/></svg>
+        </div>
+        <div class="home-card-title">Buscador de Fotos ↗</div>
         <div class="home-card-desc">Herramienta externa — abre en pestaña nueva</div>
       </button>
     </div>
@@ -1041,7 +1053,7 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Foto</th><th>Accesorio</th><th>Costo promedio</th><th>Precio venta</th><th>Stock</th><th>Valor stock (costo)</th><th>Tienda</th><th></th>
+            <th>Accesorio</th><th>Costo promedio</th><th>Precio venta</th><th>Stock</th><th>Valor stock (costo)</th><th>Tienda</th><th></th>
           </tr></thead>
           <tbody id="accesoriosBody"></tbody>
         </table>
@@ -1327,6 +1339,15 @@
           <label>Precio de venta (COP)</label>
           <input type="number" min="0" step="1000" id="newLicPrecioVenta" placeholder="0">
         </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label><input type="checkbox" id="newLicVisible" checked style="width:16px; height:16px; vertical-align:middle; margin-right:6px;"> Visible en la tienda</label>
+          <small class="hint">Se muestra como disponible en la tienda mientras esto esté activo, sin importar el stock — las licencias siempre se pueden conseguir con el proveedor.</small>
+        </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label>Foto (URL pública de la imagen)</label>
+          <input type="text" id="newLicFoto" placeholder="https://.../windows-11-pro.jpg" autocapitalize="off" autocorrect="off">
+          <small class="hint">⚠️ Este campo NO sube archivos — solo guarda un link. Debe ser una <b>URL pública</b> (empieza por <b>https://</b>) que cualquiera pueda abrir sin iniciar sesión. Si la dejas vacía, la tienda muestra su ícono de respaldo.</small>
+        </div>
       </div>
       <button class="btn btn-primary" id="btnAddLicencia">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
@@ -1338,7 +1359,7 @@
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Licencia</th><th>Categoría</th><th>Precio compra</th><th>Precio venta</th><th>Stock</th><th>Valor stock (costo)</th><th></th>
+            <th>Licencia</th><th>Categoría</th><th>Precio compra</th><th>Precio venta</th><th>Stock</th><th>Valor stock (costo)</th><th>Tienda</th><th></th>
           </tr></thead>
           <tbody id="licenciasBody"></tbody>
         </table>
@@ -1882,6 +1903,10 @@
   const FIREBASE_DB_URL = "https://inventarioyfinanzas-default-rtdb.firebaseio.com";
   // Nodo dentro de la base de datos donde se guarda todo el inventario.
   const FIREBASE_PATH = "inventario_starlink";
+  // Nodo APARTE (fuera de inventario_starlink) donde se publica un espejo
+  // simplificado de las licencias, para que la tienda pública lo lea directo
+  // sin exponer costos ni stock interno.
+  const FIREBASE_LICENCIAS_PUBLICAS_PATH = "inventario_licencias/licencias";
   const STORAGE_KEY = "pyc_inventario_starlink_v1";
   const DEBOUNCE_MS = 2000;
 
@@ -1890,8 +1915,8 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-4";
-  const APP_VERSION_NOTA = "Aclaración de foto: debe ser URL pública, no archivo local";
+  const APP_VERSION = "2026.07.12-7";
+  const APP_VERSION_NOTA = "Nuevo acceso directo: Buscador de Fotos";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
@@ -1966,21 +1991,21 @@
 
   const CATALOGO_LICENCIAS = [
     // --- Windows ---
-    { id:"win_retail", nombre:"Windows Retail", categoria:"Windows", precioCompra:0, precioVenta:0, stock:0, custom:false },
-    { id:"win_oem",    nombre:"Windows OEM",    categoria:"Windows", precioCompra:0, precioVenta:0, stock:0, custom:false },
+    { id:"win_retail", nombre:"Windows Retail", categoria:"Windows", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"win_oem",    nombre:"Windows OEM",    categoria:"Windows", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
     // --- Office ---
-    { id:"office365_retail",   nombre:"Office 365 Retail",                        categoria:"Office", precioCompra:0, precioVenta:0, stock:0, custom:false },
-    { id:"office365_bind",     nombre:"Office 365 Bind",                          categoria:"Office", precioCompra:0, precioVenta:0, stock:0, custom:false },
-    { id:"office2021_retail",  nombre:"Office 2021 Pro Plus Retail",              categoria:"Office", precioCompra:0, precioVenta:0, stock:0, custom:false },
-    { id:"office2021_bind",    nombre:"Office 2021 Pro Plus Bind",                categoria:"Office", precioCompra:0, precioVenta:0, stock:0, custom:false },
-    { id:"office2024_retail",  nombre:"Office 2024 Home and Business Retail",     categoria:"Office", precioCompra:0, precioVenta:0, stock:0, custom:false },
-    { id:"office2024_bind",    nombre:"Office 2024 Home and Business Bind",       categoria:"Office", precioCompra:0, precioVenta:0, stock:0, custom:false },
+    { id:"office365_retail",   nombre:"Office 365 Retail",                        categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"office365_bind",     nombre:"Office 365 Bind",                          categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"office2021_retail",  nombre:"Office 2021 Pro Plus Retail",              categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"office2021_bind",    nombre:"Office 2021 Pro Plus Bind",                categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"office2024_retail",  nombre:"Office 2024 Home and Business Retail",     categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"office2024_bind",    nombre:"Office 2024 Home and Business Bind",       categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
     // --- Antivirus McAfee ---
-    { id:"mcafee_is_12m",  nombre:"McAfee Internet Security | 12 Meses", categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, custom:false },
-    { id:"mcafee_is_2a",   nombre:"McAfee Internet Security | 2 Años",   categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, custom:false },
-    { id:"mcafee_plus_4a", nombre:"McAfee Plus | 4 Años",                categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, custom:false },
-    { id:"mcafee_tp_12m",  nombre:"McAfee Total Protection | 12 Meses",  categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, custom:false },
-    { id:"mcafee_tp_4a",   nombre:"McAfee Total Protection | 4 Años",    categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, custom:false },
+    { id:"mcafee_is_12m",  nombre:"McAfee Internet Security | 12 Meses", categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"mcafee_is_2a",   nombre:"McAfee Internet Security | 2 Años",   categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"mcafee_plus_4a", nombre:"McAfee Plus | 4 Años",                categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"mcafee_tp_12m",  nombre:"McAfee Total Protection | 12 Meses",  categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"mcafee_tp_4a",   nombre:"McAfee Total Protection | 4 Años",    categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
   ];
 
   /* ============================================================
@@ -2132,6 +2157,39 @@
     }).then(res => {
       if(!res.ok) throw new Error(`Firebase respondió con error ${res.status}`);
       return res.json();
+    });
+  }
+
+  // Publica en un nodo APARTE de Firebase (inventario_licencias/licencias) una
+  // versión simplificada de las licencias, solo con lo que la tienda pública
+  // necesita mostrar (nombre, precio, visible, foto) — sin precio de compra
+  // ni stock interno. Se dispara cada vez que se crea/edita una licencia,
+  // con un pequeño debounce propio para no saturar Firebase si editas varios
+  // campos seguidos.
+  let licenciasPublicasSyncTimer = null;
+  function scheduleSyncLicenciasPublicas(){
+    clearTimeout(licenciasPublicasSyncTimer);
+    licenciasPublicasSyncTimer = setTimeout(syncLicenciasPublicas, DEBOUNCE_MS);
+  }
+  function syncLicenciasPublicas(){
+    if(!isUrlConfigured()) return;
+    const base = FIREBASE_DB_URL.replace(/\/$/, "");
+    const url = `${base}/${FIREBASE_LICENCIAS_PUBLICAS_PATH}.json`;
+    const publicas = state.licencias.map(l => ({
+      nombre: l.nombre,
+      precio: Number(l.precioVenta) || 0,
+      visible: l.visible !== false,
+      foto: l.foto || ""
+    }));
+    fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(publicas)
+    }).then(res => {
+      if(!res.ok) throw new Error(`Firebase respondió con error ${res.status}`);
+    }).catch(err => {
+      console.warn("No se pudo publicar el espejo público de licencias:", err);
+      toast("No se pudo publicar el catálogo de licencias en la tienda — revisa tu conexión");
     });
   }
 
@@ -2749,13 +2807,8 @@
     body.innerHTML = accesoriosOrdenados.map(a => `
       <tr>
         <td>
-          <div style="display:flex; flex-direction:column; align-items:center; gap:4px; width:64px;">
-            ${a.foto ? `<img src="${escapeHtml(a.foto)}" alt="" style="width:44px; height:44px; object-fit:cover; border-radius:8px; border:1px solid var(--line); background:var(--bg-1);" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">` : ""}
-            <div style="display:${a.foto ? "none" : "flex"}; width:44px; height:44px; align-items:center; justify-content:center; border-radius:8px; border:1px dashed var(--line); background:var(--bg-1); color:var(--tx-2); font-size:16px;">🖼</div>
-            <input type="text" class="acc-foto" data-id="${a.id}" value="${escapeHtml(a.foto||"")}" placeholder="URL foto" style="width:64px; font-size:9px; padding:3px 4px;">
-          </div>
+          <input type="text" class="acc-nombre" data-id="${a.id}" value="${escapeHtml(a.nombre)}" style="min-width:160px;">
         </td>
-        <td>${escapeHtml(a.nombre)}</td>
         <td>
           <input type="number" min="0" step="1000" class="price-input acc-precio-compra" data-id="${a.id}" value="${Number(a.precioCompra)||0}">
         </td>
@@ -2781,6 +2834,7 @@
             <option value="importado" ${(a.disponibilidad||"importado")==="importado"?"selected":""}>Importado</option>
             <option value="encargo" ${a.disponibilidad==="encargo"?"selected":""}>Por encargo, 1-3 días</option>
           </select>
+          <input type="text" class="acc-foto" data-id="${a.id}" value="${escapeHtml(a.foto||"")}" placeholder="URL foto (tienda)" style="margin-top:4px; font-size:10px; padding:3px 5px; width:100%;">
         </td>
         <td>
           ${a.custom ? `<button class="icon-btn del" data-del-accesorio="${a.id}" title="Eliminar">
@@ -2789,6 +2843,30 @@
         </td>
       </tr>
     `).join("");
+
+    $all(".acc-nombre").forEach(inp => {
+      inp.addEventListener("change", (e) => {
+        const acc = state.accesorios.find(x => x.id === e.target.dataset.id);
+        if(!acc) return;
+        const nuevoNombre = e.target.value.trim();
+        if(!nuevoNombre){
+          toast("El nombre no puede quedar vacío");
+          e.target.value = acc.nombre;
+          return;
+        }
+        if(state.accesorios.some(x => x.id !== acc.id && x.nombre.toLowerCase() === nuevoNombre.toLowerCase())){
+          toast("Ya existe otro accesorio con ese nombre");
+          e.target.value = acc.nombre;
+          return;
+        }
+        const anterior = acc.nombre;
+        acc.nombre = nuevoNombre;
+        logHistorial("Nombre de accesorio corregido", `"${anterior}" → "${nuevoNombre}"`);
+        renderHistorial();
+        renderAccesorios(); // vuelve a ordenar alfabéticamente si cambió
+        scheduleSync();
+      });
+    });
 
     $all(".acc-precio-compra").forEach(inp => {
       inp.addEventListener("input", (e) => {
@@ -2829,7 +2907,6 @@
         if(acc.foto && !/^https?:\/\//i.test(acc.foto) && !acc.foto.startsWith("productos/")){
           toast("Ojo: debe ser una URL pública (https://...) o una ruta dentro de /productos/ de tu repo, o la tienda no la va a poder cargar");
         }
-        renderAccesorios(); // refresca la miniatura
         scheduleSync();
       });
     });
@@ -3080,7 +3157,10 @@
     const body = $("#licenciasBody");
     body.innerHTML = state.licencias.map(l => `
       <tr>
-        <td>${escapeHtml(l.nombre)}<br><span class="tag">${escapeHtml(l.categoria || "Otro")}</span></td>
+        <td>
+          <input type="text" class="lic-nombre" data-id="${l.id}" value="${escapeHtml(l.nombre)}" style="min-width:160px;">
+          <span class="tag" style="display:inline-block; margin-top:4px;">${escapeHtml(l.categoria || "Otro")}</span>
+        </td>
         <td>${escapeHtml(l.categoria || "Otro")}</td>
         <td>
           <input type="number" min="0" step="1000" class="price-input lic-precio-compra" data-id="${l.id}" value="${Number(l.precioCompra)||0}">
@@ -3098,12 +3178,44 @@
         </td>
         <td class="cop">${formatCOP((Number(l.stock)||0) * (Number(l.precioCompra)||0))}</td>
         <td>
+          <label style="display:flex; align-items:center; gap:5px; font-size:11px; white-space:nowrap;">
+            <input type="checkbox" class="lic-visible" data-id="${l.id}" ${l.visible !== false ? "checked" : ""} style="width:15px; height:15px;">
+            Visible
+          </label>
+          <input type="text" class="lic-foto" data-id="${l.id}" value="${escapeHtml(l.foto||"")}" placeholder="URL foto (tienda)" style="margin-top:4px; font-size:10px; padding:3px 5px; width:100%;">
+        </td>
+        <td>
           ${l.custom ? `<button class="icon-btn del" data-del-licencia="${l.id}" title="Eliminar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
           </button>` : ""}
         </td>
       </tr>
     `).join("");
+
+    $all(".lic-nombre").forEach(inp => {
+      inp.addEventListener("change", (e) => {
+        const lic = state.licencias.find(x => x.id === e.target.dataset.id);
+        if(!lic) return;
+        const nuevoNombre = e.target.value.trim();
+        if(!nuevoNombre){
+          toast("El nombre no puede quedar vacío");
+          e.target.value = lic.nombre;
+          return;
+        }
+        if(state.licencias.some(x => x.id !== lic.id && x.nombre.toLowerCase() === nuevoNombre.toLowerCase())){
+          toast("Ya existe otra licencia con ese nombre");
+          e.target.value = lic.nombre;
+          return;
+        }
+        const anterior = lic.nombre;
+        lic.nombre = nuevoNombre;
+        logHistorial("Nombre de licencia corregido", `"${anterior}" → "${nuevoNombre}"`);
+        renderHistorial();
+        renderLicencias();
+        scheduleSync();
+        scheduleSyncLicenciasPublicas(); // el nombre es parte del espejo público
+      });
+    });
 
     $all(".lic-precio-compra").forEach(inp => {
       inp.addEventListener("input", (e) => {
@@ -3123,6 +3235,33 @@
         lic.precioVenta = Number(e.target.value) || 0;
         renderKpiLicencias();
         scheduleSync();
+        scheduleSyncLicenciasPublicas();
+      });
+    });
+
+    $all(".lic-visible").forEach(chk => {
+      chk.addEventListener("change", (e) => {
+        const lic = state.licencias.find(x => x.id === e.target.dataset.id);
+        if(!lic) return;
+        lic.visible = e.target.checked;
+        logHistorial("Visibilidad en tienda", `${lic.nombre}: ${lic.visible ? "Visible" : "Oculta"}`);
+        renderHistorial();
+        scheduleSync();
+        scheduleSyncLicenciasPublicas();
+      });
+    });
+
+    $all(".lic-foto").forEach(inp => {
+      inp.addEventListener("change", (e) => {
+        const lic = state.licencias.find(x => x.id === e.target.dataset.id);
+        if(!lic) return;
+        lic.foto = e.target.value.trim();
+        if(lic.foto && !/^https?:\/\//i.test(lic.foto)){
+          toast("Ojo: debe ser una URL pública (https://...) o la tienda no la va a poder cargar");
+        }
+        renderLicencias();
+        scheduleSync();
+        scheduleSyncLicenciasPublicas();
       });
     });
 
@@ -3170,6 +3309,7 @@
         renderLicencias();
         renderHistorial();
         scheduleSync();
+        scheduleSyncLicenciasPublicas();
       });
     });
   }
@@ -3237,6 +3377,8 @@
     const precioCompra = Number($("#newLicPrecioCompra").value) || 0;
     const precioVenta = Number($("#newLicPrecioVenta").value) || 0;
     const stock = Number($("#newLicStock").value) || 0;
+    const visible = $("#newLicVisible").checked;
+    const foto = $("#newLicFoto").value.trim();
 
     if(!nombre){
       toast("Ingresa el nombre de la licencia");
@@ -3248,7 +3390,8 @@
       return;
     }
 
-    state.licencias.push({ id: uid("lic"), nombre, categoria, precioCompra, precioVenta, stock, custom:true });
+    state.licencias.push({ id: uid("lic"), nombre, categoria, precioCompra, precioVenta, stock, visible, foto, custom:true });
+    const fotoSospechosa = foto && !/^https?:\/\//i.test(foto);
     logHistorial("Licencia agregada", `${nombre} (${categoria}) — ${stock} unidades`);
 
     if(stock > 0){
@@ -3265,12 +3408,17 @@
     $("#newLicPrecioVenta").value = "";
     $("#newLicStock").value = "";
     $("#newLicCategoria").value = "Windows";
+    $("#newLicVisible").checked = true;
+    $("#newLicFoto").value = "";
 
     renderLicencias();
     renderHistorial();
     renderFinanzas();
     scheduleSync();
-    toast("Licencia agregada");
+    scheduleSyncLicenciasPublicas();
+    toast(fotoSospechosa
+      ? "Licencia agregada, pero la foto no parece una URL pública (https://...) — revísala"
+      : "Licencia agregada");
   }
 
   /* ============================================================
@@ -4478,12 +4626,14 @@
     const ENLACES_EXTERNOS = {
       AltaDemanda: "https://amvmendez.github.io/pyc-starlink/RecargoAltaDemanda/",
       PanelAdmin: "https://amvmendez.github.io/pyc-starlink/admin.html",
-      VerTienda: "https://amvmendez.github.io/pyc-starlink/index.html"
+      VerTienda: "https://amvmendez.github.io/pyc-starlink/index.html",
+      BuscadorFotos: "https://amvmendez.github.io/pyc-starlink/Buscador-fotos/"
     };
     ["nav", "home"].forEach(prefix => {
       $(`#${prefix}AltaDemanda`).addEventListener("click", () => window.open(ENLACES_EXTERNOS.AltaDemanda, "_blank"));
       $(`#${prefix}PanelAdmin`).addEventListener("click", () => window.open(ENLACES_EXTERNOS.PanelAdmin, "_blank"));
       $(`#${prefix}VerTienda`).addEventListener("click", () => window.open(ENLACES_EXTERNOS.VerTienda, "_blank"));
+      $(`#${prefix}BuscadorFotos`).addEventListener("click", () => window.open(ENLACES_EXTERNOS.BuscadorFotos, "_blank"));
     });
 
     renderElementosChecklist();
