@@ -539,7 +539,7 @@
    No necesitas tocar nada más del archivo.
    ========================================================================= */
 
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.1.1";
 const APP_BUILD_DATE = "2026-07-12";
 console.info(`PARTESYCOMPUTADORES.COM.CO — tienda v${APP_VERSION} (${APP_BUILD_DATE})`);
 
@@ -624,7 +624,7 @@ async function loadStarlinkLive() {
         price,
         sku: (it.sku || it.id || name).toString().slice(0, 20).toUpperCase(),
         desc: stock > 0 ? `${stock} disponibles en stock.` : "Disponible bajo pedido.",
-        image: it.imagen || it.image || "",
+        image: it.foto || it.imagen || it.image || "",
         availability,
         visible: it.visible !== false
       };
