@@ -2457,6 +2457,14 @@
       card.addEventListener("click", () => goToTab(card.dataset.tab));
     });
     $("#btnVolverInicio").addEventListener("click", () => goToTab("inicio"));
+
+    // Permite abrir una pestaña específica directo desde la URL, ej:
+    // inventario/#accesorios o inventario/#licencias
+    const VALID_TABS = ["antenas","despliegues","servicios","accesorios","licencias","finanzas","cotizador","tareas","historial"];
+    const hashTab = (location.hash || "").replace("#", "");
+    if (VALID_TABS.includes(hashTab)) {
+      goToTab(hashTab);
+    }
   }
 
   /* ============================================================
