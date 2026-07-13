@@ -231,13 +231,30 @@ async function ghApi(path, opts={}){
 // ---------- discovery ----------
 async function connectFixedFirebasePath(relativePath){
   const base = new URL(fbUrl).origin;
-  const fullUrl = `${base}/${relativePath}`;
-  const res = await fetch(`${fullUrl}.json`);
-  if(!res.ok) throw new Error(`Firebase respondió ${res.status}`);
-  const data = await res.json();
-  if(!data) throw new Error('Esa ruta está vacía o no existe todavía.');
+  let path = relativePath;
+  let res = await fetch(`${base}/${path}.json`);
+  let data = res.ok ? await res.json() : null;
+  if(!data){
+    // la ruta exacta no existe; probamos un nivel más arriba por si acaso
+    const parentPath = path.split('/').slice(0,-1).join('/');
+    if(parentPath){
+      const res2 = await fetch(`${base}/${parentPath}.json`);
+      if(res2.ok){ const d2 = await res2.json(); if(d2){ path=parentPath; data=d2; } }
+    }
+  }
+  if(!data) throw new Error('No encontré datos en esa ruta ni un nivel arriba. Puede que el nombre exacto sea distinto.');
+
+  let keys = Object.keys(data);
+  const firstLooksRight = keys.length && data[keys[0]] && typeof data[keys[0]]==='object' && looksLikeCatalog(data[keys[0]]);
+  if(!firstLooksRight && keys.length===1 && data[keys[0]] && typeof data[keys[0]]==='object'){
+    // parece haber una capa extra envolviendo el catálogo real; entramos un nivel más
+    path = `${path}/${keys[0]}`;
+    data = data[keys[0]];
+    keys = Object.keys(data);
+  }
+
   const entries = Object.entries(data).map(([k,v])=>({...v, __fbKey:k}));
-  const parts = relativePath.split('/');
+  const parts = path.split('/');
   source={kind:'firebase', nodeKey:parts[parts.length-1], nodeBase: parts.slice(0,-1).join('/'), originBase: base, arr:entries};
   fields = detectFields(entries[0]);
   fields.idField='__fbKey';
