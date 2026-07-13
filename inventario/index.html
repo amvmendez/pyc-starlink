@@ -152,6 +152,25 @@
   .fab-back:active{transform:scale(0.93);}
   .fab-back svg{width:22px; height:22px;}
 
+  /* ---------- BURBUJA FLOTANTE DE TAREAS ---------- */
+  .tareas-bubble{
+    position:fixed; left:16px; right:16px; bottom:24px; z-index:75;
+    background:var(--bg-2); border:1.5px solid var(--cyan);
+    border-radius:16px; padding:12px 40px 12px 14px;
+    box-shadow:0 10px 30px rgba(0,224,255,0.18);
+    animation:bubbleIn .3s ease;
+  }
+  @keyframes bubbleIn{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);}}
+  .tareas-bubble-content{display:flex; align-items:center; gap:12px; cursor:pointer;}
+  .tareas-bubble-icon{font-size:26px; flex:none;}
+  .tareas-bubble-title{font-size:13.5px; font-weight:800; color:var(--tx-0); line-height:1.3;}
+  .tareas-bubble-sub{font-size:11.5px; color:var(--tx-2); margin-top:2px;}
+  .tareas-bubble-close{
+    position:absolute; top:8px; right:8px; background:none; border:none;
+    color:var(--tx-2); font-size:14px; width:26px; height:26px; border-radius:50%;
+  }
+  .tareas-bubble-close:active{background:var(--bg-3);}
+
   /* ---------- TAREAS PENDIENTES ---------- */
   .task-item{
     display:flex; align-items:center; gap:10px; padding:13px 4px;
@@ -1304,6 +1323,42 @@
           <tbody id="servTiposBody"></tbody>
         </table>
       </div>
+
+      <div class="divider" style="margin-top:26px; border-top:2px solid var(--cyan);"></div>
+      <h2 class="section-title">Catálogo de Servicios (precio fijo, para la tienda)</h2>
+      <small class="hint" style="margin-top:-6px;">Estos son servicios con precio fijo que se pueden vender directo, como un producto — distintos del registro de arriba (que es para servicios de valor variable). Se publican en la tienda igual que Accesorios y Licencias.</small>
+
+      <h2 class="section-title" style="margin-top:14px;">Nuevo servicio de catálogo</h2>
+      <div class="form-grid">
+        <div class="field" style="grid-column:1/-1;">
+          <label>Nombre del servicio</label>
+          <input type="text" id="newSvcNombre" placeholder="Ej: Instalación de cámaras de seguridad">
+        </div>
+        <div class="field">
+          <label>Precio (COP)</label>
+          <input type="number" min="0" step="1000" id="newSvcPrecio" placeholder="0">
+        </div>
+        <div class="field" style="align-self:flex-end;">
+          <label><input type="checkbox" id="newSvcVisible" checked style="width:16px; height:16px; vertical-align:middle; margin-right:6px;"> Visible en la tienda</label>
+        </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label>Foto (URL pública de la imagen)</label>
+          <input type="text" id="newSvcFoto" placeholder="https://.../servicio.jpg" autocapitalize="off" autocorrect="off">
+          <small class="hint">⚠️ No sube archivos — solo guarda un link. Debe ser una URL pública (https://...).</small>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btnAddServicioCatalogo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar servicio al catálogo
+      </button>
+
+      <div class="divider"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Servicio</th><th>Precio</th><th>Tienda</th><th></th></tr></thead>
+          <tbody id="catalogoServiciosBody"></tbody>
+        </table>
+      </div>
     </div>
   </section>
 
@@ -1885,6 +1940,17 @@
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M19 12H5m0 0l6-6m-6 6l6 6"/></svg>
 </button>
 
+<div class="tareas-bubble" id="tareasBubble" style="display:none;">
+  <button class="tareas-bubble-close" id="btnCerrarBurbujaTareas" title="Cerrar">✕</button>
+  <div class="tareas-bubble-content" id="btnAbrirBurbujaTareas">
+    <div class="tareas-bubble-icon">✅</div>
+    <div>
+      <div class="tareas-bubble-title" id="tareasBubbleTitulo"></div>
+      <div class="tareas-bubble-sub" id="tareasBubbleSub"></div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
   <span id="toastMsg">Guardado</span>
@@ -1907,6 +1973,9 @@
   // simplificado de las licencias, para que la tienda pública lo lea directo
   // sin exponer costos ni stock interno.
   const FIREBASE_LICENCIAS_PUBLICAS_PATH = "inventario_licencias/licencias";
+  // Nodo público para el catálogo de servicios con precio fijo (mismo patrón
+  // que el de licencias — solo lo que la tienda necesita mostrar).
+  const FIREBASE_SERVICIOS_PUBLICOS_PATH = "inventario_servicios/servicios";
   const STORAGE_KEY = "pyc_inventario_starlink_v1";
   const DEBOUNCE_MS = 2000;
 
@@ -1915,8 +1984,8 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-7";
-  const APP_VERSION_NOTA = "Nuevo acceso directo: Buscador de Fotos";
+  const APP_VERSION = "2026.07.12-8";
+  const APP_VERSION_NOTA = "Borrar licencias, fix categoría duplicada, burbuja de tareas, retomar tareas, catálogo de servicios";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
@@ -2008,6 +2077,18 @@
     { id:"mcafee_tp_4a",   nombre:"McAfee Total Protection | 4 Años",    categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
   ];
 
+  // Catálogo administrable de servicios con precio fijo (distinto del
+  // registro de "servicios prestados" con valor variable por país/cliente).
+  // Estos se pueden editar y publicar en la tienda, igual que licencias.
+  const CATALOGO_SERVICIOS = [
+    { id:"formateo_win",       nombre:"Formateo Remoto de Equipo Windows",              precio:150000, visible:true, foto:"", custom:false },
+    { id:"formateo_mac",       nombre:"Formateo Remoto de Equipo Mac",                  precio:200000, visible:true, foto:"", custom:false },
+    { id:"optimizacion_win",   nombre:"Optimización de Software de Equipo Windows",     precio:120000, visible:true, foto:"", custom:false },
+    { id:"instalacion_win",    nombre:"Instalación de Programa Activado en Windows",    precio:90000,  visible:true, foto:"", custom:false },
+    { id:"instalacion_mac",    nombre:"Instalación de Programa Activado en Mac",        precio:120000, visible:true, foto:"", custom:false },
+    { id:"backup_pc",          nombre:"Backup de Información de PC (hasta 3 TB)",       precio:300000, visible:true, foto:"", custom:false },
+  ];
+
   /* ============================================================
      ESTADO
   ============================================================ */
@@ -2022,7 +2103,8 @@
     movimientosLicencias: [],
     tareas: [],
     ingresosVentas: [],
-    servicios: []
+    servicios: [],
+    catalogoServicios: JSON.parse(JSON.stringify(CATALOGO_SERVICIOS))
   };
 
   let syncTimer = null;
@@ -2109,6 +2191,9 @@
         state.tareas = parsed.tareas || [];
         state.ingresosVentas = parsed.ingresosVentas || [];
         state.servicios = parsed.servicios || [];
+        if(Array.isArray(parsed.catalogoServicios) && parsed.catalogoServicios.length){
+          state.catalogoServicios = mergeCatalogoConGuardado(CATALOGO_SERVICIOS, parsed.catalogoServicios);
+        }
         if(Array.isArray(parsed.accesorios) && parsed.accesorios.length){
           state.accesorios = mergeCatalogoConGuardado(CATALOGO_BASE, parsed.accesorios);
         }
@@ -2193,6 +2278,35 @@
     });
   }
 
+  // Igual que syncLicenciasPublicas, pero para el catálogo de servicios con
+  // precio fijo (inventario_servicios/servicios).
+  let serviciosPublicosSyncTimer = null;
+  function scheduleSyncServiciosPublicos(){
+    clearTimeout(serviciosPublicosSyncTimer);
+    serviciosPublicosSyncTimer = setTimeout(syncServiciosPublicos, DEBOUNCE_MS);
+  }
+  function syncServiciosPublicos(){
+    if(!isUrlConfigured()) return;
+    const base = FIREBASE_DB_URL.replace(/\/$/, "");
+    const url = `${base}/${FIREBASE_SERVICIOS_PUBLICOS_PATH}.json`;
+    const publicos = state.catalogoServicios.map(s => ({
+      nombre: s.nombre,
+      precio: Number(s.precio) || 0,
+      visible: s.visible !== false,
+      foto: s.foto || ""
+    }));
+    fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(publicos)
+    }).then(res => {
+      if(!res.ok) throw new Error(`Firebase respondió con error ${res.status}`);
+    }).catch(err => {
+      console.warn("No se pudo publicar el espejo público de servicios:", err);
+      toast("No se pudo publicar el catálogo de servicios en la tienda — revisa tu conexión");
+    });
+  }
+
   function syncToCloud(){
     if(!isUrlConfigured()){
       setStatus('local', 'Guardado local (configura tu URL de Firebase para sincronizar)');
@@ -2262,6 +2376,9 @@
         state.tareas = Array.isArray(data.tareas) ? data.tareas : [];
         state.ingresosVentas = Array.isArray(data.ingresosVentas) ? data.ingresosVentas : [];
         state.servicios = Array.isArray(data.servicios) ? data.servicios : [];
+        if(Array.isArray(data.catalogoServicios) && data.catalogoServicios.length){
+          state.catalogoServicios = mergeCatalogoConGuardado(CATALOGO_SERVICIOS, data.catalogoServicios);
+        }
         if(Array.isArray(data.accesorios) && data.accesorios.length){
           state.accesorios = mergeCatalogoConGuardado(CATALOGO_BASE, data.accesorios);
         }
@@ -3159,7 +3276,6 @@
       <tr>
         <td>
           <input type="text" class="lic-nombre" data-id="${l.id}" value="${escapeHtml(l.nombre)}" style="min-width:160px;">
-          <span class="tag" style="display:inline-block; margin-top:4px;">${escapeHtml(l.categoria || "Otro")}</span>
         </td>
         <td>${escapeHtml(l.categoria || "Otro")}</td>
         <td>
@@ -3185,9 +3301,9 @@
           <input type="text" class="lic-foto" data-id="${l.id}" value="${escapeHtml(l.foto||"")}" placeholder="URL foto (tienda)" style="margin-top:4px; font-size:10px; padding:3px 5px; width:100%;">
         </td>
         <td>
-          ${l.custom ? `<button class="icon-btn del" data-del-licencia="${l.id}" title="Eliminar">
+          <button class="icon-btn del" data-del-licencia="${l.id}" title="Eliminar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
-          </button>` : ""}
+          </button>
         </td>
       </tr>
     `).join("");
@@ -3444,6 +3560,7 @@
 
   function renderServicios(){
     renderKpiServicios();
+    renderCatalogoServicios();
     const body = $("#serviciosBody");
     const empty = $("#serviciosEmpty");
     const filtroMes = $("#servFiltroMes") ? $("#servFiltroMes").value : "";
@@ -3640,10 +3757,181 @@
   }
 
   /* ============================================================
+     RENDER — CATÁLOGO DE SERVICIOS (precio fijo, para la tienda)
+  ============================================================ */
+  function renderCatalogoServicios(){
+    const body = $("#catalogoServiciosBody");
+    if(!body) return;
+    body.innerHTML = state.catalogoServicios.map(s => `
+      <tr>
+        <td>
+          <input type="text" class="svc-nombre" data-id="${s.id}" value="${escapeHtml(s.nombre)}" style="min-width:180px;">
+        </td>
+        <td>
+          <input type="number" min="0" step="1000" class="price-input svc-precio" data-id="${s.id}" value="${Number(s.precio)||0}">
+        </td>
+        <td>
+          <label style="display:flex; align-items:center; gap:5px; font-size:11px; white-space:nowrap;">
+            <input type="checkbox" class="svc-visible" data-id="${s.id}" ${s.visible !== false ? "checked" : ""} style="width:15px; height:15px;">
+            Visible
+          </label>
+          <input type="text" class="svc-foto" data-id="${s.id}" value="${escapeHtml(s.foto||"")}" placeholder="URL foto (tienda)" style="margin-top:4px; font-size:10px; padding:3px 5px; width:100%;">
+        </td>
+        <td>
+          <button class="icon-btn del" data-del-servicio-catalogo="${s.id}" title="Eliminar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
+          </button>
+        </td>
+      </tr>
+    `).join("");
+
+    $all(".svc-nombre").forEach(inp => {
+      inp.addEventListener("change", (e) => {
+        const s = state.catalogoServicios.find(x => x.id === e.target.dataset.id);
+        if(!s) return;
+        const nuevoNombre = e.target.value.trim();
+        if(!nuevoNombre){
+          toast("El nombre no puede quedar vacío");
+          e.target.value = s.nombre;
+          return;
+        }
+        if(state.catalogoServicios.some(x => x.id !== s.id && x.nombre.toLowerCase() === nuevoNombre.toLowerCase())){
+          toast("Ya existe otro servicio con ese nombre");
+          e.target.value = s.nombre;
+          return;
+        }
+        const anterior = s.nombre;
+        s.nombre = nuevoNombre;
+        logHistorial("Nombre de servicio de catálogo corregido", `"${anterior}" → "${nuevoNombre}"`);
+        renderHistorial();
+        scheduleSync();
+        scheduleSyncServiciosPublicos();
+      });
+    });
+
+    $all(".svc-precio").forEach(inp => {
+      inp.addEventListener("input", (e) => {
+        const s = state.catalogoServicios.find(x => x.id === e.target.dataset.id);
+        if(!s) return;
+        s.precio = Number(e.target.value) || 0;
+        scheduleSync();
+        scheduleSyncServiciosPublicos();
+      });
+    });
+
+    $all(".svc-visible").forEach(chk => {
+      chk.addEventListener("change", (e) => {
+        const s = state.catalogoServicios.find(x => x.id === e.target.dataset.id);
+        if(!s) return;
+        s.visible = e.target.checked;
+        logHistorial("Visibilidad en tienda", `${s.nombre}: ${s.visible ? "Visible" : "Oculto"}`);
+        renderHistorial();
+        scheduleSync();
+        scheduleSyncServiciosPublicos();
+      });
+    });
+
+    $all(".svc-foto").forEach(inp => {
+      inp.addEventListener("change", (e) => {
+        const s = state.catalogoServicios.find(x => x.id === e.target.dataset.id);
+        if(!s) return;
+        s.foto = e.target.value.trim();
+        if(s.foto && !/^https?:\/\//i.test(s.foto)){
+          toast("Ojo: debe ser una URL pública (https://...) o la tienda no la va a poder cargar");
+        }
+        scheduleSync();
+        scheduleSyncServiciosPublicos();
+      });
+    });
+
+    $all("[data-del-servicio-catalogo]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = e.currentTarget.dataset.delServicioCatalogo;
+        const s = state.catalogoServicios.find(x => x.id === id);
+        if(!s) return;
+        if(!confirm(`¿Eliminar el servicio de catálogo "${s.nombre}"?`)) return;
+        state.catalogoServicios = state.catalogoServicios.filter(x => x.id !== id);
+        logHistorial("Servicio de catálogo eliminado", s.nombre);
+        renderCatalogoServicios();
+        renderHistorial();
+        scheduleSync();
+        scheduleSyncServiciosPublicos();
+      });
+    });
+  }
+
+  function addServicioCatalogo(){
+    const nombre = $("#newSvcNombre").value.trim();
+    const precio = Number($("#newSvcPrecio").value) || 0;
+    const visible = $("#newSvcVisible").checked;
+    const foto = $("#newSvcFoto").value.trim();
+
+    if(!nombre){
+      toast("Ingresa el nombre del servicio");
+      $("#newSvcNombre").focus();
+      return;
+    }
+    if(state.catalogoServicios.some(s => s.nombre.toLowerCase() === nombre.toLowerCase())){
+      toast("Ya existe un servicio con ese nombre en el catálogo");
+      return;
+    }
+
+    state.catalogoServicios.push({ id: uid("svc"), nombre, precio, visible, foto, custom:true });
+    const fotoSospechosa = foto && !/^https?:\/\//i.test(foto);
+    logHistorial("Servicio de catálogo agregado", `${nombre} — ${formatCOP(precio)}`);
+
+    $("#newSvcNombre").value = "";
+    $("#newSvcPrecio").value = "";
+    $("#newSvcVisible").checked = true;
+    $("#newSvcFoto").value = "";
+
+    renderCatalogoServicios();
+    renderHistorial();
+    scheduleSync();
+    scheduleSyncServiciosPublicos();
+    toast(fotoSospechosa
+      ? "Servicio agregado, pero la foto no parece una URL pública (https://...) — revísala"
+      : "Servicio agregado al catálogo");
+  }
+
+  /* ============================================================
      RENDER — TAREAS PENDIENTES
   ============================================================ */
   const ESTADOS_TAREA = ["Pendiente", "En tránsito", "Completada"];
   const TAREA_BADGE_CLASS = { "Pendiente":"pendiente", "En tránsito":"transito", "Completada":"completada" };
+
+  // Burbuja flotante que aparece al entrar a la app, con el resumen de tareas
+  // pendientes/completadas — pensada como empujoncito de motivación (TDHA).
+  function mostrarBurbujaTareas(){
+    const bubble = $("#tareasBubble");
+    if(!bubble) return;
+    if(!state.tareas.length){ bubble.style.display = "none"; return; }
+
+    const pendientes = state.tareas.filter(t => t.estado === "Pendiente").length;
+    const transito = state.tareas.filter(t => t.estado === "En tránsito").length;
+    const completadas = state.tareas.filter(t => t.estado === "Completada").length;
+    const titulo = $("#tareasBubbleTitulo");
+    const sub = $("#tareasBubbleSub");
+    const icono = bubble.querySelector(".tareas-bubble-icon");
+
+    if(pendientes === 0 && transito === 0){
+      icono.textContent = "🎉";
+      titulo.textContent = "¡Vas al día con tus tareas!";
+      sub.textContent = completadas > 0
+        ? `${completadas} completada${completadas===1?"":"s"} — ¡bien hecho!`
+        : "Toca para ver o agregar una tarea";
+    } else {
+      icono.textContent = "✅";
+      const partes = [];
+      if(pendientes > 0) partes.push(`${pendientes} pendiente${pendientes===1?"":"s"}`);
+      if(transito > 0) partes.push(`${transito} en tránsito`);
+      titulo.textContent = `Tienes ${partes.join(" y ")}`;
+      sub.textContent = completadas > 0
+        ? `Ya completaste ${completadas} — ¡sigue así! 💪`
+        : "Tú puedes con esto 💪";
+    }
+    bubble.style.display = "block";
+  }
 
   function renderKpiTareas(){
     const pendientes = state.tareas.filter(t => t.estado === "Pendiente").length;
@@ -3673,8 +3961,11 @@
 
     lista.innerHTML = ordenadas.map(t => `
       <div class="task-item ${t.estado === 'Completada' ? 'completada' : ''}">
-        <button class="task-status-badge ${TAREA_BADGE_CLASS[t.estado] || 'pendiente'}" data-cycle-tarea="${t.id}" title="Toca para cambiar el estado">${escapeHtml(t.estado)}</button>
         <span class="task-name">${escapeHtml(t.nombre)}</span>
+        <button class="task-status-badge ${TAREA_BADGE_CLASS[t.estado] || 'pendiente'}" data-cycle-tarea="${t.id}" title="Toca para cambiar el estado">${escapeHtml(t.estado)}</button>
+        <button class="icon-btn" data-retomar-tarea="${t.id}" title="Retomar para editar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 1 2.6 6.4M3 12v6h6"/></svg>
+        </button>
         <button class="task-del" data-del-tarea="${t.id}" title="Eliminar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6"/></svg>
         </button>
@@ -3690,6 +3981,22 @@
         t.estado = ESTADOS_TAREA[(idx + 1) % ESTADOS_TAREA.length];
         renderTareas();
         scheduleSync();
+      });
+    });
+
+    $all("[data-retomar-tarea]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = e.currentTarget.dataset.retomarTarea;
+        const t = state.tareas.find(x => x.id === id);
+        if(!t) return;
+        const nuevoNombre = prompt("Editar tarea:", t.nombre);
+        if(nuevoNombre === null) return;
+        const limpio = nuevoNombre.trim();
+        if(!limpio){ toast("La tarea no puede quedar vacía"); return; }
+        t.nombre = limpio;
+        renderTareas();
+        scheduleSync();
+        toast("Tarea actualizada");
       });
     });
 
@@ -4589,6 +4896,15 @@
     $("#antLiquidacionMes").value = mesActualISO();
     renderAll();
     setStatus('local');
+    mostrarBurbujaTareas();
+
+    $("#btnCerrarBurbujaTareas").addEventListener("click", () => {
+      $("#tareasBubble").style.display = "none";
+    });
+    $("#btnAbrirBurbujaTareas").addEventListener("click", () => {
+      $("#tareasBubble").style.display = "none";
+      goToTab("tareas");
+    });
 
     $("#btnAddAntena").addEventListener("click", addAntena);
     $("#btnAddAccesorio").addEventListener("click", addAccesorio);
@@ -4598,6 +4914,7 @@
     $("#btnAddLicencia").addEventListener("click", addLicencia);
     $("#btnAddDespliegue").addEventListener("click", addDespliegue);
     $("#btnAddServicio").addEventListener("click", addServicio);
+    $("#btnAddServicioCatalogo").addEventListener("click", addServicioCatalogo);
     $("#servTipo").addEventListener("change", (e) => {
       $("#servOtroWrap").style.display = e.target.value === "Otro" ? "block" : "none";
     });
