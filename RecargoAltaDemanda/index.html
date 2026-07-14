@@ -308,10 +308,11 @@ input::placeholder{color:var(--text-3);}
 
 /* ===== LISTS ===== */
 .list-wrap{
-  display:flex;flex-direction:column;gap:8px;
   max-height:500px;overflow-y:auto;
   padding-right:2px;
 }
+/* Done list items need column flex */
+#listDone { display:flex; flex-direction:column; gap:8px; }
 .list-wrap::-webkit-scrollbar{width:4px;}
 .list-wrap::-webkit-scrollbar-track{background:transparent;}
 .list-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
@@ -689,7 +690,7 @@ footer{
     <div class="tab map" id="tabMap" onclick="switchTab('map')">🗺 Mapa</div>
   </div>
 
-  <div id="listPending" class="list-wrap"></div>
+  <div id="listPending" class="list-wrap" style="display:block"></div>
   <div id="listDone" class="list-wrap" style="display:none"></div>
   <div id="listMap" style="display:none"></div>
 
@@ -1157,9 +1158,9 @@ function switchTab(tab){
   document.getElementById('tabPending').className = 'tab' + (tab==='pending' ? ' active pending' : '');
   document.getElementById('tabDone').className    = 'tab' + (tab==='done'    ? ' active done'    : '');
   document.getElementById('tabMap').className     = 'tab' + (tab==='map'     ? ' active map'     : '');
-  document.getElementById('listPending').style.display = tab==='pending' ? 'flex' : 'none';
-  document.getElementById('listDone').style.display    = tab==='done'    ? 'flex' : 'none';
-  document.getElementById('listMap').style.display     = tab==='map'     ? 'block': 'none';
+  document.getElementById('listPending').style.display = tab==='pending' ? 'block' : 'none';
+  document.getElementById('listDone').style.display    = tab==='done'    ? 'flex'  : 'none';
+  document.getElementById('listMap').style.display     = tab==='map'     ? 'block' : 'none';
   if (tab === 'map') renderMap();
 }
 
