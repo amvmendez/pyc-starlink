@@ -1254,17 +1254,22 @@ async function renderMap() {
       const pct   = total > 0 ? Math.round(done / total * 100) : 0;
       const centroid = pathGen.centroid(f);
 
-      const g = svg.append('g')
-        .style('cursor', 'pointer')
-        .on('click', () => mapClick(dept));
+      const g = svg.append('g').style('cursor', 'pointer');
+
+      // Support both click (desktop) and touch (mobile)
+      g.on('click touchend', function(event) {
+        if (event && event.cancelable) event.preventDefault();
+        mapClick(dept);
+      });
 
       g.append('path')
         .attr('d', pathGen(f))
         .attr('fill', fill)
         .attr('stroke', '#0a0f14')
         .attr('stroke-width', 0.6)
-        .on('mouseover', function() { d3.select(this).attr('opacity', 0.75); })
-        .on('mouseout',  function() { d3.select(this).attr('opacity', 1); });
+        .style('transition', 'opacity .15s')
+        .on('touchstart mouseover', function() { d3.select(this).attr('fill', d3.color(fill) ? d3.color(fill).brighter(0.4) : fill); })
+        .on('touchend mouseout',   function() { d3.select(this).attr('fill', fill); });
 
       // Percentage label
       if (done > 0 && !isNaN(centroid[0])) {
@@ -1304,12 +1309,11 @@ function mapClick(dept) {
     .sort((a,b) => a.muni.localeCompare(b.muni));
   const detail = document.getElementById('mapDetail');
   if (!detail) return;
-  if (!records.length) { detail.style.display='none'; return; }
   const { stroke } = getDeptColor(dept);
   const total = DEPTS[dept] ? DEPTS[dept].length : 0;
-  detail.style.display  = 'block';
-  detail.style.borderColor = stroke;
-  detail.innerHTML = `
+  detail.style.display = 'block';
+  detail.style.borderColor = records.length ? stroke : 'var(--border)';
+  detail.innerHTML = records.length ? `
     <div style="font-family:var(--mono);font-size:10px;color:var(--text-2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">
       📍 ${dept} &nbsp;<span style="color:${stroke}">${records.length}/${total} consultados</span>
     </div>
@@ -1320,8 +1324,11 @@ function mapClick(dept) {
           <span style="color:${r.mini>0?'#f59e0b':'#22c55e'}">Mini:${r.mini>0?' $'+r.mini.toLocaleString('es-CO'):' ✓'}</span>
           <span style="color:${r.v4>0?'#f59e0b':'#22c55e'}">V4:${r.v4>0?' $'+r.v4.toLocaleString('es-CO'):' ✓'}</span>
         </span>
-      </div>`).join('')}`;
-  detail.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      </div>`).join('')}` :
+    `<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);text-align:center;padding:8px 0;">
+      📍 ${dept} — Sin datos registrados aún
+    </div>`;
+  setTimeout(() => detail.scrollIntoView({ behavior:'smooth', block:'nearest' }), 80);
 }
 
 function renderAll(){
