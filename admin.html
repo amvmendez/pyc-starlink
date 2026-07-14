@@ -23,12 +23,6 @@
   h1,h2,h3{ font-family:'Chakra Petch',sans-serif; margin:0; }
   .mono{ font-family:'IBM Plex Mono',monospace; }
   .wrap{ max-width:760px; margin:0 auto; padding:0 16px 90px; }
-  input,select,textarea{
-    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
-    font-family:'IBM Plex Sans',sans-serif; font-size:14.5px; padding:10px 12px; border-radius:9px;
-  }
-  input:focus,select:focus,textarea:focus{ outline:none; border-color:var(--c-orange); }
-  label{ display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:14px 0 6px; }
   .btn{
     display:inline-flex; align-items:center; justify-content:center; gap:7px;
     padding:11px 16px; border-radius:10px; font-weight:600; font-size:14px;
@@ -36,8 +30,6 @@
   }
   .btn-grad{ background:var(--grad); color:#fff; }
   .btn-ghost{ background:var(--panel); border-color:var(--line); color:var(--text); }
-  .btn-danger{ background:transparent; border-color:rgba(255,107,107,.4); color:var(--err); }
-  .btn:disabled{ opacity:.5; cursor:not-allowed; }
   .btn-block{ width:100%; }
 
   header.topbar{ position:sticky; top:0; z-index:10; background:rgba(13,15,22,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); padding:14px 16px; display:flex; align-items:center; gap:10px; }
@@ -49,8 +41,6 @@
   .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-top:18px; }
   .card h2{ font-size:16px; margin-bottom:4px; }
   .card .hint{ color:var(--muted); font-size:13px; line-height:1.6; margin:8px 0 0; }
-  .card ol{ color:var(--muted); font-size:13.5px; line-height:1.75; padding-left:20px; margin:10px 0; }
-  .card ol a{ color:var(--c-orange); }
 
   .status{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:10px 12px; border-radius:9px; margin-top:12px; display:none; }
   .status.show{ display:block; }
@@ -58,27 +48,13 @@
   .status.err{ background:rgba(255,107,107,.1); border:1px solid rgba(255,107,107,.3); color:var(--err); }
   .status.pending{ background:var(--panel-2); border:1px solid var(--line); color:var(--muted); }
 
-  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  @media (max-width:480px){ .row2{ grid-template-columns:1fr; } }
-
   .product-list{ margin-top:8px; display:flex; flex-direction:column; gap:8px; }
   .prow{ display:flex; align-items:center; gap:10px; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:8px 10px; }
-  .prow input[type="checkbox"]{ width:18px; height:18px; flex:0 0 auto; accent-color:var(--c-orange); }
   .prow .thumb{ width:42px; height:42px; border-radius:7px; object-fit:cover; background:var(--panel); flex:0 0 auto; }
   .prow .meta{ flex:1; min-width:0; }
   .prow .meta .n{ font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .prow .meta .c{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted-2); }
-  .prow .actions{ display:flex; gap:6px; }
-  .icon-btn{ width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:var(--panel); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); }
-  .icon-btn:hover{ color:var(--text); border-color:var(--muted-2); }
-  .icon-btn svg{ width:15px; height:15px; }
 
-  .imgpreview{ margin-top:10px; display:flex; align-items:center; gap:10px; }
-  .imgpreview img{ width:64px; height:64px; border-radius:9px; object-fit:cover; border:1px solid var(--line); background:var(--panel-2); }
-  .imgpreview .txt{ font-size:12px; color:var(--muted); }
-
-  .hidden{ display:none !important; }
-  .logout{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted-2); background:none; border:none; cursor:pointer; text-decoration:underline; }
   .form-actions{ display:flex; gap:10px; margin-top:16px; }
 </style>
 </head>
@@ -88,574 +64,145 @@
   <img src="assets/logo-transparente.png" alt="">
   <div>
     <h1>Admin del catálogo</h1>
-    <div class="sub">amvmendez/pyc-starlink · <span id="versionTag"></span></div>
+    <div class="sub">amvmendez/pyc-starlink · solo lectura</div>
   </div>
   <div class="spacer"></div>
-  <button class="logout hidden" id="logoutBtn">cerrar sesión</button>
 </header>
 
 <div class="wrap">
 
-  <!-- ===== PANTALLA 1: TOKEN ===== -->
-  <div id="setupScreen" class="card">
-    <h2>Conectar con GitHub</h2>
-    <p class="hint">Este panel guarda los productos directo en tu repositorio. Para eso necesita un token personal de GitHub (funciona como una contraseña solo para este panel — no se comparte con nadie, se queda guardado únicamente en este celular/navegador).</p>
-    <ol>
-      <li>Abre <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a></li>
-      <li>En "Repository access" elige <strong>Only select repositories</strong> → selecciona <strong>pyc-starlink</strong></li>
-      <li>En "Permissions" → "Repository permissions" busca <strong>Contents</strong> y ponlo en <strong>Read and write</strong></li>
-      <li>Toca "Generate token" y copia el código que empieza por <span class="mono">github_pat_...</span></li>
-      <li>Pégalo abajo (solo lo harás una vez por dispositivo)</li>
-    </ol>
-    <label for="tokenInput">Token de GitHub</label>
-    <input id="tokenInput" type="password" placeholder="github_pat_..." autocomplete="off">
-    <div class="form-actions">
-      <button class="btn btn-grad btn-block" id="saveTokenBtn">Guardar y entrar</button>
+  <div class="card">
+    <h2>Productos <span class="hint" style="display:inline; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:none;">(desde tu inventario, solo lectura)</span></h2>
+    <p class="hint">Estos vienen en vivo desde tu app de Inventario — para agregar, editar precio, stock o foto, hazlo allá, no aquí.</p>
+    <div class="product-list" id="firebaseProductList">
+      <div class="status show pending">Cargando…</div>
     </div>
-    <div class="status" id="setupStatus"></div>
+    <div class="form-actions">
+      <a class="btn btn-ghost btn-block" href="inventario/">Abrir Inventario Accesorios →</a>
+    </div>
   </div>
 
-  <!-- ===== PANTALLA 2: PANEL ===== -->
-  <div id="panelScreen" class="hidden">
-
-    <div class="card">
-      <h2>Productos</h2>
-      <p class="hint">Los productos se gestionan directo en tu Centro de Operaciones — este panel ya no los muestra aquí.</p>
-      <div class="form-actions">
-        <a class="btn btn-grad btn-block" href="inventario/#accesorios">Editar Inventario de Productos →</a>
-      </div>
+  <div class="card">
+    <h2>Licencias <span class="hint" style="display:inline; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:none;">(desde tu inventario, solo lectura)</span></h2>
+    <p class="hint">Estas vienen en vivo desde tu app de Inventario — para agregar, editar precio o foto, hazlo allá, no aquí.</p>
+    <div class="product-list" id="firebaseLicenciasList">
+      <div class="status show pending">Cargando…</div>
     </div>
-
-    <div class="card">
-      <h2>Licencias</h2>
-      <p class="hint">Igual que Productos: se gestionan directo en tu Centro de Operaciones.</p>
-      <div class="form-actions">
-        <a class="btn btn-grad btn-block" href="inventario/#licencias">Editar Inventario de Licencias →</a>
-      </div>
+    <div class="form-actions">
+      <a class="btn btn-ghost btn-block" href="inventario/">Abrir Inventario Licencias →</a>
     </div>
+  </div>
 
-    <div class="card">
-      <h2>Servicios (<span id="prodCount">0</span>)</h2>
-      <p class="hint">Toca ✎ para editar, 🗑 para borrar uno. Marca varias casillas y usa "Borrar seleccionados" para borrar en lote. Los cambios tardan 1-2 minutos en verse en la tienda.</p>
-      <div class="product-list" id="productList"></div>
-      <div class="form-actions">
-        <button class="btn btn-danger btn-block hidden" id="bulkDeleteBtn">Borrar seleccionados (<span id="bulkCount">0</span>)</button>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-ghost btn-block" id="reloadBtn">↻ Recargar lista</button>
-      </div>
+  <div class="card">
+    <h2>Servicios <span class="hint" style="display:inline; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:none;">(desde tu inventario, solo lectura)</span></h2>
+    <p class="hint">Estos vienen en vivo desde tu app de Inventario — para agregar, editar precio o foto, hazlo allá, no aquí.</p>
+    <div class="product-list" id="firebaseServiciosList">
+      <div class="status show pending">Cargando…</div>
     </div>
-
-    <div class="card">
-      <h2 id="formTitle">Agregar servicio</h2>
-      <input type="hidden" id="editingId" value="">
-      <input type="hidden" id="fType" value="servicio">
-
-      <label for="fName">Nombre</label>
-      <input id="fName" type="text" placeholder="Ej: Instalación de antivirus">
-
-      <div class="row2">
-        <div>
-          <label for="fCategory">Categoría</label>
-          <input id="fCategory" list="catList" type="text" placeholder="Ej: Cargadores">
-          <datalist id="catList"></datalist>
-        </div>
-        <div>
-          <label for="fSku">Referencia (SKU)</label>
-          <input id="fSku" type="text" placeholder="Ej: CAR-UNIV-90W">
-        </div>
-      </div>
-
-      <label for="fPrice">Precio (COP)</label>
-      <input id="fPrice" type="text" inputmode="numeric" placeholder="Ej: 1.900.000">
-
-      <div class="row2">
-        <div>
-          <label for="fAvailability">Disponibilidad</label>
-          <select id="fAvailability">
-            <option value="">No aplica (es un servicio)</option>
-            <option value="stock">En stock</option>
-            <option value="pedido_importado">Bajo pedido (Importado)</option>
-            <option value="pedido_encargo">Bajo pedido (Encargo, 1-3 días)</option>
-            <option value="agotado">Agotado</option>
-          </select>
-        </div>
-        <div>
-          <label for="fVisible">Visibilidad</label>
-          <select id="fVisible">
-            <option value="true">Mostrar en la tienda</option>
-            <option value="false">Ocultar (guardado, no visible)</option>
-          </select>
-        </div>
-      </div>
-
-      <label for="fDesc">Descripción corta</label>
-      <textarea id="fDesc" rows="2" placeholder="Una línea que ayude a decidir"></textarea>
-
-      <label for="fDetalle">Descripción larga / técnica (opcional, se muestra en "Ver detalles")</label>
-      <textarea id="fDetalle" rows="4" placeholder="Especificaciones, condiciones, lo que necesite saber alguien antes de comprar"></textarea>
-
-      <label for="fImage">Fotos (puedes elegir varias)</label>
-      <input id="fImage" type="file" accept="image/*" multiple>
-      <div class="imgpreview" id="imgPreviewWrap" style="display:none; flex-wrap:wrap;">
-        <div id="imgPreviewList" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
-        <span class="txt" id="imgPreviewTxt"></span>
-      </div>
-
-      <div class="form-actions">
-        <button class="btn btn-grad btn-block" id="saveProductBtn">Guardar servicio</button>
-        <button class="btn btn-ghost hidden" id="cancelEditBtn">Cancelar</button>
-      </div>
-      <div class="status" id="formStatus"></div>
+    <div class="form-actions">
+      <a class="btn btn-ghost btn-block" href="inventario/">Abrir Inventario Servicios →</a>
     </div>
   </div>
 
 </div>
 
 <script>
-const APP_VERSION = "1.4.0";
-const APP_BUILD_DATE = "2026-07-12";
-document.getElementById("versionTag").textContent = `v${APP_VERSION} · ${APP_BUILD_DATE}`;
-console.info(`Admin del catálogo — v${APP_VERSION} (${APP_BUILD_DATE})`);
+const FIREBASE_BASE = "https://inventarioyfinanzas-default-rtdb.firebaseio.com";
 
-const OWNER = "amvmendez";
-const REPO = "pyc-starlink";
-const BRANCH = "main";
-const PRODUCTS_PATH = "data/products.json";
-const IMAGES_DIR = "productos";
-const TOKEN_KEY = "pyc_admin_gh_token";
-
-const $ = (id) => document.getElementById(id);
-
-// ---------------------------------------------------------------- helpers
-function utf8ToB64(str) {
-  return btoa(unescape(encodeURIComponent(str)));
-}
-function slugify(str) {
-  return str.toString().toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 40);
-}
-function setStatus(el, type, msg) {
-  el.className = "status show " + type;
-  el.textContent = msg;
-}
-function clearStatus(el) {
-  el.className = "status";
-  el.textContent = "";
-}
-
-async function ghFetch(path, options = {}) {
-  const token = localStorage.getItem(TOKEN_KEY);
-  return fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`, {
-    cache: "no-store",
-    ...options,
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "Accept": "application/vnd.github+json",
-      "If-None-Match": "",
-      ...(options.headers || {})
-    }
-  });
-}
-
-async function ghGetFile(path) {
-  const res = await ghFetch(`${path}?ref=${BRANCH}&_=${Date.now()}`);
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`GitHub respondió ${res.status} al leer ${path}`);
-  const data = await res.json();
-  return { sha: data.sha, content: decodeURIComponent(escape(atob(data.content.replace(/\n/g, "")))) };
-}
-
-async function ghPutFile(path, base64Content, message, sha) {
-  const body = { message, content: base64Content, branch: BRANCH };
-  if (sha) body.sha = sha;
-  const res = await ghFetch(path, { method: "PUT", body: JSON.stringify(body) });
-  if (!res.ok) {
-    const errBody = await res.json().catch(() => ({}));
-    throw new Error(errBody.message || `GitHub respondió ${res.status} al guardar ${path}`);
-  }
-  return res.json();
-}
-
-// Lee la versión más reciente de products.json, le aplica una transformación,
-// y la guarda. Si por caché o un cambio simultáneo el sha ya no coincide,
-// reintenta una vez automáticamente antes de mostrar error.
-async function updateProductsFile(mutatorFn, message) {
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    const fresh = await ghGetFile(PRODUCTS_PATH);
-    const freshList = JSON.parse(fresh.content);
-    const updated = mutatorFn(freshList);
-    try {
-      return await ghPutFile(PRODUCTS_PATH, utf8ToB64(JSON.stringify(updated, null, 2)), message, fresh.sha);
-    } catch (err) {
-      const isShaConflict = /does not match|409/i.test(err.message);
-      if (isShaConflict && attempt === 1) {
-        await new Promise(r => setTimeout(r, 600));
-        continue;
-      }
-      throw err;
-    }
-  }
-}
-
-function resizeImageToJpegBase64(file, maxDim = 1600, quality = 0.85) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = (e) => { img.src = e.target.result; };
-    reader.onerror = reject;
-    img.onload = () => {
-      let { width, height } = img;
-      if (width > maxDim || height > maxDim) {
-        if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
-        else { width = Math.round(width * (maxDim / height)); height = maxDim; }
-      }
-      const canvas = document.createElement("canvas");
-      canvas.width = width; canvas.height = height;
-      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL("image/jpeg", quality);
-      resolve(dataUrl.split(",")[1]);
-    };
-    img.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-// ---------------------------------------------------------------- auth screen
-function showPanel() {
-  $("setupScreen").classList.add("hidden");
-  $("panelScreen").classList.remove("hidden");
-  $("logoutBtn").classList.remove("hidden");
-  loadProducts();
-}
-function showSetup() {
-  $("panelScreen").classList.add("hidden");
-  $("setupScreen").classList.remove("hidden");
-  $("logoutBtn").classList.add("hidden");
-}
-
-$("saveTokenBtn").addEventListener("click", async () => {
-  const token = $("tokenInput").value.trim();
-  const statusEl = $("setupStatus");
-  if (!token) { setStatus(statusEl, "err", "Pega el token primero."); return; }
-  setStatus(statusEl, "pending", "Verificando acceso al repositorio…");
-  localStorage.setItem(TOKEN_KEY, token);
+// ---------------------------------------------------------------- Productos (accesorios)
+async function loadFirebaseProductsPreview() {
+  const el = document.getElementById("firebaseProductList");
   try {
-    const file = await ghGetFile(PRODUCTS_PATH);
-    if (!file) throw new Error("No se encontró data/products.json en el repo.");
-    setStatus(statusEl, "ok", "Conectado correctamente.");
-    setTimeout(showPanel, 400);
+    const res = await fetch(`${FIREBASE_BASE}/inventario_starlink.json`, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    const raw = data && data.accesorios;
+    if (!raw) { el.innerHTML = `<div class="status show pending">No se encontraron accesorios en el inventario.</div>`; return; }
+    const items = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw);
+    if (!items.length) { el.innerHTML = `<div class="status show pending">Inventario vacío.</div>`; return; }
+    el.innerHTML = items.map(it => {
+      const name = it.nombre || it.name || "Sin nombre";
+      const price = Number(it.precio || 0);
+      const stock = Number(it.stock || 0);
+      const oculto = it.visible === false;
+      let disp = stock > 0 ? `${stock} en stock` : (it.disponibilidad === "encargo" ? "Por encargo, 1-3 días" : "Importado — bajo pedido");
+      const foto = it.foto || it.imagen || it.image || "";
+      return `
+      <div class="prow" style="${oculto ? "opacity:.5;" : ""}">
+        ${foto ? `<img class="thumb" src="${foto}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb'}))">` : `<div class="thumb"></div>`}
+        <div class="meta">
+          <div class="n">${name}${oculto ? ' · <span style="color:var(--muted-2)">Oculto en tienda</span>' : ""}</div>
+          <div class="c">$${price.toLocaleString("es-CO")} · ${disp}</div>
+        </div>
+      </div>`;
+    }).join("");
   } catch (err) {
-    localStorage.removeItem(TOKEN_KEY);
-    setStatus(statusEl, "err", "No se pudo conectar: " + err.message + " — revisa que el token tenga permiso 'Contents: Read and write' sobre pyc-starlink.");
+    el.innerHTML = `<div class="status show err">No se pudo cargar el inventario: ${err.message}</div>`;
   }
-});
-
-$("logoutBtn").addEventListener("click", () => {
-  localStorage.removeItem(TOKEN_KEY);
-  showSetup();
-});
-
-// ---------------------------------------------------------------- product list
-let currentProducts = [];
-let currentSha = null;
-let busy = false;
-
-function lockUI(state) {
-  busy = state;
-  document.querySelectorAll(".icon-btn, #saveProductBtn, #reloadBtn, #bulkDeleteBtn").forEach(el => {
-    el.disabled = state;
-    el.style.opacity = state ? .45 : "";
-    el.style.pointerEvents = state ? "none" : "";
-  });
 }
 
-async function loadProducts() {
-  const listEl = $("productList");
-  listEl.innerHTML = `<div class="status show pending">Cargando…</div>`;
+// ---------------------------------------------------------------- Licencias
+async function loadFirebaseLicenciasPreview() {
+  const el = document.getElementById("firebaseLicenciasList");
   try {
-    const file = await ghGetFile(PRODUCTS_PATH);
-    currentSha = file.sha;
-    currentProducts = JSON.parse(file.content);
-    renderList();
-    renderCategoryOptions();
+    const res = await fetch(`${FIREBASE_BASE}/inventario_licencias/licencias.json`, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const raw = await res.json();
+    if (!raw) { el.innerHTML = `<div class="status show pending">Todavía no hay licencias publicadas.</div>`; return; }
+    const items = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw);
+    if (!items.length) { el.innerHTML = `<div class="status show pending">Sin licencias.</div>`; return; }
+    el.innerHTML = items.map(it => {
+      const name = it.nombre || "Sin nombre";
+      const price = Number(it.precio || 0);
+      const oculto = it.visible === false;
+      const foto = it.foto || "";
+      return `
+      <div class="prow" style="${oculto ? "opacity:.5;" : ""}">
+        ${foto ? `<img class="thumb" src="${foto}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb'}))">` : `<div class="thumb"></div>`}
+        <div class="meta">
+          <div class="n">${name}${oculto ? ' · <span style="color:var(--muted-2)">Oculto en tienda</span>' : ""}</div>
+          <div class="c">$${price.toLocaleString("es-CO")} · Disponible bajo pedido</div>
+        </div>
+      </div>`;
+    }).join("");
   } catch (err) {
-    listEl.innerHTML = `<div class="status show err">No se pudo cargar la lista: ${err.message}</div>`;
+    el.innerHTML = `<div class="status show err">No se pudo cargar las licencias: ${err.message}</div>`;
   }
 }
 
-let selectedIds = new Set();
-
-function renderList() {
-  $("prodCount").textContent = currentProducts.length;
-  const listEl = $("productList");
-  if (!currentProducts.length) {
-    listEl.innerHTML = `<div class="status show pending">Todavía no hay productos.</div>`;
-    updateBulkBar();
-    return;
-  }
-  listEl.innerHTML = currentProducts.map((p, i) => `
-    <div class="prow">
-      <input type="checkbox" data-select="${p.id}" ${selectedIds.has(p.id) ? "checked" : ""} aria-label="Seleccionar">
-      ${p.image
-        ? `<img class="thumb" src="${p.image}" alt="" onerror="this.style.visibility='hidden'">`
-        : `<div class="thumb"></div>`}
-      <div class="meta">
-        <div class="n">${p.name}</div>
-        <div class="c">${p.category} · ${p.price ? "$" + Number(p.price).toLocaleString("es-CO") : "Consultar"}${p.availability ? " · " + ({stock:"En stock",pedido_importado:"Bajo pedido (Importado)",pedido_encargo:"Bajo pedido (Encargo)",agotado:"Agotado"}[p.availability] || "") : ""}${p.visible === false ? " · <span style=\"color:var(--muted-2)\">Oculto</span>" : ""}</div>
-      </div>
-      <div class="actions">
-        <button class="icon-btn" data-edit="${i}" aria-label="Editar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-        </button>
-        <button class="icon-btn" data-del="${i}" aria-label="Borrar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
-        </button>
-      </div>
-    </div>
-  `).join("");
-
-  listEl.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => startEdit(+b.dataset.edit)));
-  listEl.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => deleteProduct(+b.dataset.del)));
-  listEl.querySelectorAll("[data-select]").forEach(cb => cb.addEventListener("change", () => {
-    if (cb.checked) selectedIds.add(cb.dataset.select);
-    else selectedIds.delete(cb.dataset.select);
-    updateBulkBar();
-  }));
-  updateBulkBar();
-}
-
-function updateBulkBar() {
-  const btn = $("bulkDeleteBtn");
-  $("bulkCount").textContent = selectedIds.size;
-  btn.classList.toggle("hidden", selectedIds.size === 0);
-}
-
-$("bulkDeleteBtn").addEventListener("click", async () => {
-  if (busy || !selectedIds.size) return;
-  const names = currentProducts.filter(p => selectedIds.has(p.id)).map(p => p.name);
-  if (!confirm(`¿Borrar ${names.length} producto(s)?\n\n${names.join("\n")}`)) return;
-  const statusEl = $("formStatus");
-  lockUI(true);
-  setStatus(statusEl, "pending", `Borrando ${names.length} producto(s)…`);
+// ---------------------------------------------------------------- Servicios (catálogo de precio fijo)
+async function loadFirebaseServiciosPreview() {
+  const el = document.getElementById("firebaseServiciosList");
   try {
-    await updateProductsFile(
-      list => list.filter(p => !selectedIds.has(p.id)),
-      `Eliminar ${names.length} producto(s): ${names.join(", ")}`
-    );
-    selectedIds.clear();
-    setStatus(statusEl, "ok", "Productos eliminados. Se verán en la tienda en 1-2 min.");
-    await loadProducts();
+    const res = await fetch(`${FIREBASE_BASE}/inventario_servicios/servicios.json`, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const raw = await res.json();
+    if (!raw) { el.innerHTML = `<div class="status show pending">Todavía no hay servicios publicados.</div>`; return; }
+    const items = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw);
+    if (!items.length) { el.innerHTML = `<div class="status show pending">Sin servicios.</div>`; return; }
+    el.innerHTML = items.map(it => {
+      const name = it.nombre || "Sin nombre";
+      const price = Number(it.precio || 0);
+      const oculto = it.visible === false;
+      const foto = it.foto || "";
+      const desc = it.descripcion || "";
+      return `
+      <div class="prow" style="${oculto ? "opacity:.5;" : ""}">
+        ${foto ? `<img class="thumb" src="${foto}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb'}))">` : `<div class="thumb"></div>`}
+        <div class="meta">
+          <div class="n">${name}${oculto ? ' · <span style="color:var(--muted-2)">Oculto en tienda</span>' : ""}</div>
+          <div class="c">${price > 0 ? "$" + price.toLocaleString("es-CO") : "Sin precio fijo"}${desc ? " · " + desc : ""}</div>
+        </div>
+      </div>`;
+    }).join("");
   } catch (err) {
-    setStatus(statusEl, "err", "No se pudo borrar: " + err.message + " — toca 'Recargar lista' e inténtalo de nuevo.");
-  } finally {
-    lockUI(false);
-  }
-});
-
-function renderCategoryOptions() {
-  const cats = [...new Set(currentProducts.map(p => p.category))];
-  $("catList").innerHTML = cats.map(c => `<option value="${c}">`).join("");
-}
-
-$("reloadBtn").addEventListener("click", loadProducts);
-
-// ---------------------------------------------------------------- form
-let pendingImages = []; // [{base64, ext}]
-let existingImages = []; // rutas ya guardadas (al editar), se conservan salvo que se quiten
-
-function parsePrice(str) {
-  return Number((str || "").toString().replace(/[^\d]/g, "")) || 0;
-}
-function formatPriceInput(str) {
-  const digits = (str || "").toString().replace(/[^\d]/g, "");
-  return digits ? Number(digits).toLocaleString("es-CO") : "";
-}
-$("fPrice").addEventListener("input", (e) => {
-  const cursorWasAtEnd = e.target.selectionStart === e.target.value.length;
-  e.target.value = formatPriceInput(e.target.value);
-  if (cursorWasAtEnd) e.target.setSelectionRange(e.target.value.length, e.target.value.length);
-});
-
-function renderImagePreviews() {
-  const wrap = $("imgPreviewWrap");
-  const list = $("imgPreviewList");
-  const total = existingImages.length + pendingImages.length;
-  if (!total) { wrap.style.display = "none"; list.innerHTML = ""; return; }
-  wrap.style.display = "flex";
-
-  const existingHTML = existingImages.map((src, i) => `
-    <div style="position:relative;">
-      <img src="${src}" style="width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--line);">
-      <button type="button" data-rm-existing="${i}" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--err);color:#fff;border:none;font-size:11px;cursor:pointer;">×</button>
-    </div>`).join("");
-  const pendingHTML = pendingImages.map((img, i) => `
-    <div style="position:relative;">
-      <img src="data:image/jpeg;base64,${img.base64}" style="width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--c-orange);">
-      <button type="button" data-rm-pending="${i}" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--err);color:#fff;border:none;font-size:11px;cursor:pointer;">×</button>
-    </div>`).join("");
-
-  list.innerHTML = existingHTML + pendingHTML;
-  $("imgPreviewTxt").textContent = `${total} foto${total === 1 ? "" : "s"} · la primera es la principal`;
-
-  list.querySelectorAll("[data-rm-existing]").forEach(b => b.addEventListener("click", () => {
-    existingImages.splice(+b.dataset.rmExisting, 1);
-    renderImagePreviews();
-  }));
-  list.querySelectorAll("[data-rm-pending]").forEach(b => b.addEventListener("click", () => {
-    pendingImages.splice(+b.dataset.rmPending, 1);
-    renderImagePreviews();
-  }));
-}
-
-$("fImage").addEventListener("change", async (e) => {
-  const files = Array.from(e.target.files || []);
-  if (!files.length) return;
-  $("imgPreviewWrap").style.display = "flex";
-  $("imgPreviewTxt").textContent = "Optimizando imágenes…";
-  try {
-    for (const file of files) {
-      const base64 = await resizeImageToJpegBase64(file);
-      pendingImages.push({ base64, ext: "jpg" });
-    }
-    renderImagePreviews();
-  } catch (err) {
-    $("imgPreviewTxt").textContent = "No se pudo procesar alguna imagen.";
-  }
-  e.target.value = "";
-});
-
-function resetForm() {
-  $("editingId").value = "";
-  $("fName").value = "";
-  $("fCategory").value = "";
-  $("fSku").value = "";
-  $("fPrice").value = "";
-  $("fAvailability").value = "stock";
-  $("fVisible").value = "true";
-  $("fDesc").value = "";
-  $("fDetalle").value = "";
-  $("fImage").value = "";
-  pendingImages = [];
-  existingImages = [];
-  renderImagePreviews();
-  $("formTitle").textContent = "Agregar servicio";
-  $("cancelEditBtn").classList.add("hidden");
-  clearStatus($("formStatus"));
-}
-
-function startEdit(index) {
-  const p = currentProducts[index];
-  $("editingId").value = index;
-  $("fName").value = p.name || "";
-  $("fCategory").value = p.category || "";
-  $("fSku").value = p.sku || "";
-  $("fPrice").value = formatPriceInput(p.price);
-  $("fAvailability").value = p.availability || "";
-  $("fVisible").value = p.visible === false ? "false" : "true";
-  $("fDesc").value = p.desc || "";
-  $("fDetalle").value = p.detalle || "";
-  $("fImage").value = "";
-  pendingImages = [];
-  existingImages = Array.isArray(p.images) && p.images.length ? [...p.images] : (p.image ? [p.image] : []);
-  renderImagePreviews();
-  $("formTitle").textContent = "Editar servicio";
-  $("cancelEditBtn").classList.remove("hidden");
-  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-}
-
-$("cancelEditBtn").addEventListener("click", resetForm);
-
-async function deleteProduct(index) {
-  if (busy) return;
-  const target = currentProducts[index];
-  if (!confirm(`¿Borrar "${target.name}" del catálogo?`)) return;
-  const statusEl = $("formStatus");
-  lockUI(true);
-  setStatus(statusEl, "pending", "Borrando…");
-  try {
-    await updateProductsFile(
-      list => list.filter(p => p.id !== target.id),
-      `Eliminar producto: ${target.name}`
-    );
-    setStatus(statusEl, "ok", "Producto eliminado. Se verá en la tienda en 1-2 min.");
-    await loadProducts();
-  } catch (err) {
-    setStatus(statusEl, "err", "No se pudo borrar: " + err.message + " — toca 'Recargar lista' e inténtalo de nuevo.");
-  } finally {
-    lockUI(false);
+    el.innerHTML = `<div class="status show err">No se pudo cargar los servicios: ${err.message}</div>`;
   }
 }
 
-$("saveProductBtn").addEventListener("click", async () => {
-  if (busy) return;
-  const statusEl = $("formStatus");
-  const name = $("fName").value.trim();
-  const category = $("fCategory").value.trim();
-  if (!name || !category) {
-    setStatus(statusEl, "err", "Nombre y categoría son obligatorios.");
-    return;
-  }
-  const editingIndex = $("editingId").value !== "" ? +$("editingId").value : null;
-  const existing = editingIndex !== null ? currentProducts[editingIndex] : null;
-
-  const product = {
-    id: existing ? existing.id : (slugify(name) + "-" + Date.now().toString(36)),
-    name,
-    category,
-    price: parsePrice($("fPrice").value),
-    sku: $("fSku").value.trim() || slugify(name).toUpperCase(),
-    desc: $("fDesc").value.trim(),
-    detalle: $("fDetalle").value.trim(),
-    image: "",
-    images: [],
-    availability: $("fAvailability").value || null,
-    visible: $("fVisible").value !== "false",
-    type: $("fType").value
-  };
-
-  lockUI(true);
-  try {
-    const uploadedPaths = [];
-    if (pendingImages.length) {
-      setStatus(statusEl, "pending", `Subiendo ${pendingImages.length} foto(s)…`);
-      for (const img of pendingImages) {
-        const filename = `${IMAGES_DIR}/${slugify(name)}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}.${img.ext}`;
-        await ghPutFile(filename, img.base64, `Foto de producto: ${name}`);
-        uploadedPaths.push(filename);
-      }
-    }
-    product.images = [...existingImages, ...uploadedPaths];
-    product.image = product.images[0] || "";
-
-    setStatus(statusEl, "pending", "Guardando en el catálogo…");
-    await updateProductsFile(freshList => {
-      const idx = existing ? freshList.findIndex(p => p.id === existing.id) : -1;
-      if (idx !== -1) {
-        const updated = [...freshList];
-        updated[idx] = product;
-        return updated;
-      }
-      return [...freshList, product];
-    }, existing ? `Editar servicio: ${name}` : `Agregar servicio: ${name}`);
-
-    setStatus(statusEl, "ok", "Guardado. Se verá en la tienda en 1-2 min.");
-    resetForm();
-    await loadProducts();
-  } catch (err) {
-    setStatus(statusEl, "err", "No se pudo guardar: " + err.message + " — toca 'Recargar lista' e inténtalo de nuevo.");
-  } finally {
-    lockUI(false);
-  }
-});
-
-// ---------------------------------------------------------------- boot
-if (localStorage.getItem(TOKEN_KEY)) {
-  showPanel();
-} else {
-  showSetup();
-}
+loadFirebaseProductsPreview();
+loadFirebaseLicenciasPreview();
+loadFirebaseServiciosPreview();
 </script>
 </body>
 </html>
