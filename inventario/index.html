@@ -1342,6 +1342,10 @@
           <label><input type="checkbox" id="newSvcVisible" checked style="width:16px; height:16px; vertical-align:middle; margin-right:6px;"> Visible en la tienda</label>
         </div>
         <div class="field" style="grid-column:1/-1;">
+          <label>Descripción corta (se muestra en la tienda)</label>
+          <textarea id="newSvcDescripcion" rows="2" placeholder="Ej: Formateo completo de tu equipo por conexión remota, con respaldo previo."></textarea>
+        </div>
+        <div class="field" style="grid-column:1/-1;">
           <label>Foto (URL pública de la imagen)</label>
           <input type="text" id="newSvcFoto" placeholder="https://.../servicio.jpg" autocapitalize="off" autocorrect="off">
           <small class="hint">⚠️ No sube archivos — solo guarda un link. Debe ser una URL pública (https://...).</small>
@@ -1355,7 +1359,7 @@
       <div class="divider"></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Servicio</th><th>Precio</th><th>Tienda</th><th></th></tr></thead>
+          <thead><tr><th>Servicio</th><th>Descripción</th><th>Precio</th><th>Tienda</th><th></th></tr></thead>
           <tbody id="catalogoServiciosBody"></tbody>
         </table>
       </div>
@@ -1984,8 +1988,8 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-9";
-  const APP_VERSION_NOTA = "Servicios del desplegable agregados al catálogo publicable (ocultos hasta poner precio)";
+  const APP_VERSION = "2026.07.12-10";
+  const APP_VERSION_NOTA = "Precios finales de servicios Starlink + descripciones recuperadas de products.json";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
@@ -2081,24 +2085,23 @@
   // registro de "servicios prestados" con valor variable por país/cliente).
   // Estos se pueden editar y publicar en la tienda, igual que licencias.
   const CATALOGO_SERVICIOS = [
-    { id:"formateo_win",       nombre:"Formateo Remoto de Equipo Windows",              precio:150000, visible:true, foto:"", custom:false },
-    { id:"formateo_mac",       nombre:"Formateo Remoto de Equipo Mac",                  precio:200000, visible:true, foto:"", custom:false },
-    { id:"optimizacion_win",   nombre:"Optimización de Software de Equipo Windows",     precio:120000, visible:true, foto:"", custom:false },
-    { id:"instalacion_win",    nombre:"Instalación de Programa Activado en Windows",    precio:90000,  visible:true, foto:"", custom:false },
-    { id:"instalacion_mac",    nombre:"Instalación de Programa Activado en Mac",        precio:120000, visible:true, foto:"", custom:false },
-    { id:"backup_pc",          nombre:"Backup de Información de PC (hasta 3 TB)",       precio:300000, visible:true, foto:"", custom:false },
-    // --- Servicios del desplegable de "Registrar servicio prestado" ---
-    // Su precio real varía caso a caso (por eso el desplegable de arriba no
-    // tiene precio fijo), así que quedan OCULTOS por defecto (visible:false)
-    // con precio en 0 — edita el precio con un valor representativo y marca
-    // "Visible" cuando quieras que aparezcan en la tienda con ese precio fijo.
-    { id:"svc_tramite_garantia",   nombre:"Trámite de garantía",                                precio:0, visible:false, foto:"", custom:false },
-    { id:"svc_recuperacion_cta",   nombre:"Recuperación de Cuenta Starlink",                    precio:0, visible:false, foto:"", custom:false },
-    { id:"svc_reubicacion",        nombre:"Reubicación de Servicio Starlink",                   precio:0, visible:false, foto:"", custom:false },
-    { id:"svc_traspaso_cta",       nombre:"Traspaso de Cuenta",                                 precio:0, visible:false, foto:"", custom:false },
-    { id:"svc_cambio_datos",       nombre:"Cambio de Datos de Contacto de la cuenta",           precio:0, visible:false, foto:"", custom:false },
-    { id:"svc_activacion_recargo", nombre:"Activación de Antena Starlink en Zona con Recargo",   precio:0, visible:false, foto:"", custom:false },
-    { id:"svc_pago_saldo",         nombre:"Pago de Saldo Pendiente / Mensualidad",               precio:0, visible:false, foto:"", custom:false },
+    { id:"formateo_win",       nombre:"Formateo Remoto de Equipo Windows",              precio:150000, visible:true, foto:"", descripcion:"Formateo completo de tu equipo Windows por conexión remota, con respaldo previo de tu información.", custom:false },
+    { id:"formateo_mac",       nombre:"Formateo Remoto de Equipo Mac",                  precio:200000, visible:true, foto:"", descripcion:"Formateo completo de tu equipo Mac por conexión remota, con respaldo previo de tu información.", custom:false },
+    { id:"optimizacion_win",   nombre:"Optimización de Software de Equipo Windows",     precio:120000, visible:true, foto:"", descripcion:"Limpieza de archivos, arranque e inicio para que tu equipo Windows vuelva a rendir.", custom:false },
+    { id:"instalacion_win",    nombre:"Instalación de Programa Activado en Windows",    precio:90000,  visible:true, foto:"", descripcion:"Instalamos y activamos el programa que necesites en tu equipo Windows, sin que tengas que salir de casa.", custom:false },
+    { id:"instalacion_mac",    nombre:"Instalación de Programa Activado en Mac",        precio:120000, visible:true, foto:"", descripcion:"Instalamos y activamos el programa que necesites en tu equipo Mac, sin que tengas que salir de casa.", custom:false },
+    { id:"backup_pc",          nombre:"Backup de Información de PC (hasta 3 TB)",       precio:300000, visible:true, foto:"", descripcion:"Respaldo completo de tu información, hasta 3 TB.", custom:false },
+    // --- Servicios Starlink (precios ya confirmados por el cliente) ---
+    { id:"svc_tramite_garantia",   nombre:"Trámite de garantía Starlink",                       precio:500000, visible:true, foto:"", descripcion:"Gestión de garantía ante Starlink por antena o router defectuoso.", custom:false },
+    { id:"svc_recuperacion_cta",   nombre:"Recuperación de Cuenta Starlink",                    precio:150000, visible:true, foto:"", descripcion:"Recuperamos el acceso a tu cuenta cuando perdiste el usuario o la contraseña.", custom:false },
+    { id:"svc_reubicacion",        nombre:"Reubicación de Servicio Starlink",                   precio:120000, visible:true, foto:"", descripcion:"Cambio de dirección de servicio o de zona de cobertura.", custom:false },
+    // --- Servicios Starlink SIN precio fijo confirmado todavía ---
+    // Quedan OCULTOS (visible:false) con precio en 0 hasta que definas un
+    // valor — edítalo y marca "Visible" cuando quieras publicarlos.
+    { id:"svc_traspaso_cta",       nombre:"Traspaso de Cuenta",                                 precio:0, visible:false, foto:"", descripcion:"", custom:false },
+    { id:"svc_cambio_datos",       nombre:"Cambio de Datos de Contacto de la cuenta",           precio:0, visible:false, foto:"", descripcion:"", custom:false },
+    { id:"svc_activacion_recargo", nombre:"Activación de Antena Starlink en Zona con Recargo",   precio:0, visible:false, foto:"", descripcion:"", custom:false },
+    { id:"svc_pago_saldo",         nombre:"Pago de Saldo Pendiente / Mensualidad",               precio:0, visible:false, foto:"", descripcion:"", custom:false },
   ];
 
   /* ============================================================
@@ -2305,7 +2308,8 @@
       nombre: s.nombre,
       precio: Number(s.precio) || 0,
       visible: s.visible !== false,
-      foto: s.foto || ""
+      foto: s.foto || "",
+      descripcion: s.descripcion || ""
     }));
     fetch(url, {
       method: "PUT",
@@ -3780,6 +3784,9 @@
           <input type="text" class="svc-nombre" data-id="${s.id}" value="${escapeHtml(s.nombre)}" style="min-width:180px;">
         </td>
         <td>
+          <textarea class="svc-descripcion" data-id="${s.id}" rows="2" style="min-width:160px; font-size:11px;">${escapeHtml(s.descripcion||"")}</textarea>
+        </td>
+        <td>
           <input type="number" min="0" step="1000" class="price-input svc-precio" data-id="${s.id}" value="${Number(s.precio)||0}">
         </td>
         <td>
@@ -3816,6 +3823,16 @@
         s.nombre = nuevoNombre;
         logHistorial("Nombre de servicio de catálogo corregido", `"${anterior}" → "${nuevoNombre}"`);
         renderHistorial();
+        scheduleSync();
+        scheduleSyncServiciosPublicos();
+      });
+    });
+
+    $all(".svc-descripcion").forEach(inp => {
+      inp.addEventListener("change", (e) => {
+        const s = state.catalogoServicios.find(x => x.id === e.target.dataset.id);
+        if(!s) return;
+        s.descripcion = e.target.value.trim();
         scheduleSync();
         scheduleSyncServiciosPublicos();
       });
@@ -3877,6 +3894,7 @@
     const precio = Number($("#newSvcPrecio").value) || 0;
     const visible = $("#newSvcVisible").checked;
     const foto = $("#newSvcFoto").value.trim();
+    const descripcion = $("#newSvcDescripcion").value.trim();
 
     if(!nombre){
       toast("Ingresa el nombre del servicio");
@@ -3888,7 +3906,7 @@
       return;
     }
 
-    state.catalogoServicios.push({ id: uid("svc"), nombre, precio, visible, foto, custom:true });
+    state.catalogoServicios.push({ id: uid("svc"), nombre, precio, visible, foto, descripcion, custom:true });
     const fotoSospechosa = foto && !/^https?:\/\//i.test(foto);
     logHistorial("Servicio de catálogo agregado", `${nombre} — ${formatCOP(precio)}`);
 
@@ -3896,6 +3914,7 @@
     $("#newSvcPrecio").value = "";
     $("#newSvcVisible").checked = true;
     $("#newSvcFoto").value = "";
+    $("#newSvcDescripcion").value = "";
 
     renderCatalogoServicios();
     renderHistorial();
