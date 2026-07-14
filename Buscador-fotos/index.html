@@ -142,6 +142,7 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
       <input id="urlInput" type="text" placeholder="Pega aquí el link de la imagen">
       <button id="pasteBtn">📋</button>
     </div>
+    <button class="btn btn-ghost" id="autoHostBtn" style="margin-top:0;margin-bottom:14px;">☁️ Copiar esta foto a mi repositorio</button>
 
     <div class="actions">
       <button class="btn btn-accent" id="saveBtn">✅ Guardar y siguiente</button>
@@ -165,7 +166,7 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
 </main>
 
 <script>
-const APP_VERSION = 'v2026.07.13-2';
+const APP_VERSION = 'v2026.07.13-3';
 document.addEventListener('DOMContentLoaded', ()=>{ $('versionTag').textContent = APP_VERSION; });
 
 const $=id=>document.getElementById(id);
@@ -522,6 +523,25 @@ function updatePreview(){
   $('newImg').src=url;
   $('newBox').classList.toggle('empty', !url);
 }
+
+$('autoHostBtn').addEventListener('click', async ()=>{
+  const url=$('urlInput').value.trim();
+  if(!url){ setStat('status','Primero pega un link de foto arriba.','err'); return; }
+  setStat('status','Descargando la foto desde el link...','');
+  try{
+    const imgRes = await fetch(url, {mode:'cors'});
+    if(!imgRes.ok) throw new Error(`El sitio respondió ${imgRes.status}`);
+    const blob = await imgRes.blob();
+    if(!blob.type.startsWith('image/')) throw new Error('Lo que devolvió no parece una imagen.');
+    setStat('status','Subiendo a tu repositorio...','');
+    const finalUrl = await uploadImageToGithub(blob);
+    $('urlInput').value = finalUrl;
+    updatePreview();
+    setStat('status','¡Copiada a tu repositorio! Ahora toca Guardar.','ok');
+  }catch(err){
+    setStat('status','Ese sitio no permite copiarla automático (bloqueo anti-robo). Descárgala tú y usa "📁 Foto guardada".','err');
+  }
+});
 
 $('pickFileBtn').addEventListener('click', ()=> $('fileInput').click());
 $('fileInput').addEventListener('change', async (e)=>{
