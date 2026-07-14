@@ -309,7 +309,7 @@ input::placeholder{color:var(--text-3);}
 /* ===== LISTS ===== */
 .list-wrap{
   display:flex;flex-direction:column;gap:8px;
-  max-height:400px;overflow-y:auto;
+  max-height:500px;overflow-y:auto;
   padding-right:2px;
 }
 .list-wrap::-webkit-scrollbar{width:4px;}
@@ -436,6 +436,58 @@ input::placeholder{color:var(--text-3);}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.green{border-color:var(--green);color:var(--green);}
 .toast.blue{border-color:var(--accent);color:var(--accent);}
+
+/* ===== DEPT PENDING GROUPS ===== */
+.dept-pending-group {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.dept-pending-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; cursor: pointer;
+  transition: background .15s;
+}
+.dept-pending-header:hover { background: rgba(245,158,11,.06); }
+.dept-pending-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--amber); box-shadow: 0 0 6px var(--amber);
+  flex-shrink: 0;
+}
+.dept-pending-name {
+  flex: 1; font-family: var(--mono); font-size: 13px;
+  font-weight: 600; color: var(--text-1);
+}
+.dept-pending-count {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--amber); letter-spacing: .5px;
+}
+.dept-pending-arrow {
+  font-size: 12px; color: var(--text-3);
+  transition: transform .2s;
+}
+.dept-pending-group.open .dept-pending-arrow { transform: rotate(90deg); }
+.dept-pending-munis {
+  display: none; flex-wrap: wrap; gap: 6px;
+  padding: 0 14px 12px;
+}
+.dept-pending-group.open .dept-pending-munis { display: flex; }
+.muni-chip {
+  padding: 6px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text-2); cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.muni-chip:hover {
+  border-color: var(--accent); color: var(--accent);
+  background: var(--accent-glow);
+}
 
 /* ===== SEARCH ===== */
 .search-wrap {
@@ -1159,8 +1211,8 @@ async function renderMap() {
   try {
     if (!window.d3) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js');
 
-    // GeoJSON real de departamentos de Colombia — john-guerra / gist
-    const res = await fetch('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/3aadedf47badbdac1e11b1d5f0b85c2bf2f4af94/colombia.geo.json');
+    // GeoJSON real de departamentos de Colombia — john-guerra / gist (URL correcta)
+    const res = await fetch('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const geojson = await res.json();
 
@@ -1279,13 +1331,11 @@ function renderAll(){
         r.dept.toLowerCase().includes(searchQuery))
     : allRecords;
 
-  const pending = filtered.filter(r => r.status === 'pending');
-  const done    = filtered.filter(r => r.status === 'done');
-  pending.sort((a,b) => a.dept.localeCompare(b.dept) || a.muni.localeCompare(b.muni));
-  done.sort((a,b)    => a.dept.localeCompare(b.dept) || a.muni.localeCompare(b.muni));
+  const done = filtered.filter(r => r.status === 'done');
+  done.sort((a,b) => a.dept.localeCompare(b.dept) || a.muni.localeCompare(b.muni));
 
-  renderList('listPending', pending, 'pending');
-  renderList('listDone',    done,    'done');
+  renderList('listPending', [], 'pending');   // pending list builds itself from DEPTS
+  renderList('listDone',    done, 'done');
 
   const totalMunis = Object.values(DEPTS).reduce((sum, arr) => sum + arr.length, 0);
   const doneCount  = Object.values(db).filter(r => r.status === 'done').length;
@@ -1305,75 +1355,82 @@ function renderAll(){
 function renderList(containerId, records, type){
   const wrap = document.getElementById(containerId);
   wrap.innerHTML = '';
-  if(records.length === 0){
-    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">${type==='pending'?'⏳':'✅'}</div>${type==='pending'?'No hay municipios pendientes.':'Aún no hay municipios completados.'}</div>`;
+
+  if (type === 'pending') {
+    // Build pending list from DEPTS minus what's already done
+    const doneSet = new Set(Object.values(db).filter(r => r.status==='done').map(r => genKey(r.dept, r.muni)));
+    const q = searchQuery;
+    const deptGroups = [];
+    Object.keys(DEPTS).sort().forEach(dept => {
+      const remaining = DEPTS[dept].filter(muni => {
+        if (doneSet.has(genKey(dept, muni))) return false;
+        if (q) return muni.toLowerCase().includes(q) || dept.toLowerCase().includes(q);
+        return true;
+      });
+      if (remaining.length > 0) deptGroups.push({ dept, munis: remaining });
+    });
+
+    if (deptGroups.length === 0) {
+      wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🎉</div>¡Todos los municipios consultados!</div>`;
+      return;
+    }
+    deptGroups.forEach(({ dept, munis }) => {
+      const el = document.createElement('div');
+      el.className = 'dept-pending-group';
+      el.innerHTML = `
+        <div class="dept-pending-header" onclick="this.parentElement.classList.toggle('open')">
+          <div class="dept-pending-dot"></div>
+          <div class="dept-pending-name">${dept}</div>
+          <div class="dept-pending-count">${munis.length} pendientes</div>
+          <div class="dept-pending-arrow">▸</div>
+        </div>
+        <div class="dept-pending-munis">
+          ${munis.map(muni => `<span class="muni-chip" onclick="fillFormFromPending('${dept.replace(/'/g,"\\'")}','${muni.replace(/'/g,"\\'")}')">📍 ${muni}</span>`).join('')}
+        </div>`;
+      wrap.appendChild(el);
+    });
+    return;
+  }
+
+  // DONE LIST
+  if (records.length === 0) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div>Aún no hay municipios completados.</div>`;
     return;
   }
   records.forEach(r => {
     const key = genKey(r.dept, r.muni);
     const el  = document.createElement('div');
-    el.className = 'muni-item' + (type==='pending' ? ' pending-item' : '');
-
-    const dot = document.createElement('div');
-    dot.className = 'muni-dot ' + (type==='pending' ? 'pending' : 'done');
-
+    el.className = 'muni-item';
+    el.appendChild(Object.assign(document.createElement('div'), { className: 'muni-dot done' }));
     const nameWrap = document.createElement('div');
     nameWrap.style.flex='1';
-    nameWrap.innerHTML = `
-      <div class="muni-name">${r.muni}</div>
-      <span class="muni-dept">${r.dept}</span>`;
-
+    nameWrap.innerHTML = `<div class="muni-name">${r.muni}</div><span class="muni-dept">${r.dept}</span>`;
+    el.appendChild(nameWrap);
+    const prices = document.createElement('div');
+    prices.className = 'muni-prices';
+    prices.innerHTML = `
+      <div class="muni-price-val" style="color:${r.mini>0?'#f59e0b':'#22c55e'}">${r.mini>0?'$'+r.mini.toLocaleString('es-CO'):'✓'}</div>
+      <div class="muni-price-lbl">Mini</div>
+      <div class="muni-price-val" style="margin-top:3px;color:${r.v4>0?'#f59e0b':'#22c55e'}">${r.v4>0?'$'+r.v4.toLocaleString('es-CO'):'✓'}</div>
+      <div class="muni-price-lbl">V4</div>`;
+    el.appendChild(prices);
     const actions = document.createElement('div');
     actions.className = 'muni-actions';
-
-    if(type==='done'){
-      const prices = document.createElement('div');
-      prices.className = 'muni-prices';
-      prices.innerHTML = `
-        <div class="muni-price-val">$${r.mini.toFixed(2)}</div>
-        <div class="muni-price-lbl">Mini</div>
-        <div class="muni-price-val" style="margin-top:4px">$${r.v4.toFixed(2)}</div>
-        <div class="muni-price-lbl">V4</div>`;
-      el.appendChild(dot);
-      el.appendChild(nameWrap);
-      el.appendChild(prices);
-
-      // undo button
-      const undoBtn = document.createElement('button');
-      undoBtn.className='icon-btn';undoBtn.title='Mover a Pendientes';undoBtn.textContent='↩';
-      undoBtn.onclick = e => { e.stopPropagation(); db[key].status='pending'; saveDB(); renderAll(); showToast('↩ Movido a Pendientes'); };
-
-      const delBtn = document.createElement('button');
-      delBtn.className='icon-btn del';delBtn.title='Eliminar';delBtn.textContent='✕';
-      delBtn.onclick = e => { e.stopPropagation(); if(confirm('¿Eliminar '+r.muni+'?')){ delete db[key]; saveDB(); renderAll(); showToast('Eliminado: '+r.muni); }};
-
-      actions.appendChild(undoBtn);
-      actions.appendChild(delBtn);
-      el.appendChild(actions);
-    } else {
-      // pending: click to auto-fill form
-      el.onclick = () => {
-        deptSel.value = r.dept;
-        populateMunis();
-        setTimeout(() => {
-          muniSel.value = r.muni;
-          updateFormat();
-          if (r.mini !== undefined) setChips('chipsMini', 'priceMini', r.mini);
-          if (r.v4   !== undefined) setChips('chipsV4',   'priceV4',   r.v4);
-        }, 50);
-        document.querySelector('.card').scrollIntoView({behavior:'smooth'});
-        showToast('📋 ' + r.muni + ' cargado en el formulario', 'blue');
-      };
-      el.appendChild(dot);
-      el.appendChild(nameWrap);
-      const delBtn = document.createElement('button');
-      delBtn.className='icon-btn del';delBtn.title='Eliminar';delBtn.textContent='✕';
-      delBtn.onclick = e => { e.stopPropagation(); if(confirm('¿Eliminar '+r.muni+'?')){ delete db[key]; saveDB(); renderAll(); showToast('Eliminado: '+r.muni); }};
-      actions.appendChild(delBtn);
-      el.appendChild(actions);
-    }
+    const delBtn = document.createElement('button');
+    delBtn.className='icon-btn del'; delBtn.title='Eliminar'; delBtn.textContent='✕';
+    delBtn.onclick = e => { e.stopPropagation(); if(confirm('¿Eliminar '+r.muni+'?')){ delete db[key]; saveDB(); renderAll(); showToast('Eliminado: '+r.muni); if(getConfig().endpointId) cloudPush(); }};
+    actions.appendChild(delBtn);
+    el.appendChild(actions);
     wrap.appendChild(el);
   });
+}
+
+function fillFormFromPending(dept, muni) {
+  deptSel.value = dept;
+  populateMunis();
+  setTimeout(() => { muniSel.value = muni; updateFormat(); }, 50);
+  document.querySelector('.card').scrollIntoView({ behavior:'smooth', block:'start' });
+  showToast('📋 ' + muni + ' listo para consultar', 'blue');
 }
 
 // ========== CLOUD SYNC (Firebase Realtime Database) ==========
