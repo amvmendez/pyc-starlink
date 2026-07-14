@@ -1,704 +1,1700 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Revisor de Fotos · Partes y Computadores</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Partes y Computadores — Gestor Starlink</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-:root{--bg:#0b0e12;--panel:#141920;--panel2:#1b222c;--line:#26303c;--text:#e8edf3;--sub:#8b98a8;--accent:#33d6c0;--accent-dim:#1f8578;--warn:#ff6b57;--ok:#33d6c0;}
-*{box-sizing:border-box;}
-body{margin:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;padding-bottom:40px;}
-h1,h2,h3{font-family:'Chakra Petch',sans-serif;}
-header{padding:20px 16px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:10;}
-header h1{margin:0 0 4px;font-size:1.15rem;color:var(--accent);}
-header p{margin:0;color:var(--sub);font-size:.82rem;}
-main{max-width:560px;margin:0 auto;padding:16px;}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px;}
-label{display:block;font-size:.8rem;color:var(--sub);margin-bottom:6px;margin-top:12px;}
-label:first-child{margin-top:0;}
-input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:.95rem;}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;padding:14px 16px;font-size:.95rem;font-weight:600;cursor:pointer;width:100%;margin-top:12px;font-family:inherit;}
-.btn-accent{background:var(--accent);color:#062521;}
-.btn-ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line);}
-.btn-warn{background:transparent;color:var(--warn);border:1px solid var(--warn);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --void:#07090d;
+  --base:#0e1218;
+  --surface:#141b24;
+  --panel:#1a232e;
+  --border:#243040;
+  --border-hi:#2e4055;
+  --accent:#3b82f6;
+  --accent-glow:rgba(59,130,246,.25);
+  --green:#22c55e;
+  --green-glow:rgba(34,197,94,.2);
+  --amber:#f59e0b;
+  --amber-glow:rgba(245,158,11,.2);
+  --red:#ef4444;
+  --text-1:#e8edf4;
+  --text-2:#7a92aa;
+  --text-3:#3a5068;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+  --display:'Syne',sans-serif;
+  --r:12px;
+  --r-sm:8px;
+}
+
+html{scroll-behavior:smooth;}
+body{
+  background:var(--void);
+  color:var(--text-1);
+  font-family:var(--sans);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* subtle dot grid */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:radial-gradient(circle,rgba(59,130,246,.06) 1px,transparent 1px);
+  background-size:28px 28px;
+  pointer-events:none;z-index:0;
+}
+
+/* top glow */
+body::after{
+  content:'';position:fixed;top:0;left:50%;transform:translateX(-50%);
+  width:600px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  z-index:1;
+}
+
+.app{position:relative;z-index:2;max-width:680px;margin:0 auto;padding:0 16px 80px;}
+
+/* ===== HEADER COMPACT ===== */
+.header-compact {
+  padding: 10px 0 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.header-compact-left {
+  display: flex; align-items: center; gap: 10px;
+}
+.header-compact-icon {
+  font-size: 20px; flex-shrink: 0;
+}
+.header-compact-brand {
+  font-family: var(--display);
+  font-size: 13px; font-weight: 800;
+  color: var(--cyan, #00c8ff);
+  letter-spacing: -.2px;
+}
+.header-compact-sub {
+  font-family: var(--mono);
+  font-size: 9px; color: var(--text-3);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* ===== STATS BAR ===== */
+.stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  margin-bottom:24px;
+}
+.stat{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:12px 14px;
+  text-align:center;
+}
+.stat-num{
+  font-family:var(--display);font-size:22px;font-weight:800;
+  line-height:1;margin-bottom:3px;
+}
+.stat-num.blue{color:var(--accent);}
+.stat-num.green{color:var(--green);}
+.stat-num.amber{color:var(--amber);}
+.stat-label{
+  font-family:var(--mono);font-size:9px;
+  color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;
+}
+
+/* ===== STATS COMPACT ===== */
+.stats-compact{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:12px 14px;
+  margin-bottom:16px;
+}
+.stat-c{display:flex;flex-direction:column;align-items:center;flex:1;}
+.stat-c .stat-num{font-family:var(--display);font-size:18px;font-weight:800;line-height:1;}
+.stat-c .stat-label{font-family:var(--mono);font-size:8px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.stat-div{width:1px;height:32px;background:var(--border);flex-shrink:0;}
+
+/* ===== SECTION LABEL ===== */
+.section-label{
+  font-family:var(--mono);font-size:10px;
+  color:var(--text-3);letter-spacing:2.5px;text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-label::after{
+  content:'';flex:1;height:1px;background:var(--border);
+}
+
+/* ===== CARD ===== */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:20px;margin-bottom:16px;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border-hi),transparent);
+}
+
+/* ===== SELECT ===== */
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+label.lbl{
+  display:block;font-family:var(--mono);font-size:10px;
+  color:var(--text-2);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:7px;
+}
+select,input[type=number]{
+  width:100%;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  padding:14px 16px;
+  color:var(--text-1);
+  font-family:var(--mono);font-size:14px;
+  outline:none;
+  -webkit-appearance:none;appearance:none;
+  transition:border-color .15s,box-shadow .15s;
+  cursor:pointer;
+}
+select:focus,input[type=number]:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+select option{background:var(--panel);color:var(--text-1);}
+input::placeholder{color:var(--text-3);}
+
+/* ===== FORMAT BOX ===== */
+.format-box{
+  display:none;
+  margin-top:12px;
+  background:var(--panel);
+  border:1px solid var(--accent);
+  border-radius:var(--r-sm);
+  padding:16px;
+  position:relative;
+}
+.format-box.show{display:block;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.format-tag{
+  font-family:var(--mono);font-size:9px;
+  color:var(--accent);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.format-text{
+  font-family:var(--mono);font-size:15px;font-weight:700;
+  color:var(--text-1);line-height:1.4;word-break:break-all;
+}
+.copy-btn{
+  margin-top:10px;width:100%;
+  padding:10px;
+  background:var(--accent-glow);
+  border:1px solid var(--accent);
+  border-radius:var(--r-sm);
+  color:var(--accent);
+  font-family:var(--mono);font-size:11px;letter-spacing:1px;
+  cursor:pointer;transition:background .15s;
+}
+.copy-btn:hover{background:rgba(59,130,246,.35);}
+.copy-btn.copied{border-color:var(--green);color:var(--green);background:var(--green-glow);}
+
+/* ===== PRICE INPUTS ===== */
+.price-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 6px;
+  margin-top: 4px;
+}
+.chip {
+  padding: 9px 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1.2;
+}
+.chip:hover { border-color: var(--border-hi); color: var(--text-1); }
+.chip.selected-none {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--green-glow);
+}
+.chip.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+/* "Sin recargo" — columna 1, ocupa 2 filas */
+.chip:first-child {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+/* ===== BUTTONS ===== */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:16px;border-radius:var(--r-sm);
+  font-family:var(--display);font-size:14px;font-weight:700;
+  letter-spacing:.3px;cursor:pointer;
+  border:none;transition:transform .1s,box-shadow .15s,opacity .15s;
+}
 .btn:active{transform:scale(.98);}
-.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
-.mode-btn{padding:14px 6px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--sub);text-align:center;font-weight:600;cursor:pointer;font-size:.86rem;}
-.mode-btn.active{background:var(--accent-dim);color:var(--text);border-color:var(--accent);}
-.status{text-align:center;font-size:.82rem;color:var(--sub);margin-top:10px;min-height:18px;}
-.status.err{color:var(--warn);}
-.status.ok{color:var(--ok);}
-.candidate{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px;}
-.candidate .path{font-size:.72rem;color:var(--accent);margin-bottom:6px;word-break:break-all;}
-.candidate .count{font-size:.85rem;margin-bottom:4px;}
-.candidate .sample{font-size:.8rem;color:var(--sub);}
-.progress-wrap{margin-bottom:16px;}
-.progress-bar{height:8px;background:var(--panel2);border-radius:6px;overflow:hidden;}
-.progress-fill{height:100%;background:var(--accent);transition:width .3s;}
-.progress-label{display:flex;justify-content:space-between;font-size:.78rem;color:var(--sub);margin-top:6px;}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px;}
-.cat{display:inline-block;font-size:.72rem;color:var(--accent);border:1px solid var(--accent-dim);border-radius:20px;padding:3px 10px;margin-bottom:10px;}
-.card h2{margin:0 0 14px;font-size:1.2rem;line-height:1.3;}
-.photo-row{display:flex;gap:12px;margin-bottom:14px;}
-.photo-box{flex:1;text-align:center;}
-.photo-box span{display:block;font-size:.72rem;color:var(--sub);margin-bottom:6px;}
-.photo-box img{width:100%;aspect-ratio:1;object-fit:contain;background:var(--panel2);border-radius:12px;border:1px solid var(--line);}
-.photo-box.empty img{opacity:.3;}
-.steps{background:var(--panel2);border-radius:12px;padding:12px 14px;margin:14px 0;font-size:.82rem;color:var(--sub);line-height:1.7;}
-.steps b{color:var(--text);}
-.method-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-.paste-row{display:flex;gap:8px;margin-bottom:14px;}
-.paste-row input{flex:1;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:.85rem;}
-.paste-row button{padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--accent);font-size:1.1rem;}
-.actions{display:grid;gap:10px;}
-.actions .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.done-screen{text-align:center;padding:60px 20px;color:var(--sub);}
-.done-screen h2{color:var(--accent);}
-.hidden{display:none !important;}
-.linkbtn{background:none;border:none;color:var(--accent);font-size:.82rem;text-decoration:underline;cursor:pointer;padding:0;margin-top:10px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;pointer-events:none;}
+.btn-primary{
+  background:var(--accent);color:#fff;
+  box-shadow:0 4px 20px var(--accent-glow);
+}
+.btn-primary:hover{box-shadow:0 4px 30px rgba(59,130,246,.5);}
+.btn-export{
+  background:var(--panel);color:var(--text-2);
+  border:1px solid var(--border);
+  font-size:13px;margin-top:8px;
+}
+.btn-export:hover{border-color:var(--border-hi);color:var(--text-1);}
+.btn-drive{
+  background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(34,197,94,.08));
+  color:var(--text-1);
+  border:1px solid var(--accent);
+  font-size:14px;margin-bottom:4px;
+  box-shadow:0 0 16px rgba(59,130,246,.15);
+}
+.btn-drive:hover{background:linear-gradient(135deg,rgba(59,130,246,.22),rgba(34,197,94,.15));box-shadow:0 0 24px rgba(59,130,246,.3);}
+.drive-status-bar{
+  display:flex;align-items:center;gap:8px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:10px 14px;
+  margin-bottom:10px;
+  font-family:var(--mono);font-size:11px;color:var(--text-2);
+  letter-spacing:.5px;
+}
+.drive-icon{font-size:14px;}
+.drive-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--text-3);margin-left:auto;flex-shrink:0;
+  transition:background .3s,box-shadow .3s;
+}
+.drive-dot.ok{background:var(--green);box-shadow:0 0 6px var(--green);}
+.drive-dot.warn{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+.drive-dot.err{background:var(--red);box-shadow:0 0 6px var(--red);}
+.btn-import{
+  background:rgba(34,197,94,.07);color:var(--green);
+  border:1px solid rgba(34,197,94,.3);
+  font-size:13px;margin-top:8px;
+}
+.btn-import:hover{background:rgba(34,197,94,.15);}
+.btn-reset{
+  background:rgba(239,68,68,.08);color:var(--red);
+  border:1px solid rgba(239,68,68,.25);
+  font-size:12px;margin-top:6px;padding:12px;
+}
+.btn-reset:hover{background:rgba(239,68,68,.15);}
+
+/* ===== LISTS ===== */
+.list-wrap{
+  max-height:500px;overflow-y:auto;
+  padding-right:2px;
+}
+/* Done list items need column flex */
+#listDone { display:flex; flex-direction:column; gap:8px; }
+.list-wrap::-webkit-scrollbar{width:4px;}
+.list-wrap::-webkit-scrollbar-track{background:transparent;}
+.list-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+.muni-item{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  transition:border-color .15s;
+}
+.muni-item:hover{border-color:var(--border-hi);}
+
+.muni-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+}
+.muni-dot.pending{background:var(--amber);box-shadow:0 0 8px var(--amber);}
+.muni-dot.done{background:var(--green);box-shadow:0 0 8px var(--green);}
+
+.muni-name{
+  flex:1;font-family:var(--mono);font-size:13px;
+  color:var(--text-1);font-weight:600;
+}
+.muni-dept{
+  font-family:var(--mono);font-size:10px;
+  color:var(--text-3);display:block;margin-top:2px;
+}
+.muni-prices{
+  text-align:right;
+}
+.muni-price-val{
+  font-family:var(--mono);font-size:12px;
+  color:var(--green);font-weight:600;
+}
+.muni-price-lbl{
+  font-family:var(--mono);font-size:9px;
+  color:var(--text-3);text-transform:uppercase;letter-spacing:1px;
+}
+.muni-actions{display:flex;gap:6px;flex-shrink:0;}
+.icon-btn{
+  background:transparent;border:1px solid var(--border);
+  border-radius:6px;padding:6px 8px;cursor:pointer;
+  font-size:13px;transition:background .15s,border-color .15s;
+  color:var(--text-2);
+}
+.icon-btn:hover{background:var(--surface);border-color:var(--border-hi);}
+.icon-btn.del:hover{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.4);color:var(--red);}
+
+/* pending item — clickable to open form */
+.muni-item.pending-item{cursor:pointer;}
+.muni-item.pending-item:hover{border-color:var(--amber);background:rgba(245,158,11,.04);}
+
+.empty-state{
+  text-align:center;padding:36px 20px;
+  font-family:var(--mono);font-size:12px;color:var(--text-3);
+  letter-spacing:1px;
+}
+.empty-icon{font-size:32px;margin-bottom:10px;opacity:.4;}
+
+/* ===== STARLINK BUTTONS ===== */
+.btn-starlink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 13px;
+  background: linear-gradient(135deg, rgba(0,112,243,.12), rgba(0,200,255,.08));
+  border: 1px solid rgba(0,160,255,.4);
+  border-radius: var(--r-sm);
+  color: #00c8ff;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-decoration: none;
+  text-align: center;
+  transition: background .15s, box-shadow .15s;
+}
+.btn-starlink:hover {
+  background: linear-gradient(135deg, rgba(0,112,243,.22), rgba(0,200,255,.15));
+  box-shadow: 0 0 20px rgba(0,200,255,.25);
+}
+.btn-starlink-fixed {
+  position: fixed;
+  bottom: 28px;
+  right: 16px;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #0070f3, #00c8ff);
+  border-radius: 50px;
+  border: none;
+  color: #fff;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 24px rgba(0,150,255,.55);
+  transition: transform .15s, box-shadow .15s;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btn-starlink-fixed:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,150,255,.7);
+}
+.btn-starlink-fixed:active { transform: scale(.97); }
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-20px);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:12px 20px;
+  font-family:var(--mono);font-size:12px;color:var(--text-1);
+  letter-spacing:.5px;opacity:0;transition:opacity .2s,transform .2s;
+  z-index:9999;white-space:nowrap;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.green{border-color:var(--green);color:var(--green);}
+.toast.blue{border-color:var(--accent);color:var(--accent);}
+
+/* ===== DEPT PENDING GROUPS ===== */
+.dept-pending-group {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.dept-pending-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; cursor: pointer;
+  transition: background .15s;
+}
+.dept-pending-header:hover { background: rgba(245,158,11,.06); }
+.dept-pending-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--amber); box-shadow: 0 0 6px var(--amber);
+  flex-shrink: 0;
+}
+.dept-pending-name {
+  flex: 1; font-family: var(--mono); font-size: 13px;
+  font-weight: 600; color: var(--text-1);
+}
+.dept-pending-count {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--amber); letter-spacing: .5px;
+}
+.dept-pending-arrow {
+  font-size: 12px; color: var(--text-3);
+  transition: transform .2s;
+}
+.dept-pending-group.open .dept-pending-arrow { transform: rotate(90deg); }
+.dept-pending-munis {
+  display: none; flex-wrap: wrap; gap: 6px;
+  padding: 0 14px 12px;
+}
+.dept-pending-group.open .dept-pending-munis { display: flex; }
+.muni-chip {
+  padding: 6px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text-2); cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.muni-chip:hover {
+  border-color: var(--accent); color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* ===== SEARCH ===== */
+.search-wrap {
+  position: relative;
+  margin-bottom: 12px;
+}
+.search-icon {
+  position: absolute; left: 14px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px; pointer-events: none;
+}
+#searchInput {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 13px 40px 13px 40px;
+  color: var(--text-1);
+  font-family: var(--mono);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  box-sizing: border-box;
+}
+#searchInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.search-clear {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--text-2); font-size: 14px;
+  cursor: pointer; padding: 4px;
+}
+
+/* ===== MAP TAB ===== */
+.tab.map { color: var(--text-2); }
+.tab.active.map { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+.map-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.map-legend {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-top: 12px;
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text-2); letter-spacing: 1px;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* ===== TABS ===== */
+.tabs{display:flex;gap:6px;margin-bottom:14px;}
+.tab{
+  flex:1;padding:10px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-2);cursor:pointer;text-align:center;
+  transition:all .15s;
+}
+.tab.active.pending{border-color:var(--amber);color:var(--amber);background:var(--amber-glow);}
+.tab.active.done{border-color:var(--green);color:var(--green);background:var(--green-glow);}
+
+/* ===== PROGRESS ===== */
+.progress-wrap{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:12px 16px;
+  margin-bottom:16px;
+}
+.progress-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.progress-label{font-family:var(--mono);font-size:10px;color:var(--text-2);letter-spacing:1px;}
+.progress-pct{font-family:var(--display);font-size:13px;font-weight:700;color:var(--green);}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .4s ease;}
+
+footer{
+  text-align:center;margin-top:40px;padding-top:20px;border-top:1px solid var(--border);
+  font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.5px;
+}
 </style>
 </head>
 <body>
+<div class="app">
 
-<header>
-  <h1>📸 Revisor de Fotos</h1>
-  <p>Partes y Computadores · un producto a la vez</p>
-  <p style="margin-top:4px;font-size:.7rem;color:var(--accent-dim);" id="versionTag"></p>
-</header>
-
-<main>
-
-<!-- SETUP -->
-<div id="setup" class="panel">
-  <h2 style="margin-top:0;font-size:1rem;">Conexión</h2>
-  <label>Token de GitHub</label>
-  <input id="tokenInput" type="password" placeholder="github_pat_...">
-  <label>Repositorio</label>
-  <input id="repoInput" type="text" value="amvmendez/pyc-starlink">
-  <label>Base de datos Firebase (para Productos y Licencias)</label>
-  <input id="fbInput" type="text" value="https://inventarioyfinanzas-default-rtdb.firebaseio.com/inventario_starlink">
-
-  <label style="margin-top:16px;">¿Qué quieres revisar?</label>
-  <div class="mode-row" style="grid-template-columns:1fr 1fr 1fr;">
-    <div class="mode-btn active" id="modeServicios" data-mode="servicios">🛠️ Servicios</div>
-    <div class="mode-btn" id="modeProductos" data-mode="productos">📦 Productos</div>
-    <div class="mode-btn" id="modeLicencias" data-mode="licencias">💿 Licencias</div>
-  </div>
-
-  <button class="btn btn-accent" id="connectBtn">Buscar y conectar</button>
-  <div class="status" id="setupStatus"></div>
-  <div id="setupDiagnostic"></div>
-</div>
-
-<!-- DISCOVERY CONFIRM -->
-<div id="discovery" class="panel hidden">
-  <h2 style="margin-top:0;font-size:1rem;">¿Es esto lo que buscas?</h2>
-  <div id="candidateBox"></div>
-  <button class="btn btn-accent" id="confirmBtn">✅ Sí, son estos</button>
-  <button class="btn btn-ghost" id="nextCandidateBtn">🔁 Probar otra opción</button>
-  <button class="linkbtn" id="backToSetupBtn">‹ Volver</button>
-  <div class="status" id="discoveryStatus"></div>
-</div>
-
-<div id="jumpPanel" class="panel hidden" style="padding:14px;">
-  <label style="margin:0 0 8px;">🔎 Buscar y editar cualquiera (aunque ya lo hayas hecho)</label>
-  <input id="jumpSearchInput" type="text" placeholder="Escribe el nombre...">
-  <div id="jumpResults"></div>
-</div>
-
-<!-- APP -->
-<div id="app" class="hidden">
-  <div class="progress-wrap">
-    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    <div class="progress-label">
-      <span id="progressText">0 / 0</span>
-      <span id="updatedText">0 actualizadas</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <span class="cat" id="prodCat">Categoría</span>
-    <h2 id="prodName">Nombre</h2>
-
-    <div class="photo-row">
-      <div class="photo-box" id="currentBox"><span>Foto actual</span><img id="currentImg" src=""></div>
-      <div class="photo-box empty" id="newBox"><span>Foto nueva</span><img id="newImg" src=""></div>
-    </div>
-
-    <div class="method-row">
-      <button class="btn btn-ghost" id="searchBtn" style="margin-top:0;">🔍 Buscar en Google</button>
-      <button class="btn btn-ghost" id="pickFileBtn" style="margin-top:0;">📁 Foto guardada</button>
-    </div>
-    <input type="file" id="fileInput" accept="image/*" class="hidden">
-
-    <div class="steps">
-      <b>Búsqueda:</b> toca la foto → mantén presionada → "Copiar dirección de la imagen" → pega abajo.<br>
-      <b>Foto guardada:</b> elige una imagen que ya tengas descargada en el teléfono; se sube sola.
-    </div>
-
-    <div class="paste-row">
-      <input id="urlInput" type="text" placeholder="Pega aquí el link de la imagen">
-      <button id="pasteBtn">📋</button>
-    </div>
-    <button class="btn btn-ghost" id="autoHostBtn" style="margin-top:0;margin-bottom:14px;">☁️ Copiar esta foto a mi repositorio</button>
-
-    <div class="actions">
-      <button class="btn btn-accent" id="saveBtn">✅ Guardar y siguiente</button>
-      <div class="row2">
-        <button class="btn btn-ghost" id="keepBtn">✔️ Dejar la actual</button>
-        <button class="btn btn-warn" id="skipBtn">⏭️ Omitir por ahora</button>
+  <!-- HEADER COMPACTO -->
+  <header class="header-compact">
+    <div class="header-compact-left">
+      <div class="header-compact-icon">🛰️</div>
+      <div>
+        <div class="header-compact-brand">partesycomputadores.com.co</div>
+        <div class="header-compact-sub">Gestor Starlink &nbsp;<span id="headerVersion" style="color:var(--accent);font-size:9px;"></span></div>
       </div>
     </div>
-    <div id="status" class="status"></div>
+  </header>
+
+  <!-- STATS + PROGRESS COMPACTO -->
+  <div class="stats-compact">
+    <div class="stat-c"><span class="stat-num blue" id="statTotal">0</span><span class="stat-label">Total</span></div>
+    <div class="stat-div"></div>
+    <div class="stat-c"><span class="stat-num green" id="statDone">0</span><span class="stat-label">Listos</span></div>
+    <div class="stat-div"></div>
+    <div class="stat-c"><span class="stat-num amber" id="statPending">0</span><span class="stat-label">Pendientes</span></div>
+    <div class="stat-div"></div>
+    <div class="stat-c" style="flex:2">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1px;">PROGRESO</span>
+        <span class="stat-num green" id="progressPct" style="font-size:13px;">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
   </div>
-  <button class="linkbtn" id="switchModeBtn">‹ Cambiar de modo (Servicios / Productos)</button>
+
+  <!-- FORM -->
+  <div class="section-label">Nueva entrada</div>
+  <div class="card">
+
+    <div class="field">
+      <label class="lbl">Departamento</label>
+      <select id="deptSelect">
+        <option value="">— Seleccionar departamento —</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="lbl">Municipio</label>
+      <select id="muniSelect" disabled>
+        <option value="">— Primero elige un departamento —</option>
+      </select>
+    </div>
+
+    <!-- FORMAT BOX -->
+    <div class="format-box" id="formatBox">
+      <div class="format-tag">📋 Copia este formato para Starlink:</div>
+      <div class="format-text" id="formatText">—</div>
+      <button class="copy-btn" id="copyBtn">⎘ Copiar al portapapeles</button>
+      <a class="btn-starlink" href="https://www.starlink.com" target="_blank" rel="noopener">
+        🛰 Consultar disponibilidad en Starlink.com →
+      </a>
+    </div>
+
+    <div class="field" style="margin-top:14px;">
+      <a href="https://www.starlink.com" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;background:linear-gradient(135deg,#0070f3,#00c8ff);border-radius:10px;color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:.5px;text-decoration:none;box-shadow:0 4px 20px rgba(0,150,255,.4);box-sizing:border-box;">
+        🛰 Abrir Starlink.com
+      </a>
+    </div>
+
+    <div class="field" style="margin-top:14px;">
+      <label class="lbl">Recargo Mini — Alta Demanda (COP)</label>
+      <div class="price-chips" id="chipsMini">
+        <button class="chip" data-value="0" data-field="mini">Sin<br>recargo</button>
+        <button class="chip" data-value="500000" data-field="mini">$500.000</button>
+        <button class="chip" data-value="900000" data-field="mini">$900.000</button>
+        <button class="chip" data-value="2000000" data-field="mini">$2.000.000</button>
+        <button class="chip" data-value="3000000" data-field="mini">$3.000.000</button>
+      </div>
+      <input type="hidden" id="priceMini" value=""/>
+    </div>
+
+    <div class="field" style="margin-top:8px;">
+      <label class="lbl">Recargo V4 — Alta Demanda (COP)</label>
+      <div class="price-chips" id="chipsV4">
+        <button class="chip" data-value="0" data-field="v4">Sin<br>recargo</button>
+        <button class="chip" data-value="500000" data-field="v4">$500.000</button>
+        <button class="chip" data-value="900000" data-field="v4">$900.000</button>
+        <button class="chip" data-value="2000000" data-field="v4">$2.000.000</button>
+        <button class="chip" data-value="3000000" data-field="v4">$3.000.000</button>
+      </div>
+      <input type="hidden" id="priceV4" value=""/>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button class="btn btn-primary" id="saveBtn" disabled>
+        ✓ Guardar y marcar como Completado
+      </button>
+    </div>
+  </div>
+
+  <!-- LISTS -->
+  <div class="section-label" style="margin-top:24px;">Municipios registrados</div>
+
+  <!-- SEARCH BOX -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar municipio o departamento..." autocomplete="off"/>
+    <button class="search-clear" id="searchClear" style="display:none">✕</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active pending" id="tabPending" onclick="switchTab('pending')">⏳ Pendientes</div>
+    <div class="tab done" id="tabDone" onclick="switchTab('done')">✅ Completados</div>
+    <div class="tab map" id="tabMap" onclick="switchTab('map')">🗺 Mapa</div>
+  </div>
+
+  <div id="listPending" class="list-wrap" style="display:block"></div>
+  <div id="listDone" class="list-wrap" style="display:none"></div>
+  <div id="listMap" style="display:none"></div>
+
+  <!-- CLOUD SYNC -->
+  <div style="margin-top:20px;">
+    <div class="drive-status-bar" id="driveStatusBar">
+      <span class="drive-icon">☁️</span>
+      <span id="driveStatusText">☁ Firebase: iniciando...</span>
+      <span class="drive-dot" id="driveDot"></span>
+    </div>
+    <button class="btn btn-drive" id="driveSyncBtn">☁ Sincronizar con la Nube</button>
+  </div>
+
+  <footer>
+    Partes y Computadores · partesycomputadores.com.co
+    <span id="appVersionDisplay" style="display:block;margin-top:4px;color:var(--text-muted,#3a5068);">v2026.07.13-1</span>
+  </footer>
 </div>
 
-<div id="doneScreen" class="hidden done-screen">
-  <h2>🎉 ¡Listo!</h2>
-  <p>Revisaste todos los productos de este modo.</p>
-  <button class="btn btn-ghost" id="restartBtn" style="max-width:260px;margin:16px auto 0;">Volver a empezar</button>
-  <button class="linkbtn" id="switchModeBtn2">‹ Cambiar de modo</button>
-</div>
 
-</main>
+
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = 'v2026.07.13-4';
-document.addEventListener('DOMContentLoaded', ()=>{ $('versionTag').textContent = APP_VERSION; });
+// ========== DATA ==========
+const DEPTS = {
+  "Amazonas": [
+    "Leticia","Puerto Nariño","El Encanto","La Chorrera","La Pedrera",
+    "La Victoria","Mirití-Paraná","Puerto Alegría","Puerto Arica","Puerto Santander","Tarapacá"
+  ].sort(),
+  "Antioquia": [
+    "Medellín","Abejorral","Abriaquí","Alejandría","Amagá","Amalfi","Andes","Angelópolis",
+    "Angostura","Anorí","Anzá","Apartadó","Armenia","Barbosa","Bello","Betania","Betulia",
+    "Bojayá","Briceño","Buriticá","Cáceres","Caicedo","Caldas","Campamento","Cañasgordas",
+    "Caracolí","Carepa","Carolina del Príncipe","Caucasia","Chigorodó","Cisneros","Ciudad Bolívar",
+    "Cocorná","Concepción","Concordia","Copacabana","Dabeiba","Don Matías","Ebéjico","El Bagre",
+    "El Carmen de Viboral","El Retiro","El Santuario","Envigado","Fredonia","Frontino","Giraldo",
+    "Girardota","Granada","Guadalupe","Guarne","Guatapé","Heliconia","Hispania","Itagüí","Ituango",
+    "Jardín","Jericó","La Ceja","La Estrella","La Pintada","La Unión","Liborina","Maceo","Marinilla",
+    "Montebello","Murindó","Mutatá","Nariño","Nechí","Necoclí","Olaya","Peñol","Peque",
+    "Pueblorrico","Puerto Berrío","Puerto Nare","Puerto Triunfo","Remedios","Rionegro","Sabaneta",
+    "Salgar","San Andrés de Cuerquia","San Carlos","San Francisco","San Jerónimo","San José de la Montaña",
+    "San Juan de Urabá","San Luis","San Pedro de los Milagros","San Pedro de Urabá","San Rafael",
+    "San Roque","San Vicente Ferrer","Santa Bárbara","Santa Fe de Antioquia","Santa Rosa de Osos",
+    "Santo Domingo","Segovia","Sonsón","Sopetrán","Tarazá","Tarso","Titiribí","Toledo","Turbo",
+    "Uramita","Urrao","Valdivia","Valparaíso","Vegachí","Venecia","Vigía del Fuerte","Yalí",
+    "Yarumal","Yolombó","Yondó","Zaragoza","Arboletes","Necoclí","San Juan de Urabá","Vigía del Fuerte"
+  ].sort(),
+  "Arauca": [
+    "Arauca","Arauquita","Cravo Norte","Fortul","Puerto Rondón","Saravena","Tame"
+  ].sort(),
+  "Atlántico": [
+    "Barranquilla","Baranoa","Campo de la Cruz","Candelaria","Galapa","Juan de Acosta",
+    "Luruaco","Malambo","Manatí","Palmar de Varela","Piojó","Polonuevo","Ponedera",
+    "Puerto Colombia","Repelón","Sabanagrande","Sabanalarga","Santa Lucía","Santo Tomás",
+    "Soledad","Suán","Tubará","Usiacurí"
+  ].sort(),
+  "Bolívar": [
+    "Cartagena","Achí","Altos del Rosario","Arenal","Arjona","Arroyohondo","Barranco de Loba",
+    "Calamar","Cantagallo","Cicuco","Clemencia","Córdoba","El Carmen de Bolívar","El Guamo",
+    "El Peñón","Hatillo de Loba","Magangué","Mahates","Margarita","María la Baja","Mompox",
+    "Montecristo","Morales","Norosí","Pinillos","Regidor","Río Viejo","San Cristóbal",
+    "San Estanislao","San Fernando","San Jacinto","San Jacinto del Cauca","San Juan Nepomuceno",
+    "San Martín de Loba","San Pablo","Santa Catalina","Santa Cruz de Mompox","Santa Rosa",
+    "Santa Rosa del Sur","Simití","Soplaviento","Talaigua Nuevo","Tiquisio","Turbaco",
+    "Turbaná","Villanueva","Zambrano"
+  ].sort(),
+  "Boyacá": [
+    "Tunja","Almeida","Aquitania","Arcabuco","Belén","Berbeo","Betéitiva","Boavita","Boyacá",
+    "Briceño","Buenavista","Busbanzá","Caldas","Campohermoso","Cerinza","Chinavita","Chiquinquirá",
+    "Chíquiza","Chiscas","Chita","Chitaraque","Chivatá","Ciénega","Cómbita","Coper","Corrales",
+    "Covarachía","Cubará","Cucaita","Cuítiva","Duitama","El Cocuy","El Espino","Firavitoba",
+    "Floresta","Gachantivá","Gámeza","Garagoa","Guacamayas","Guateque","Guayatá","Güicán",
+    "Iza","Jenesano","Jericó","La Capilla","La Uvita","La Victoria","Labranzagrande",
+    "Macanal","Maripí","Miraflores","Mongua","Monguí","Moniquirá","Motavita","Muzo","Nobsa",
+    "Nuevo Colón","Oicatá","Otanche","Pachavita","Páez","Paipa","Pajarito","Panqueba",
+    "Pauna","Paya","Paz de Río","Pesca","Pisba","Puerto Boyacá","Quípama","Ramiriquí",
+    "Ráquira","Rondón","Saboyá","Sáchica","Samacá","San Eduardo","San José de Pare",
+    "San Luis de Gaceno","San Mateo","San Miguel de Sema","San Pablo de Borbur","Santa María",
+    "Santa Rosa de Viterbo","Santa Sofía","Santana","Sativasur","Sativanorte","Siachoque",
+    "Soatá","Socotá","Socha","Sogamoso","Somondoco","Sora","Soracá","Sotaquirá","Susacón",
+    "Sutamarchán","Sutatenza","Tasco","Tenza","Tibaná","Tibasosa","Tinjacá","Tipacoque",
+    "Toca","Togüí","Tópaga","Tota","Tununguá","Turmequé","Tuta","Tutazá","Úmbita","Ventaquemada",
+    "Villa de Leyva","Viracachá","Zetaquira"
+  ].sort(),
+  "Caldas": [
+    "Manizales","Aguadas","Anserma","Aranzazu","Belalcázar","Chinchiná","Filadelfia",
+    "La Dorada","La Merced","Manzanares","Marmato","Marquetalia","Marulanda","Neira",
+    "Norcasia","Pácora","Palestina","Pensilvania","Riosucio","Risaralda","Salamina",
+    "Samaná","San José","Supía","Victoria","Villamaría","Viterbo"
+  ].sort(),
+  "Caquetá": [
+    "Florencia","Albania","Belén de los Andaquíes","Cartagena del Chairá","Curillo",
+    "El Doncello","El Paujil","La Montañita","Milano","Milán","Morelia","Puerto Rico",
+    "San José del Fragua","San Vicente del Caguán","Solano","Solita","Valparaíso"
+  ].sort(),
+  "Casanare": [
+    "Yopal","Aguazul","Chámeza","Hato Corozal","La Salina","Maní","Monterrey","Nunchía",
+    "Orocué","Paz de Ariporo","Pore","Recetor","Sabanalarga","Sácama","San Luis de Palenque",
+    "Támara","Tauramena","Trinidad","Villanueva"
+  ].sort(),
+  "Cauca": [
+    "Popayán","Almaguer","Argelia","Balboa","Bolívar","Buenos Aires","Cajibío","Caldono",
+    "Caloto","Corinto","El Tambo","Florencia","Guachené","Guapi","Inzá","Jambaló","La Sierra",
+    "La Vega","López de Micay","Mercaderes","Miranda","Morales","Padilla","Páez","Patía",
+    "Piamonte","Piendamó","Puerto Tejada","Puracé","Rosas","San Sebastián","Santa Rosa",
+    "Santander de Quilichao","Silvia","Sotará","Suárez","Sucre","Timbío","Timbiquí","Toribío",
+    "Totoró","Villa Rica"
+  ].sort(),
+  "Cesar": [
+    "Valledupar","Aguachica","Agustín Codazzi","Astrea","Becerril","Bosconia","Chimichagua",
+    "Chiriguaná","Curumaní","El Copey","El Paso","Gamarra","González","La Gloria","La Jagua de Ibirico",
+    "La Paz","Manaure","Pailitas","Pelaya","Pueblo Bello","Río de Oro","San Alberto","San Diego",
+    "San Martín","Tamalameque"
+  ].sort(),
+  "Chocó": [
+    "Quibdó","Acandí","Alto Baudó","Atrato","Bagadó","Bahía Solano","Bajo Baudó","Bojayá",
+    "Carmen del Darién","Cértegui","Condoto","El Carmen de Atrato","El Litoral del San Juan",
+    "Istmina","Juradó","Lloró","Medio Atrato","Medio Baudó","Medio San Juan","Nóvita","Nuquí",
+    "Río Iro","Río Quito","Riosucio","San José del Palmar","Sipí","Tadó","Unguía","Unión Panamericana"
+  ].sort(),
+  "Córdoba": [
+    "Montería","Ayapel","Buenavista","Canalete","Cereté","Chimá","Chinú","Ciénaga de Oro",
+    "Cotorra","La Apartada","Lorica","Los Córdobas","Momil","Montelíbano","Moñitos","Planeta Rica",
+    "Pueblo Nuevo","Puerto Escondido","Puerto Libertador","Purísima","Sahagún","San Andrés de Sotavento",
+    "San Antero","San Bernardo del Viento","San Carlos","San José de Uré","San Pelayo",
+    "Santa Cruz de Lorica","Tierralta","Tuchín","Valencia"
+  ].sort(),
+  "Cundinamarca": [
+    "Agua de Dios","Albán","Anapoima","Anolaima","Apulo","Arbeláez","Beltrán","Bituima",
+    "Bogotá D.C.","Bojacá","Cabrera","Cachipay","Cajicá","Caparrapí","Cáqueza","Carmen de Carupa",
+    "Chaguaní","Chía","Chipaque","Choachí","Chocontá","Cogua","Cota","Cucunubá","El Colegio",
+    "El Peñón","El Rosal","Facatativá","Fomeque","Fosca","Funza","Fúquene","Fusagasugá",
+    "Gachalá","Gachancipá","Gachetá","Gama","Girardot","Granada","Guachetá","Guasca","Guatavita",
+    "Guayabal de Síquima","Guayabetal","Gutiérrez","Jerusalén","Junín","La Calera","La Mesa",
+    "La Palma","La Peña","La Vega","Lenguazaque","Machetá","Madrid","Manta","Medina","Mosquera",
+    "Nariño","Nemocón","Nilo","Nimaima","Nocaima","Venecia","Pacho","Paime","Pandi","Paratebueno",
+    "Pasca","Puerto Salgar","Pulí","Quebradanegra","Quetame","Quipile","Ricaurte","San Antonio del Tequendama",
+    "San Bernardo","San Cayetano","San Francisco","San Juan de Rioseco","Sasaima","Sesquilé",
+    "Sibaté","Silvania","Simijaca","Soacha","Sopó","Subachoque","Suesca","Supatá","Susa",
+    "Sutatausa","Tabio","Tausa","Tena","Tenjo","Tibacuy","Tibirita","Tocaima","Tocancipá",
+    "Topaipí","Ubalá","Ubaque","Une","Útica","Vergara","Vianí","Villagómez","Villapinzón",
+    "Villeta","Viotá","Yacopí","Zipacón","Zipaquirá"
+  ].sort(),
+  "Guainía": [
+    "Inírida","Barranco Minas","Cacahual","La Guadalupe","Mapiripana","Morichal","Pana Pana",
+    "Puerto Colombia","San Felipe"
+  ].sort(),
+  "Guaviare": [
+    "San José del Guaviare","Calamar","El Retorno","Miraflores"
+  ].sort(),
+  "Huila": [
+    "Neiva","Acevedo","Agrado","Aipe","Algeciras","Altamira","Baraya","Campoalegre",
+    "Colombia","Elías","Garzón","Gigante","Guadalupe","Hobo","Iquira","Isnos","La Argentina",
+    "La Plata","Nátaga","Oporapa","Paicol","Palermo","Palestina","Pital","Pitalito",
+    "Rivera","Saladoblanco","San Agustín","Santa María","Suaza","Tarqui","Tesalia","Tello",
+    "Teruel","Timaná","Villavieja","Yaguará"
+  ].sort(),
+  "La Guajira": [
+    "Riohacha","Albania","Barrancas","Dibulla","Distracción","El Molino","Fonseca","Hatonuevo",
+    "La Jagua del Pilar","Maicao","Manaure","San Juan del Cesar","Uribia","Urumita","Villanueva"
+  ].sort(),
+  "Magdalena": [
+    "Santa Marta","Algarrobo","Aracataca","Ariguaní","Cerro de San Antonio","Chivolo","Ciénaga",
+    "Concordia","El Banco","El Piñón","El Retén","Fundación","Guamal","Nueva Granada","Pedraza",
+    "Pijiño del Carmen","Pivijay","Plato","Puebloviejo","Remolino","Sabanas de San Ángel",
+    "Salamina","San Sebastián de Buenavista","San Zenón","Santa Ana","Santa Bárbara de Pinto",
+    "Sitionuevo","Tenerife","Zapayán","Zona Bananera"
+  ].sort(),
+  "Meta": [
+    "Villavicencio","Acacías","Barranca de Upía","Cabuyaro","Castilla la Nueva","Cubarral",
+    "Cumaral","El Calvario","El Castillo","El Dorado","Fuente de Oro","Granada","Guamal",
+    "La Macarena","La Uribe","Lejanías","Mapiripán","Mesetas","Puerto Concordia","Puerto Gaitán",
+    "Puerto Lleras","Puerto López","Puerto Rico","Restrepo","San Carlos de Guaroa","San Juan de Arama",
+    "San Juanito","San Martín","Vistahermosa"
+  ].sort(),
+  "Nariño": [
+    "Pasto","Albán","Aldana","Ancuyá","Arboleda","Barbacoas","Belén","Buesaco","Chachagüí",
+    "Colón","Consacá","Contadero","Córdoba","Cuaspud","Cumbal","Cumbitara","El Charco",
+    "El Peñol","El Rosario","El Tablón de Gómez","El Tambo","Francisco Pizarro","Funes",
+    "Guachucal","Guaitarilla","Gualmatán","Iles","Imués","Ipiales","La Cruz","La Florida",
+    "La Llanada","La Tola","La Unión","Leiva","Linares","Los Andes","Magüí","Mallama",
+    "Mosquera","Nariño","Olaya Herrera","Ospina","Policarpa","Potosí","Providencia","Puerres",
+    "Pupiales","Ricaurte","Roberto Payán","Samaniego","San Bernardo","San Lorenzo","San Pablo",
+    "San Pedro de Cartago","Sandoná","Santa Bárbara","Santacruz","Sapuyes","Taminango",
+    "Tangua","Tumaco","Túquerres","Yacuanquer"
+  ].sort(),
+  "Norte de Santander": [
+    "Cúcuta","Ábrego","Arboledas","Bochalema","Bucarasica","Cácota","Cáchira","Chinácota",
+    "Chitagá","Convención","Cucutilla","Durania","El Carmen","El Tarra","El Zulia","Gramalote",
+    "Hacarí","Herrán","La Esperanza","La Playa","Labateca","Los Patios","Lourdes","Mutiscua",
+    "Ocaña","Pamplona","Pamplonita","Puerto Santander","Ragonvalia","Salazar","San Calixto",
+    "San Cayetano","Santiago","Sardinata","Silos","Teorama","Tibú","Toledo","Villa Caro",
+    "Villa del Rosario"
+  ].sort(),
+  "Putumayo": [
+    "Mocoa","Colón","Orito","Puerto Asís","Puerto Caicedo","Puerto Guzmán","Puerto Leguízamo",
+    "San Francisco","San Miguel","Santiago","Sibundoy","Valle del Guamuez","Villagarzón"
+  ].sort(),
+  "Quindío": [
+    "Armenia","Buenavista","Calarcá","Circasia","Córdoba","Filandia","Génova","La Tebaida",
+    "Montenegro","Pijao","Quimbaya","Salento"
+  ].sort(),
+  "Risaralda": [
+    "Pereira","Apía","Balboa","Belén de Umbría","Dosquebradas","Guática","La Celia",
+    "La Virginia","Marsella","Mistrató","Pueblo Rico","Quinchía","Santa Rosa de Cabal","Santuario"
+  ].sort(),
+  "San Andrés y Providencia": [
+    "San Andrés","Providencia","Santa Catalina"
+  ].sort(),
+  "Santander": [
+    "Bucaramanga","Aguada","Albania","Aratoca","Barbosa","Barichara","Barrancabermeja",
+    "Betulia","Bolívar","Cabrera","California","Capitanejo","Carcasí","Cepitá","Cerrito",
+    "Charalá","Charta","Chima","Chipatá","Cimitarra","Concepción","Confines","Contratación",
+    "Coromoro","Curití","El Carmen de Chucurí","El Guacamayo","El Peñón","El Playón","Encino",
+    "Enciso","Florián","Floridablanca","Galán","Gámbita","Girón","Guacamayo","Guapotá",
+    "Guavatá","Güepsa","Hato","Jesús María","Jordán","La Belleza","La Paz","Landázuri",
+    "Lebrija","Los Santos","Macaravita","Málaga","Matanza","Mogotes","Molagavita","Ocamonte",
+    "Oiba","Onzaga","Palmar","Palmas del Socorro","Páramo","Piedecuesta","Pinchote","Puente Nacional",
+    "Puerto Parra","Puerto Wilches","Rionegro","Sabana de Torres","San Andrés","San Benito",
+    "San Gil","San Joaquín","San José de Miranda","San Miguel","San Vicente de Chucurí",
+    "Santa Bárbara","Santa Helena del Opón","Simacota","Socorro","Suaita","Sucre","Suratá",
+    "Tona","Valle de San José","Vélez","Vetas","Villanueva","Zapatoca"
+  ].sort(),
+  "Sucre": [
+    "Sincelejo","Buenavista","Caimito","Coloso","Corozal","Coveñas","Chalán","El Roble",
+    "Galeras","Guaranda","La Unión","Los Palmitos","Majagual","Morroa","Ovejas","Palmito",
+    "Sampués","San Benito Abad","San Juan de Betulia","San Marcos","San Onofre","San Pedro",
+    "Santiago de Tolú","Sincé","Sucre","Tolú Viejo"
+  ].sort(),
+  "Tolima": [
+    "Ibagué","Alpujarra","Alvarado","Ambalema","Anzoátegui","Armero","Ataco","Cajamarca",
+    "Carmen de Apicalá","Casabianca","Chaparral","Coello","Coyaima","Cunday","Dolores",
+    "Espinal","Falan","Flandes","Fresno","Guamo","Herveo","Honda","Icononzo","Lérida",
+    "Líbano","Mariquita","Melgar","Murillo","Natagaima","Ortega","Palocabildo","Piedras",
+    "Planadas","Prado","Purificación","Rioblanco","Roncesvalles","Rovira","Saldaña",
+    "San Antonio","San Luis","Santa Isabel","Suárez","Valle de San Juan","Venadillo",
+    "Villahermosa","Villarrica"
+  ].sort(),
+  "Valle del Cauca": [
+    "Cali","Alcalá","Andalucía","Ansermanuevo","Argelia","Bolívar","Buenaventura","Buga",
+    "Bugalagrande","Caicedonia","Calima","Candelaria","Cartago","Dagua","El Águila",
+    "El Cairo","El Cerrito","El Dovio","El Líbano","Florida","Ginebra","Guacarí","Jamundí",
+    "La Cumbre","La Unión","La Victoria","Obando","Palmira","Pradera","Restrepo","Riofrío",
+    "Roldanillo","San Pedro","Sevilla","Toro","Trujillo","Tuluá","Ulloa","Versalles",
+    "Vijes","Yotoco","Yumbo","Zarzal"
+  ].sort(),
+  "Vaupés": [
+    "Mitú","Carurú","Pacoa","Papunaua","Taraira","Yavaraté"
+  ].sort(),
+  "Vichada": [
+    "Puerto Carreño","Cumaribo","La Primavera","Santa Rosalía"
+  ].sort()
+};
 
-const $=id=>document.getElementById(id);
-let gh={token:'',repo:''};
-let fbUrl='';
-let mode='servicios';
-let candidates=[];
-let candIndex=0;
-let source={}; // {kind:'github'|'firebase', path, sha, isWrapped, wrapKey, rawParsed, arr, nodeKey}
-let fields={idField:'',nameField:'',imageField:'',catField:''};
-let queue=[],currentIndex=0,updatedCount=0;
+// ========== VERSION (automática) ==========
+// Esta fecha se actualiza automáticamente con cada deploy a GitHub Pages
+// usando el meta tag de last-modified del documento
+const APP_VERSION = (() => {
+  const lm = document.lastModified;
+  const d  = new Date(lm);
+  const pad = n => String(n).padStart(2,'0');
+  return `v${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+})();
 
-// ---------- persisted setup ----------
-$('tokenInput').value=localStorage.getItem('pyc_gh_token')||'';
-$('repoInput').value=localStorage.getItem('pyc_gh_repo')||'amvmendez/pyc-starlink';
-$('fbInput').value=localStorage.getItem('pyc_fb_url')||'https://inventarioyfinanzas-default-rtdb.firebaseio.com';
+window.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('appVersionDisplay');
+  const hv = document.getElementById('headerVersion');
+  if (el) el.textContent = APP_VERSION;
+  if (hv) hv.textContent = APP_VERSION;
 
-document.querySelectorAll('.mode-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    mode=btn.dataset.mode;
-  });
+  const STORED_VERSION = localStorage.getItem('pyc_app_version');
+  if (STORED_VERSION && STORED_VERSION !== APP_VERSION) {
+    setTimeout(() => showToast(`🆕 Nueva versión: ${APP_VERSION}`, 'blue'), 2500);
+  }
+  localStorage.setItem('pyc_app_version', APP_VERSION);
 });
 
-$('connectBtn').addEventListener('click', startDiscovery);
-$('backToSetupBtn').addEventListener('click', ()=>{ $('discovery').classList.add('hidden'); $('setup').classList.remove('hidden'); });
-$('switchModeBtn').addEventListener('click', resetToSetup);
-$('switchModeBtn2').addEventListener('click', resetToSetup);
+// ========== STATE ==========
+let db = JSON.parse(localStorage.getItem('pyc_starlink_db') || '{}');
+function genKey(dept,muni){ return `${dept}__${muni}`; }
+function saveDB(){ localStorage.setItem('pyc_starlink_db', JSON.stringify(db)); }
 
-function resetToSetup(){
-  $('app').classList.add('hidden');
-  $('doneScreen').classList.add('hidden');
-  $('discovery').classList.add('hidden');
-  $('jumpPanel').classList.add('hidden');
-  manualOverride=null;
-  $('setup').classList.remove('hidden');
-}
+// ========== INIT SELECTS ==========
+const deptSel = document.getElementById('deptSelect');
+const muniSel = document.getElementById('muniSelect');
+const formatBox = document.getElementById('formatBox');
+const formatTxt = document.getElementById('formatText');
+const copyBtn   = document.getElementById('copyBtn');
+const saveBtn   = document.getElementById('saveBtn');
 
-function setStat(id,msg,cls){ const el=$(id); el.textContent=msg; el.className='status'+(cls?(' '+cls):''); }
+Object.keys(DEPTS).sort().forEach(d => {
+  const o = document.createElement('option');
+  o.value = d; o.textContent = d;
+  deptSel.appendChild(o);
+});
 
-function looksLikeCatalog(obj){
-  if(!obj || typeof obj!=='object') return false;
-  const keys=Object.keys(obj).map(k=>k.toLowerCase());
-  const hasName=keys.some(k=>['name','nombre','titulo','title'].some(c=>k.includes(c)));
-  return hasName;
-}
-function detectFields(sample){
-  const keys=Object.keys(sample);
-  const find=cands=>keys.find(k=>cands.some(c=>k.toLowerCase().includes(c)));
-  return {
-    idField: find(['id'])||keys[0],
-    nameField: find(['name','nombre','titulo','title'])||keys[0],
-    imageField: find(['image','imagen','img','foto','photo'])||null,
-    catField: find(['categor','category'])||null
-  };
-}
+deptSel.addEventListener('change', () => populateMunis());
 
-async function ghApi(path, opts={}){
-  const res = await fetch(`https://api.github.com/repos/${gh.repo}/${path}`, {
-    ...opts,
-    headers:{ Authorization:`Bearer ${gh.token}`, Accept:'application/vnd.github+json', ...(opts.headers||{}) }
-  });
-  return res;
-}
-
-// ---------- discovery ----------
-async function connectFixedFirebasePath(relativePath){
-  const base = new URL(fbUrl).origin;
-  let path = relativePath;
-  let res = await fetch(`${base}/${path}.json`);
-  let data = res.ok ? await res.json() : null;
-  if(!data){
-    // la ruta exacta no existe; probamos un nivel más arriba por si acaso
-    const parentPath = path.split('/').slice(0,-1).join('/');
-    if(parentPath){
-      const res2 = await fetch(`${base}/${parentPath}.json`);
-      if(res2.ok){ const d2 = await res2.json(); if(d2){ path=parentPath; data=d2; } }
-    }
-  }
-  if(!data) throw new Error('No encontré datos en esa ruta ni un nivel arriba. Puede que el nombre exacto sea distinto.');
-
-  let keys = Object.keys(data);
-  const firstLooksRight = keys.length && data[keys[0]] && typeof data[keys[0]]==='object' && looksLikeCatalog(data[keys[0]]);
-  if(!firstLooksRight && keys.length===1 && data[keys[0]] && typeof data[keys[0]]==='object'){
-    // parece haber una capa extra envolviendo el catálogo real; entramos un nivel más
-    path = `${path}/${keys[0]}`;
-    data = data[keys[0]];
-    keys = Object.keys(data);
-  }
-
-  const entries = Object.entries(data).map(([k,v])=>({...v, __fbKey:k}));
-  const parts = path.split('/');
-  source={kind:'firebase', nodeKey:parts[parts.length-1], nodeBase: parts.slice(0,-1).join('/'), originBase: base, arr:entries};
-  fields = detectFields(entries[0]);
-  fields.idField='__fbKey';
-  if(!fields.imageField) fields.imageField='foto';
-  buildQueue();
-  setStat('setupStatus','','');
-  $('jumpPanel').classList.remove('hidden');
-  $('app').classList.remove('hidden');
-  renderCurrent();
-}
-
-async function startDiscovery(){
-  gh.token=$('tokenInput').value.trim();
-  gh.repo=$('repoInput').value.trim();
-  fbUrl=$('fbInput').value.trim().replace(/\/$/,'');
-  if(!gh.token){ setStat('setupStatus','Falta el token de GitHub.','err'); return; }
-  localStorage.setItem('pyc_gh_token',gh.token);
-  localStorage.setItem('pyc_gh_repo',gh.repo);
-  localStorage.setItem('pyc_fb_url',fbUrl);
-
-  setStat('setupStatus','Buscando...','');
-  $('setupDiagnostic').innerHTML='';
-  try{
-    if(mode==='licencias'){
-      await connectFixedFirebasePath('inventario_licencias/licencias');
-      return;
-    }
-    if(mode==='productos'){
-      candidates = await buildCandidatesFromPaths(['inventario_starlink/accesorios','inventario_starlink/entradasAccesorios']);
-      if(!candidates.length){ setStat('setupStatus','No pude leer ninguna de las dos rutas conocidas. Revisa la conexión.','err'); return; }
-      candIndex=0;
-      showCandidate();
-      setStat('setupStatus','','');
-      $('setup').classList.add('hidden');
-      $('discovery').classList.remove('hidden');
-      return;
-    }
-    candidates = await discoverGithubFiles();
-    if(!candidates.length){
-      setStat('setupStatus','No encontré nada que reconociera como catálogo. Mira abajo qué encontré, y mándame un pantallazo de esto:','err');
-      $('setupDiagnostic').innerHTML = renderDiagnostic();
-      return;
-    }
-    candIndex=0;
-    showCandidate();
-    setStat('setupStatus','','');
-    $('setup').classList.add('hidden');
-    $('discovery').classList.remove('hidden');
-  }catch(err){
-    setStat('setupStatus','Error: '+err.message,'err');
-  }
-}
-
-async function discoverGithubFiles(){
-  const found=[];
-  async function scanDir(dirPath){
-    const res = await ghApi(`contents/${dirPath}`);
-    if(!res.ok) return;
-    const list = await res.json();
-    if(!Array.isArray(list)) return;
-    for(const item of list){
-      if(item.type==='file' && item.name.endsWith('.json')){
-        try{
-          const fres = await ghApi(`contents/${item.path}`);
-          const fdata = await fres.json();
-          const content = decodeURIComponent(escape(atob(fdata.content)));
-          const parsed = JSON.parse(content);
-          let arr=null, wrapKey=null;
-          if(Array.isArray(parsed)) arr=parsed;
-          else { for(const k of ['services','servicios','products','productos','items']){ if(Array.isArray(parsed[k])){arr=parsed[k]; wrapKey=k; break;} } }
-          const nameLooksRight = /servic/i.test(item.path);
-          if(arr && (arr.length===0 ? nameLooksRight : looksLikeCatalog(arr[0]))){
-            found.push({kind:'github', path:item.path, sha:fdata.sha, rawParsed:parsed, isWrapped:!!wrapKey, wrapKey, arr, count:arr.length, sample:arr.slice(0,2)});
-          }
-        }catch(e){/* skip unreadable file */}
-      }
-    }
-  }
-  await scanDir('data');
-  await scanDir(''); // also check root, in case files live there
-  // prioritize filenames/paths that look service-related
-  found.sort((a,b)=>{
-    const score=c=>/servic/i.test(c.path)?0:1;
-    return score(a)-score(b);
-  });
-  return found;
-}
-
-let lastDiagnostic=null;
-
-async function buildCandidatesFromPaths(paths){
-  const out=[];
-  async function shallowKeys(path){
-    const res = await fetch(`${fbUrl}/${path}.json?shallow=true`);
-    if(!res.ok) return null;
-    const data = await res.json();
-    if(!data || typeof data!=='object') return null;
-    return Object.keys(data);
-  }
-  for(const path of paths){
-    try{
-      const keys = await shallowKeys(path);
-      if(!keys || !keys.length) continue;
-      const sampleRes = await fetch(`${fbUrl}/${path}/${keys[0]}.json`);
-      if(!sampleRes.ok) continue;
-      const sample = await sampleRes.json();
-      out.push({kind:'firebase', nodeKey:path, count:keys.length, sample:[sample]});
-    }catch(e){ /* se ignora esta ruta si falla */ }
-  }
-  return out;
-}
-
-async function discoverFirebaseNodes(){
-  const found=[];
-  const diag=[];
-  const MAX_DEPTH=3;
-
-  async function shallowKeys(path){
-    const url = path ? `${fbUrl}/${path}.json?shallow=true` : `${fbUrl}/.json?shallow=true`;
-    const res = await fetch(url);
-    if(!res.ok) return null;
-    const data = await res.json();
-    if(!data || typeof data!=='object') return null;
-    return Object.keys(data);
-  }
-  async function fetchTiny(path){
-    const res = await fetch(`${fbUrl}/${path}.json`);
-    if(!res.ok) return null;
-    return res.json();
-  }
-
-  async function explore(path, depth){
-    const childKeys = await shallowKeys(path);
-    if(!childKeys){ diag.push({key:path||'(raíz)', note:'vacío o no es una lista'}); return; }
-    if(!childKeys.length){ diag.push({key:path||'(raíz)', note:'vacío'}); return; }
-    if(depth>=MAX_DEPTH){ diag.push({key:path, note:`${childKeys.length} elementos (no revisé más profundo)`}); return; }
-
-    let anyMatch=false;
-    for(const ck of childKeys.slice(0,20)){
-      const childPath = path ? `${path}/${ck}` : ck;
-      const grandKeys = await shallowKeys(childPath);
-      if(!grandKeys || !grandKeys.length) continue; // valor suelto, no una colección
-      const leaf = await fetchTiny(`${childPath}/${grandKeys[0]}`);
-      if(leaf && typeof leaf==='object' && looksLikeCatalog(leaf)){
-        anyMatch=true;
-        const fieldsSample = Object.entries(leaf).map(([k,v])=>{
-          let vs = typeof v==='object' ? JSON.stringify(v) : String(v);
-          if(vs.length>25) vs = vs.slice(0,25)+'…';
-          return `${k}: ${vs}`;
-        }).join(' · ');
-        diag.push({key:childPath, note:`${grandKeys.length} elementos`, values:fieldsSample});
-        found.push({kind:'firebase', nodeKey:childPath, count:grandKeys.length, sample:[leaf]});
-      } else {
-        // no es catálogo directo; puede que haya otra capa envolviendo adentro
-        await explore(childPath, depth+1);
-      }
-    }
-  }
-
-  await explore('', 0);
-  lastDiagnostic=diag;
-  found.sort((a,b)=>{
-    const score=k=>/(accesor|product|invent|licenc)/i.test(k)?0:1;
-    return score(a.nodeKey||'')-score(b.nodeKey||'');
-  });
-  return found;
-}
-
-function renderDiagnostic(){
-  if(!lastDiagnostic) return '';
-  const rows = lastDiagnostic.map(d=>`<div style="margin-top:10px;"><b>${d.key}</b><br><span style="color:var(--sub);font-size:.78rem;">${d.note||''}</span>${d.values?`<br><span style="color:var(--text);font-size:.76rem;word-break:break-all;">${d.values}</span>`:''}</div>`).join('');
-  return `<div class="candidate"><div class="path">Esto encontré dentro de tu base de datos (un elemento de ejemplo por sección):</div>${rows}</div>`;
-}
-
-function showCandidate(){
-  const c=candidates[candIndex];
-  const box=$('candidateBox');
-  if(!c){ box.innerHTML='<div class="status err">No hay más opciones para probar.</div>'; return; }
-  if(!c.sample || !c.sample.length){
-    box.innerHTML = `<div class="candidate"><div class="path">${c.kind==='github' ? c.path : 'Firebase: /'+c.nodeKey}</div><div class="count">Todavía no tiene elementos guardados — está vacío por ahora.</div></div>`;
+function populateMunis() {
+  const dept = deptSel.value;
+  muniSel.innerHTML = '';
+  if (!dept) {
+    muniSel.disabled = true;
+    muniSel.innerHTML = '<option value="">— Primero elige un departamento —</option>';
+    formatBox.classList.remove('show');
+    saveBtn.disabled = true;
     return;
   }
-  const f = detectFields(c.sample[0]);
-  const names = c.sample.map(s=>s[f.nameField]).filter(Boolean).join(', ');
-  box.innerHTML = `
-    <div class="candidate">
-      <div class="path">${c.kind==='github' ? c.path : 'Firebase: /'+c.nodeKey}</div>
-      <div class="count">${c.count} elementos</div>
-      <div class="sample">Ejemplo: ${names || '(sin nombre detectado)'}</div>
-    </div>`;
+  // Filter out municipalities already in the DB (any status)
+  const registered = new Set(
+    Object.values(db)
+      .filter(r => r.dept === dept)
+      .map(r => r.muni)
+  );
+  const available = DEPTS[dept].filter(m => !registered.has(m));
+
+  muniSel.disabled = false;
+  const ph = document.createElement('option');
+  ph.value = ''; ph.textContent = available.length
+    ? `— Seleccionar municipio (${available.length} disponibles) —`
+    : '— Todos los municipios ya registrados —';
+  muniSel.appendChild(ph);
+
+  if (available.length === 0) {
+    muniSel.disabled = true;
+    formatBox.classList.remove('show');
+    saveBtn.disabled = true;
+    return;
+  }
+  available.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    muniSel.appendChild(o);
+  });
 }
 
-$('nextCandidateBtn').addEventListener('click', ()=>{
-  candIndex++;
-  if(candIndex>=candidates.length){ candIndex=candidates.length-1; setStat('discoveryStatus','Ya no hay más opciones.','err'); return; }
-  showCandidate();
-});
+muniSel.addEventListener('change', updateFormat);
 
-$('confirmBtn').addEventListener('click', async ()=>{
-  const c=candidates[candIndex];
-  if(!c) return;
-  if(c.kind==='github'){
-    source={kind:'github', path:c.path, sha:c.sha, rawParsed:c.rawParsed, isWrapped:c.isWrapped, wrapKey:c.wrapKey, arr:c.arr};
-    fields = c.arr.length ? detectFields(c.arr[0]) : {idField:'id', nameField:'name', imageField:'image', catField:null};
+function updateFormat(){
+  const dept = deptSel.value;
+  const muni = muniSel.value;
+  if(dept && muni){
+    formatTxt.textContent = `${muni}, ${dept}, Colombia`;
+    formatBox.classList.add('show');
+    saveBtn.disabled = false;
   } else {
-    // load full node
-    const res = await fetch(`${fbUrl}/${c.nodeKey}.json`);
-    const fullData = await res.json();
-    const entries = Object.entries(fullData).map(([k,v])=>({...v, __fbKey:k}));
-    source={kind:'firebase', nodeKey:c.nodeKey, nodeBase:'', originBase:fbUrl, arr:entries};
-    fields = detectFields(entries[0]);
-    fields.idField='__fbKey';
-    if(!fields.imageField) fields.imageField='foto';
+    formatBox.classList.remove('show');
+    saveBtn.disabled = true;
   }
-  buildQueue();
-  $('discovery').classList.add('hidden');
-  $('jumpPanel').classList.remove('hidden');
-  $('app').classList.remove('hidden');
-  renderCurrent();
-});
-
-// ---------- queue ----------
-function progressKey(){ return `pyc_photo_progress_${mode}_${source.kind==='github'?source.path:source.nodeKey}`; }
-
-function buildQueue(){
-  const progress = JSON.parse(localStorage.getItem(progressKey()) || '{"reviewed":[],"updated":0}');
-  updatedCount = progress.updated||0;
-  const reviewedSet = new Set(progress.reviewed||[]);
-  queue = source.arr.filter(p=>!reviewedSet.has(String(p[fields.idField])));
-  currentIndex=0;
 }
-function saveProgress(markId){
-  const progress = JSON.parse(localStorage.getItem(progressKey()) || '{"reviewed":[],"updated":0}');
-  if(markId!==undefined && !progress.reviewed.includes(String(markId))) progress.reviewed.push(String(markId));
-  progress.updated=updatedCount;
-  localStorage.setItem(progressKey(), JSON.stringify(progress));
-}
-let manualOverride=null;
 
-$('jumpSearchInput').addEventListener('input', ()=>{
-  const q = $('jumpSearchInput').value.trim().toLowerCase();
-  const box = $('jumpResults');
-  if(!q){ box.innerHTML=''; return; }
-  const matches = source.arr.filter(p=> String(p[fields.nameField]||'').toLowerCase().includes(q)).slice(0,8);
-  box.innerHTML = matches.map((p,i)=>`<div class="candidate" style="cursor:pointer;margin-top:8px;" data-jidx="${i}">${p[fields.nameField]}</div>`).join('') || '<div class="status" style="margin-top:8px;">Sin resultados</div>';
-  box.querySelectorAll('[data-jidx]').forEach((el,i)=>{
-    el.addEventListener('click', ()=>{
-      manualOverride = matches[i];
-      $('jumpSearchInput').value='';
-      box.innerHTML='';
-      $('doneScreen').classList.add('hidden');
-      $('app').classList.remove('hidden');
-      renderCurrent();
-    });
-  });
-});
+copyBtn.addEventListener('click', () => {
+  const text = formatTxt.textContent;
+  let success = false;
 
-function currentProduct(){ return manualOverride || queue[currentIndex]; }
-
-function renderCurrent(){
-  const total=source.arr.length;
-  const doneCount = total - queue.length + currentIndex;
-  $('progressFill').style.width = total? `${(doneCount/total)*100}%`:'0%';
-  $('progressText').textContent = `${doneCount} / ${total}`;
-  $('updatedText').textContent = `${updatedCount} actualizadas`;
-
-  if(!manualOverride && currentIndex>=queue.length){
-    $('app').classList.add('hidden');
-    $('doneScreen').classList.remove('hidden');
+  // Method 1: modern clipboard API (works on HTTPS / localhost)
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      flashCopied();
+    }).catch(() => fallbackCopy(text));
     return;
   }
-  const p=currentProduct();
-  $('prodName').textContent = (p[fields.nameField] || '(sin nombre)') + (manualOverride ? ' ✏️' : '');
-  $('prodCat').textContent = fields.catField ? (p[fields.catField]||'General') : (mode==='servicios'?'Servicio':'Producto');
-  $('currentImg').src = fields.imageField ? (p[fields.imageField]||'') : '';
-  $('newImg').src=''; $('newBox').classList.add('empty');
-  $('urlInput').value=''; setStat('status','','');
+
+  // Method 2: execCommand fallback (works on local files)
+  fallbackCopy(text);
+});
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    flashCopied();
+  } catch(e) {
+    copyBtn.textContent = '⚠ No se pudo copiar';
+    setTimeout(() => { copyBtn.textContent = '⎘ Copiar al portapapeles'; }, 2000);
+  }
+  document.body.removeChild(ta);
 }
 
-$('searchBtn').addEventListener('click', ()=>{
-  const p=currentProduct(); if(!p) return;
-  const q=encodeURIComponent(`${p[fields.nameField]} accesorio`);
-  window.open(`https://www.google.com/search?tbm=isch&q=${q}`,'_blank');
-});
-
-$('pasteBtn').addEventListener('click', async ()=>{
-  try{ const text=await navigator.clipboard.readText(); $('urlInput').value=text.trim(); updatePreview(); }
-  catch(e){ setStat('status','No pude leer el portapapeles, pega manualmente.','err'); }
-});
-$('urlInput').addEventListener('input', updatePreview);
-function updatePreview(){
-  const url=$('urlInput').value.trim();
-  $('newImg').src=url;
-  $('newBox').classList.toggle('empty', !url);
+function flashCopied() {
+  copyBtn.textContent = '✓ ¡Copiado!';
+  copyBtn.classList.add('copied');
+  setTimeout(() => {
+    copyBtn.textContent = '⎘ Copiar al portapapeles';
+    copyBtn.classList.remove('copied');
+  }, 2000);
 }
 
-$('autoHostBtn').addEventListener('click', async ()=>{
-  const url=$('urlInput').value.trim();
-  if(!url){ setStat('status','Primero pega un link de foto arriba.','err'); return; }
-  setStat('status','Descargando la foto desde el link...','');
-  try{
-    const imgRes = await fetch(url, {mode:'cors'});
-    if(!imgRes.ok) throw new Error(`El sitio respondió ${imgRes.status}`);
-    const blob = await imgRes.blob();
-    if(!blob.type.startsWith('image/')) throw new Error('Lo que devolvió no parece una imagen.');
-    setStat('status','Subiendo a tu repositorio...','');
-    const finalUrl = await uploadImageToGithub(blob);
-    $('urlInput').value = finalUrl;
-    updatePreview();
-    setStat('status','¡Copiada a tu repositorio! Ahora toca Guardar.','ok');
-  }catch(err){
-    setStat('status','Ese sitio no permite copiarla automático (bloqueo anti-robo). Descárgala tú y usa "📁 Foto guardada".','err');
+// ========== PRICE CHIPS ==========
+function setupChips(containerId, hiddenInputId) {
+  const container = document.getElementById(containerId);
+  const hidden    = document.getElementById(hiddenInputId);
+  container.addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    container.querySelectorAll('.chip').forEach(c => c.className = 'chip');
+    const val = chip.dataset.value;
+    if (val === '0') {
+      chip.classList.add('selected-none');
+      hidden.value = '0';
+    } else {
+      chip.classList.add('selected');
+      hidden.value = val;
+    }
+  });
+}
+setupChips('chipsMini', 'priceMini');
+setupChips('chipsV4',   'priceV4');
+
+function resetChips() {
+  ['chipsMini','chipsV4'].forEach(id => {
+    document.getElementById(id).querySelectorAll('.chip').forEach(c => c.className = 'chip');
+  });
+  document.getElementById('priceMini').value = '';
+  document.getElementById('priceV4').value   = '';
+}
+
+function setChips(containerId, hiddenInputId, value) {
+  const container = document.getElementById(containerId);
+  const hidden    = document.getElementById(hiddenInputId);
+  container.querySelectorAll('.chip').forEach(c => c.className = 'chip');
+  const chip = container.querySelector(`[data-value="${value}"]`);
+  if (chip) {
+    chip.classList.add(value === '0' ? 'selected-none' : 'selected');
+    hidden.value = String(value);
   }
+}
+saveBtn.addEventListener('click', () => {
+  const dept    = deptSel.value;
+  const muni    = muniSel.value;
+  const miniVal = document.getElementById('priceMini').value;
+  const v4Val   = document.getElementById('priceV4').value;
+  if (!dept || !muni) return;
+  const mini = miniVal === '' ? 0 : parseFloat(miniVal);
+  const v4   = v4Val   === '' ? 0 : parseFloat(v4Val);
+  const key  = genKey(dept, muni);
+  db[key] = { dept, muni, mini, v4, status:'done', ts: new Date().toISOString() };
+  saveDB();
+  renderAll();
+  showToast('✓ Guardado: ' + muni, 'green');
+  if (getConfig().endpointId) cloudPush();
+  // reset form
+  deptSel.value = '';
+  muniSel.innerHTML = '<option value="">— Primero elige un departamento —</option>';
+  muniSel.disabled = true;
+  formatBox.classList.remove('show');
+  saveBtn.disabled = true;
+  resetChips();
 });
 
-$('pickFileBtn').addEventListener('click', ()=> $('fileInput').click());
-$('fileInput').addEventListener('change', async (e)=>{
-  const file=e.target.files[0];
-  if(!file) return;
-  setStat('status','Subiendo foto...','');
-  try{
-    const url = await uploadImageToGithub(file);
-    $('urlInput').value=url;
-    updatePreview();
-    setStat('status','Foto subida. Toca Guardar para aplicarla.','ok');
-  }catch(err){
-    setStat('status','Error al subir: '+err.message,'err');
-  }
+// ========== RENDER LISTS ==========
+let currentTab = 'pending';
+let searchQuery = '';
+
+function switchTab(tab){
+  currentTab = tab;
+  document.getElementById('tabPending').className = 'tab' + (tab==='pending' ? ' active pending' : '');
+  document.getElementById('tabDone').className    = 'tab' + (tab==='done'    ? ' active done'    : '');
+  document.getElementById('tabMap').className     = 'tab' + (tab==='map'     ? ' active map'     : '');
+  document.getElementById('listPending').style.display = tab==='pending' ? 'block' : 'none';
+  document.getElementById('listDone').style.display    = tab==='done'    ? 'flex'  : 'none';
+  document.getElementById('listMap').style.display     = tab==='map'     ? 'block' : 'none';
+  if (tab === 'map') renderMap();
+}
+
+// ========== SEARCH ==========
+document.getElementById('searchInput').addEventListener('input', function() {
+  searchQuery = this.value.trim().toLowerCase();
+  document.getElementById('searchClear').style.display = searchQuery ? 'block' : 'none';
+  renderAll();
+});
+document.getElementById('searchClear').addEventListener('click', function() {
+  document.getElementById('searchInput').value = '';
+  searchQuery = '';
+  this.style.display = 'none';
+  renderAll();
 });
 
-async function resizeImage(file, maxW=1200){
-  return new Promise((resolve,reject)=>{
-    const img=new Image();
-    const reader=new FileReader();
-    reader.onload=e=>{ img.src=e.target.result; };
-    reader.onerror=reject;
-    img.onload=()=>{
-      const scale=Math.min(1, maxW/img.width);
-      const canvas=document.createElement('canvas');
-      canvas.width=img.width*scale; canvas.height=img.height*scale;
-      const ctx=canvas.getContext('2d');
-      ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      resolve(canvas.toDataURL('image/jpeg',0.85).split(',')[1]);
+// ========== MAP ==========
+function getDeptColor(dept) {
+  const records = Object.values(db).filter(r => r.dept === dept && r.status === 'done');
+  if (records.length === 0) return { fill: '#1a232e', stroke: '#2e4055' };
+  const withRecargo = records.filter(r => r.mini > 0 || r.v4 > 0);
+  const pct = withRecargo.length / records.length;
+  if (pct === 0)   return { fill: '#14532d', stroke: '#22c55e' };
+  if (pct < 0.4)   return { fill: '#713f12', stroke: '#f59e0b' };
+  if (pct < 0.8)   return { fill: '#7c2d12', stroke: '#f97316' };
+  return             { fill: '#7f1d1d', stroke: '#ef4444' };
+}
+
+async function renderMap() {
+  const wrap = document.getElementById('listMap');
+  wrap.innerHTML = `
+    <div class="map-container">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">
+        Mapa de calor — Alta Demanda por Departamento
+      </div>
+      <div id="mapSvgWrap" style="width:100%;min-height:340px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-3);">⏳ Cargando mapa...</span>
+      </div>
+      <div class="map-legend" style="margin-top:10px;">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>Sin recargos</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Recargo bajo</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Recargo medio</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Recargo alto</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1a232e;border:1px solid #2e4055"></div>Sin datos</div>
+      </div>
+    </div>
+    <div id="mapDetail" class="card" style="display:none;margin-top:8px;"></div>`;
+
+  try {
+    if (!window.d3) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js');
+
+    // GeoJSON real de departamentos de Colombia — john-guerra / gist (URL correcta)
+    const res = await fetch('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const geojson = await res.json();
+
+    const svgWrap = document.getElementById('mapSvgWrap');
+    const W = svgWrap.clientWidth || 300;
+    const H = Math.round(W * 1.35);
+    svgWrap.style.minHeight = H + 'px';
+
+    // Name normalization from GeoJSON to our DEPTS keys
+    const normalize = name => {
+      if (!name) return '';
+      const map = {
+        'AMAZONAS':           'Amazonas',
+        'ANTIOQUIA':          'Antioquia',
+        'ARAUCA':             'Arauca',
+        'ATLÁNTICO':          'Atlántico',
+        'ATLANTICO':          'Atlántico',
+        'BOLÍVAR':            'Bolívar',
+        'BOLIVAR':            'Bolívar',
+        'BOYACÁ':             'Boyacá',
+        'BOYACA':             'Boyacá',
+        'CALDAS':             'Caldas',
+        'CAQUETÁ':            'Caquetá',
+        'CAQUETA':            'Caquetá',
+        'CASANARE':           'Casanare',
+        'CAUCA':              'Cauca',
+        'CESAR':              'Cesar',
+        'CHOCÓ':              'Chocó',
+        'CHOCO':              'Chocó',
+        'CÓRDOBA':            'Córdoba',
+        'CORDOBA':            'Córdoba',
+        'CUNDINAMARCA':       'Cundinamarca',
+        'GUAINÍA':            'Guainía',
+        'GUAINIA':            'Guainía',
+        'GUAVIARE':           'Guaviare',
+        'HUILA':              'Huila',
+        'LA GUAJIRA':         'La Guajira',
+        'MAGDALENA':          'Magdalena',
+        'META':               'Meta',
+        'NARIÑO':             'Nariño',
+        'NARINO':             'Nariño',
+        'NORTE DE SANTANDER': 'Norte de Santander',
+        'PUTUMAYO':           'Putumayo',
+        'QUINDÍO':            'Quindío',
+        'QUINDIO':            'Quindío',
+        'RISARALDA':          'Risaralda',
+        'ARCHIPIÉLAGO DE SAN ANDRÉS, PROVIDENCIA Y SANTA CATALINA': 'San Andrés y Providencia',
+        'ARCHIPIELAGO DE SAN ANDRES, PROVIDENCIA Y SANTA CATALINA': 'San Andrés y Providencia',
+        'SAN ANDRÉS':         'San Andrés y Providencia',
+        'SAN ANDRES':         'San Andrés y Providencia',
+        'SANTANDER':          'Santander',
+        'SUCRE':              'Sucre',
+        'TOLIMA':             'Tolima',
+        'VALLE DEL CAUCA':    'Valle del Cauca',
+        'VAUPÉS':             'Vaupés',
+        'VAUPES':             'Vaupés',
+        'VICHADA':            'Vichada',
+        'BOGOTÁ D.C.':        'Cundinamarca',
+        'BOGOTA D.C.':        'Cundinamarca',
+        // Also handle mixed case from other GeoJSON versions
+        'Bogotá D.C.':        'Cundinamarca',
+        'Bogota D.C.':        'Cundinamarca',
+        'Norte De Santander': 'Norte de Santander',
+        'Valle Del Cauca':    'Valle del Cauca',
+        'Archipiélago de San Andrés, Providencia y Santa Catalina': 'San Andrés y Providencia',
+        'San Andrés':         'San Andrés y Providencia',
+      };
+      // Try exact match, then uppercase match
+      return map[name] || map[name.toUpperCase()] || name;
     };
-    img.onerror=reject;
-    reader.readAsDataURL(file);
+
+    const projection = d3.geoMercator().fitSize([W, H], geojson);
+    const pathGen   = d3.geoPath().projection(projection);
+
+    const svg = d3.create('svg')
+      .attr('width', W)
+      .attr('height', H)
+      .style('display', 'block');
+
+    geojson.features.forEach(f => {
+      const rawName = f.properties.NOMBRE_DPT || f.properties.name || f.properties.NAME_1 || f.properties.DPTO_CCDGO || '';
+      const dept    = normalize(rawName);
+      // Debug: log unmatched departments
+      if (!DEPTS[dept]) console.warn('Dept no encontrado:', rawName, '→', dept);
+      const { fill, stroke } = getDeptColor(dept);
+      const done  = Object.values(db).filter(r => r.dept === dept && r.status === 'done').length;
+      const total = DEPTS[dept] ? DEPTS[dept].length : 0;
+      const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+      const centroid = pathGen.centroid(f);
+
+      const g = svg.append('g').style('cursor', 'pointer');
+
+      // Support both click (desktop) and touch (mobile)
+      g.on('click touchend', function(event) {
+        if (event && event.cancelable) event.preventDefault();
+        mapClick(dept);
+      });
+
+      g.append('path')
+        .attr('d', pathGen(f))
+        .attr('fill', fill)
+        .attr('stroke', '#0a0f14')
+        .attr('stroke-width', 0.6)
+        .style('transition', 'opacity .15s')
+        .on('touchstart mouseover', function() { d3.select(this).attr('fill', d3.color(fill) ? d3.color(fill).brighter(0.4) : fill); })
+        .on('touchend mouseout',   function() { d3.select(this).attr('fill', fill); });
+
+      // Percentage label
+      if (done > 0 && !isNaN(centroid[0])) {
+        g.append('text')
+          .attr('x', centroid[0])
+          .attr('y', centroid[1])
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'middle')
+          .attr('fill', 'rgba(255,255,255,0.9)')
+          .attr('font-size', '6.5')
+          .attr('font-weight', '700')
+          .attr('font-family', 'JetBrains Mono, monospace')
+          .attr('pointer-events', 'none')
+          .text(pct + '%');
+      }
+    });
+
+    svgWrap.innerHTML = '';
+    svgWrap.appendChild(svg.node());
+
+  } catch(e) {
+    document.getElementById('mapSvgWrap').innerHTML =
+      `<span style="font-family:var(--mono);font-size:11px;color:#ef4444;">Error: ${e.message}</span>`;
+  }
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
   });
 }
 
-async function uploadImageToGithub(file){
-  const b64 = await resizeImage(file);
-  const slug = (currentProduct()[fields.nameField]||'foto').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,40);
-  const path = `assets/fotos-productos/${slug}-${Date.now()}.jpg`;
-  const res = await ghApi(`contents/${path}`, {
-    method:'PUT',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ message:`Sube foto vía Revisor de Fotos`, content:b64 })
-  });
-  if(!res.ok){ const t=await res.text(); throw new Error(`GitHub ${res.status}: ${t.slice(0,120)}`); }
-  const data=await res.json();
-  return data.content.download_url;
+function mapClick(dept) {
+  const records = Object.values(db).filter(r => r.dept === dept && r.status === 'done')
+    .sort((a,b) => a.muni.localeCompare(b.muni));
+  const detail = document.getElementById('mapDetail');
+  if (!detail) return;
+  const { stroke } = getDeptColor(dept);
+  const total = DEPTS[dept] ? DEPTS[dept].length : 0;
+  detail.style.display = 'block';
+  detail.style.borderColor = records.length ? stroke : 'var(--border)';
+  detail.innerHTML = records.length ? `
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text-2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">
+      📍 ${dept} &nbsp;<span style="color:${stroke}">${records.length}/${total} consultados</span>
+    </div>
+    ${records.map(r => `
+      <div class="result-row">
+        <span class="result-key" style="font-size:11px">${r.muni}</span>
+        <span style="font-family:var(--mono);font-size:10px;display:flex;gap:8px;">
+          <span style="color:${r.mini>0?'#f59e0b':'#22c55e'}">Mini:${r.mini>0?' $'+r.mini.toLocaleString('es-CO'):' ✓'}</span>
+          <span style="color:${r.v4>0?'#f59e0b':'#22c55e'}">V4:${r.v4>0?' $'+r.v4.toLocaleString('es-CO'):' ✓'}</span>
+        </span>
+      </div>`).join('')}` :
+    `<div style="font-family:var(--mono);font-size:11px;color:var(--text-3);text-align:center;padding:8px 0;">
+      📍 ${dept} — Sin datos registrados aún
+    </div>`;
+  setTimeout(() => detail.scrollIntoView({ behavior:'smooth', block:'nearest' }), 80);
 }
 
-$('keepBtn').addEventListener('click', ()=>{
-  if(manualOverride){ manualOverride=null; renderCurrent(); return; }
-  saveProgress(currentProduct()[fields.idField]);
-  advance();
-});
-$('skipBtn').addEventListener('click', ()=>{
-  if(manualOverride){ manualOverride=null; renderCurrent(); return; }
-  const p=queue.splice(currentIndex,1)[0];
-  queue.push(p);
-  renderCurrent();
-});
+function renderAll(){
+  const allRecords = Object.values(db);
+  const filtered = searchQuery
+    ? allRecords.filter(r =>
+        r.muni.toLowerCase().includes(searchQuery) ||
+        r.dept.toLowerCase().includes(searchQuery))
+    : allRecords;
 
-$('saveBtn').addEventListener('click', async ()=>{
-  const url=$('urlInput').value.trim();
-  if(!url){ setStat('status','Pega o sube primero la nueva foto.','err'); return; }
-  const p=currentProduct();
-  if(!fields.imageField) fields.imageField='foto';
-  p[fields.imageField]=url;
-  setStat('status','Guardando...','');
-  try{
-    if(source.kind==='github') await commitGithub();
-    else await commitFirebase(p);
-    updatedCount++;
-    if(manualOverride){
-      manualOverride=null;
-      setStat('status','¡Guardado!','ok');
-      setTimeout(renderCurrent,500);
+  const done = filtered.filter(r => r.status === 'done');
+  done.sort((a,b) => a.dept.localeCompare(b.dept) || a.muni.localeCompare(b.muni));
+
+  renderList('listPending', [], 'pending');   // pending list builds itself from DEPTS
+  renderList('listDone',    done, 'done');
+
+  const totalMunis = Object.values(DEPTS).reduce((sum, arr) => sum + arr.length, 0);
+  const doneCount  = Object.values(db).filter(r => r.status === 'done').length;
+  const pendCount  = totalMunis - doneCount;
+  document.getElementById('statTotal').textContent   = totalMunis;
+  document.getElementById('statPending').textContent = pendCount;
+  document.getElementById('statDone').textContent    = doneCount;
+  const pct = Math.round(doneCount / totalMunis * 100);
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  if (deptSel && deptSel.value) populateMunis();
+  if (currentTab === 'map') renderMap();
+}
+
+
+function renderList(containerId, records, type){
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML = '';
+
+  if (type === 'pending') {
+    // Build pending list from DEPTS minus what's already done
+    const doneSet = new Set(Object.values(db).filter(r => r.status==='done').map(r => genKey(r.dept, r.muni)));
+    const q = searchQuery;
+    const deptGroups = [];
+    Object.keys(DEPTS).sort().forEach(dept => {
+      const remaining = DEPTS[dept].filter(muni => {
+        if (doneSet.has(genKey(dept, muni))) return false;
+        if (q) return muni.toLowerCase().includes(q) || dept.toLowerCase().includes(q);
+        return true;
+      });
+      if (remaining.length > 0) deptGroups.push({ dept, munis: remaining });
+    });
+
+    if (deptGroups.length === 0) {
+      wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🎉</div>¡Todos los municipios consultados!</div>`;
       return;
     }
-    saveProgress(p[fields.idField]);
-    setStat('status','¡Guardado!','ok');
-    setTimeout(advance,500);
-  }catch(err){
-    setStat('status','Error al guardar: '+err.message,'err');
+    deptGroups.forEach(({ dept, munis }) => {
+      const el = document.createElement('div');
+      el.className = 'dept-pending-group';
+      el.innerHTML = `
+        <div class="dept-pending-header" onclick="this.parentElement.classList.toggle('open')">
+          <div class="dept-pending-dot"></div>
+          <div class="dept-pending-name">${dept}</div>
+          <div class="dept-pending-count">${munis.length} pendientes</div>
+          <div class="dept-pending-arrow">▸</div>
+        </div>
+        <div class="dept-pending-munis">
+          ${munis.map(muni => `<span class="muni-chip" onclick="fillFormFromPending('${dept.replace(/'/g,"\\'")}','${muni.replace(/'/g,"\\'")}')">📍 ${muni}</span>`).join('')}
+        </div>`;
+      wrap.appendChild(el);
+    });
+    return;
   }
-});
 
-function advance(){ currentIndex++; renderCurrent(); }
-
-async function commitGithub(){
-  const getRes = await ghApi(`contents/${source.path}`);
-  if(!getRes.ok) throw new Error(`No pude leer el archivo (${getRes.status})`);
-  const latest = await getRes.json();
-  const toWrite = source.isWrapped ? {...source.rawParsed, [source.wrapKey]: source.arr} : source.arr;
-  const contentStr = JSON.stringify(toWrite,null,2);
-  const b64 = btoa(unescape(encodeURIComponent(contentStr)));
-  const putRes = await ghApi(`contents/${source.path}`, {
-    method:'PUT',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ message:'Actualiza foto vía Revisor de Fotos', content:b64, sha:latest.sha })
+  // DONE LIST
+  if (records.length === 0) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div>Aún no hay municipios completados.</div>`;
+    return;
+  }
+  records.forEach(r => {
+    const key = genKey(r.dept, r.muni);
+    const el  = document.createElement('div');
+    el.className = 'muni-item';
+    el.appendChild(Object.assign(document.createElement('div'), { className: 'muni-dot done' }));
+    const nameWrap = document.createElement('div');
+    nameWrap.style.flex='1';
+    nameWrap.innerHTML = `<div class="muni-name">${r.muni}</div><span class="muni-dept">${r.dept}</span>`;
+    el.appendChild(nameWrap);
+    const prices = document.createElement('div');
+    prices.className = 'muni-prices';
+    prices.innerHTML = `
+      <div class="muni-price-val" style="color:${r.mini>0?'#f59e0b':'#22c55e'}">${r.mini>0?'$'+r.mini.toLocaleString('es-CO'):'✓'}</div>
+      <div class="muni-price-lbl">Mini</div>
+      <div class="muni-price-val" style="margin-top:3px;color:${r.v4>0?'#f59e0b':'#22c55e'}">${r.v4>0?'$'+r.v4.toLocaleString('es-CO'):'✓'}</div>
+      <div class="muni-price-lbl">V4</div>`;
+    el.appendChild(prices);
+    const actions = document.createElement('div');
+    actions.className = 'muni-actions';
+    const delBtn = document.createElement('button');
+    delBtn.className='icon-btn del'; delBtn.title='Eliminar'; delBtn.textContent='✕';
+    delBtn.onclick = e => { e.stopPropagation(); if(confirm('¿Eliminar '+r.muni+'?')){ delete db[key]; saveDB(); renderAll(); showToast('Eliminado: '+r.muni); if(getConfig().endpointId) cloudPush(); }};
+    actions.appendChild(delBtn);
+    el.appendChild(actions);
+    wrap.appendChild(el);
   });
-  if(!putRes.ok){ const t=await putRes.text(); throw new Error(`GitHub ${putRes.status}: ${t.slice(0,120)}`); }
 }
 
-async function commitFirebase(p){
-  const key=p.__fbKey;
-  const pathParts=[source.originBase, source.nodeBase, source.nodeKey, key].filter(Boolean);
-  const url = pathParts.join('/') + '.json';
-  const res = await fetch(url, {
-    method:'PATCH',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ [fields.imageField]: p[fields.imageField] })
-  });
-  if(!res.ok){ const t=await res.text(); throw new Error(`Firebase ${res.status}: ${t.slice(0,120)}`); }
+function fillFormFromPending(dept, muni) {
+  deptSel.value = dept;
+  populateMunis();
+  setTimeout(() => { muniSel.value = muni; updateFormat(); }, 50);
+  document.querySelector('.card').scrollIntoView({ behavior:'smooth', block:'start' });
+  showToast('📋 ' + muni + ' listo para consultar', 'blue');
 }
 
-$('restartBtn').addEventListener('click', ()=>{
-  localStorage.removeItem(progressKey());
-  updatedCount=0;
-  buildQueue();
-  $('doneScreen').classList.add('hidden');
-  $('app').classList.remove('hidden');
-  renderCurrent();
+// ========== CLOUD SYNC (Firebase Realtime Database) ==========
+const FIREBASE_URL = 'https://pycnuevo-default-rtdb.firebaseio.com';
+
+function getConfig() {
+  const raw = localStorage.getItem('pyc_endpoint_id') || FIREBASE_URL;
+  return { endpointId: raw.replace(/\/+$/, '') };
+}
+
+function setCloudStatus(state, msg) {
+  document.getElementById('driveDot').className = 'drive-dot ' + state;
+  document.getElementById('driveStatusText').textContent = '☁ Firebase: ' + msg;
+}
+
+// Cities that were incorrectly seeded as pending — always strip them
+const FAKE_PENDING = new Set([
+  'Antioquia__Medellín','Antioquia__Rionegro','Antioquia__Yondó',
+  'Cundinamarca__Bogotá D.C.','Valle del Cauca__Cali','Atlántico__Barranquilla'
+]);
+
+async function cloudPull(force = false) {
+  const { endpointId } = getConfig();
+  if (!endpointId) { setCloudStatus('warn', 'sin configurar — clic en Sincronizar'); return 0; }
+  setCloudStatus('', 'descargando...');
+  const url = `${endpointId}/data.json`;
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const records = Array.isArray(data) ? data : [];
+    if (records.length === 0) {
+      setCloudStatus('ok', 'conectado — sin datos remotos aún');
+      return 0;
+    }
+    let merged = 0;
+    records.forEach(r => {
+      if (!r.departamento || !r.municipio) return;
+      const key = genKey(r.departamento, r.municipio);
+      // Skip fake pending seeds
+      if (FAKE_PENDING.has(key) && r.estado === 'pending') return;
+      const remoteNewer = !db[key] || new Date(r.ultima_actualizacion) > new Date(db[key].ts);
+      if (force || remoteNewer) {
+        db[key] = {
+          dept: r.departamento, muni: r.municipio,
+          mini: parseFloat(r.precio_recargo_mini_usd) || 0,
+          v4:   parseFloat(r.precio_recargo_v4_usd)   || 0,
+          status: r.estado === 'done' ? 'done' : 'pending',
+          ts: r.ultima_actualizacion || new Date().toISOString()
+        };
+        merged++;
+      }
+    });
+    // Also clean any fake pending already in local db
+    FAKE_PENDING.forEach(key => {
+      if (db[key] && db[key].status === 'pending') { delete db[key]; }
+    });
+    saveDB();
+    setCloudStatus('ok', `sincronizado ✓ ${records.length} registros · ${new Date().toLocaleTimeString('es-CO',{hour12:false})}`);
+    return merged;
+  } catch(e) {
+    setCloudStatus('err', 'error de conexión — verifica la URL');
+    console.error('cloudPull error:', e, 'URL:', url);
+    return -1;
+  }
+}
+
+async function cloudPush() {
+  const { endpointId } = getConfig();
+  if (!endpointId) { setCloudStatus('warn', 'sin configurar'); return false; }
+  setCloudStatus('', 'subiendo...');
+  const url = `${endpointId}/data.json`;
+  const records = Object.values(db).map(r => ({
+    municipio: r.muni, departamento: r.dept, pais: 'Colombia',
+    precio_recargo_mini_usd: r.mini, precio_recargo_v4_usd: r.v4,
+    estado: r.status, ultima_actualizacion: r.ts
+  }));
+  try {
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(records)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    setCloudStatus('ok', `guardado ✓ ${new Date().toLocaleTimeString('es-CO',{hour12:false})}`);
+    return true;
+  } catch(e) {
+    setCloudStatus('err', 'error al subir: ' + e.message);
+    console.error('cloudPush error:', e, 'URL:', url);
+    return false;
+  }
+}
+
+document.getElementById('driveSyncBtn').addEventListener('click', async () => {
+  const { endpointId } = getConfig();
+  if (!endpointId) { showConfigModal(); return; }
+  const btn = document.getElementById('driveSyncBtn');
+  btn.disabled = true; btn.textContent = '⏳ Sincronizando...';
+  const merged = await cloudPull(true);
+  renderAll();
+  if (merged > 0) showToast(`☁ ${merged} registros cargados desde la nube`, 'blue');
+  await cloudPush();
+  btn.disabled = false; btn.textContent = '☁ Sincronizar con la Nube';
 });
+
+function showConfigModal() {
+  const { endpointId } = getConfig();
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;';
+  modal.innerHTML = `
+    <div style="background:#141b24;border:1px solid #2e4055;border-radius:14px;padding:24px;width:100%;max-width:440px;font-family:'JetBrains Mono',monospace;margin:auto;">
+      <div style="font-size:11px;color:#3b82f6;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">⚙ Configurar Nube (Firebase)</div>
+      <div style="font-size:11px;color:#7a92aa;margin-bottom:16px;line-height:1.9;">
+        <b style="color:#e8edf4;">1.</b> Ve a <a href="https://console.firebase.google.com" target="_blank" style="color:#3b82f6;">console.firebase.google.com</a><br>
+        <b style="color:#e8edf4;">2.</b> Crea proyecto → <b style="color:#e8edf4;">Realtime Database</b> → <b style="color:#e8edf4;">Crear base de datos</b><br>
+        <b style="color:#e8edf4;">3.</b> Elige modo <b style="color:#22c55e;">"Prueba"</b> (lectura/escritura abierta)<br>
+        <b style="color:#e8edf4;">4.</b> Copia la URL del panel — termina en <code style="color:#f59e0b;background:#1a232e;padding:1px 4px;border-radius:3px;">.firebaseio.com</code><br>
+        <span style="color:#3a5068;">ej: https://mi-proyecto-default-rtdb.firebaseio.com</span>
+      </div>
+      <label style="display:block;font-size:10px;color:#7a92aa;letter-spacing:1px;margin-bottom:6px;">URL DE FIREBASE</label>
+      <input id="cfgEndpointId" value="${endpointId}" placeholder="https://mi-proyecto-default-rtdb.firebaseio.com" style="width:100%;background:#1a232e;border:1px solid #243040;border-radius:8px;padding:12px;color:#e8edf4;font-family:'JetBrains Mono',monospace;font-size:12px;margin-bottom:18px;outline:none;box-sizing:border-box;"/>
+      <div style="display:flex;gap:10px;">
+        <button id="cfgSave" style="flex:1;padding:13px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">Guardar y conectar</button>
+        <button id="cfgCancel" style="padding:13px 16px;background:transparent;border:1px solid #243040;border-radius:8px;color:#7a92aa;font-family:'Syne',sans-serif;font-size:13px;cursor:pointer;">Cancelar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.getElementById('cfgCancel').onclick = () => modal.remove();
+  document.getElementById('cfgSave').onclick = async () => {
+    let id = document.getElementById('cfgEndpointId').value.trim().replace(/\/$/, '');
+    if (!id) { alert('Ingresa la URL de Firebase'); return; }
+    if (!id.startsWith('http')) id = 'https://' + id;
+    localStorage.setItem('pyc_endpoint_id', id);
+    modal.remove();
+    showToast('✓ URL guardada', 'green');
+    const btn = document.getElementById('driveSyncBtn');
+    btn.disabled = true; btn.textContent = '⏳ Conectando...';
+    const merged = await cloudPull(true);
+    renderAll();
+    if (merged > 0) { showToast(`☁ ${merged} registros cargados`, 'blue'); }
+    const ok = await cloudPush();
+    if (ok) showToast('☁ Nube sincronizada correctamente', 'green');
+    btn.disabled = false; btn.textContent = '☁ Sincronizar con la Nube';
+  };
+  setTimeout(() => document.getElementById('cfgEndpointId').focus(), 100);
+}
+
+// Cargar datos semilla del archivo exportado si la DB está vacía
+const FAKE_SEEDS = [
+  'Antioquia__Medellín','Antioquia__Rionegro',
+  'Cundinamarca__Bogotá D.C.','Valle del Cauca__Cali','Atlántico__Barranquilla'
+];
+
+function seedFromFile() {
+  // Clean fake pending seeds from local db
+  let changed = false;
+  FAKE_PENDING.forEach(key => {
+    if (db[key] && db[key].status === 'pending') { delete db[key]; changed = true; }
+  });
+  if (changed) saveDB();
+
+  if (Object.keys(db).length > 0) return;
+
+  SEED_RECORDS.forEach(r => {
+    if (r.estado !== 'done') return;
+    const key = genKey(r.departamento, r.municipio);
+    db[key] = {
+      dept: r.departamento, muni: r.municipio,
+      mini: r.precio_recargo_mini_usd, v4: r.precio_recargo_v4_usd,
+      status: 'done', ts: r.ultima_actualizacion
+    };
+  });
+  saveDB();
+}
+
+// Auto-sync al cargar si ya está configurado
+(async () => {
+  seedFromFile();
+  renderAll();
+  const { endpointId } = getConfig();
+  if (endpointId) {
+    setCloudStatus('', 'conectando...');
+    try {
+      const merged = await cloudPull(true);
+      renderAll();
+      if (merged > 0) {
+        showToast(`☁ ${merged} registros cargados`, 'blue');
+        // Push back to remove fake pendings from Firebase
+        await cloudPush();
+      }
+    } catch(e) {
+      setCloudStatus('err', 'error al conectar — reintenta');
+    }
+  } else {
+    setCloudStatus('warn', 'no configurada — clic en Sincronizar');
+  }
+})();
+
+// ========== TOAST ==========
+function showToast(msg, type=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => { t.className='toast'; }, 2800);
+}
 </script>
 </body>
 </html>
