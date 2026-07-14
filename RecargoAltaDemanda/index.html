@@ -373,6 +373,21 @@ input::placeholder{color:var(--text-3);}
 }
 .empty-icon{font-size:32px;margin-bottom:10px;opacity:.4;}
 
+/* ===== FIXED SAVE BUTTON ===== */
+.fixed-save-wrap {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 8000;
+  padding: 12px 16px;
+  background: linear-gradient(to top, var(--void) 70%, transparent);
+}
+.fixed-save-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 15px;
+  box-shadow: 0 -4px 24px rgba(59,130,246,.3);
+}
+
 /* ===== STARLINK BUTTONS ===== */
 .btn-starlink {
   display: flex;
@@ -667,11 +682,14 @@ footer{
       <input type="hidden" id="priceV4" value=""/>
     </div>
 
-    <div style="margin-top:16px;">
-      <button class="btn btn-primary" id="saveBtn" disabled>
-        ✓ Guardar y marcar como Completado
-      </button>
-    </div>
+    <div style="height:70px;"></div><!-- spacer for fixed button -->
+  </div><!-- end card -->
+
+  <!-- FIXED SAVE BUTTON -->
+  <div class="fixed-save-wrap" id="fixedSaveWrap" style="display:none">
+    <button class="btn btn-primary fixed-save-btn" id="saveBtn">
+      ✓ Guardar y marcar como Completado
+    </button>
   </div>
 
   <!-- LISTS -->
@@ -1035,13 +1053,17 @@ muniSel.addEventListener('change', updateFormat);
 function updateFormat(){
   const dept = deptSel.value;
   const muni = muniSel.value;
+  const saveBtn   = document.getElementById('saveBtn');
+  const saveWrap  = document.getElementById('fixedSaveWrap');
   if(dept && muni){
     formatTxt.textContent = `${muni}, ${dept}, Colombia`;
     formatBox.classList.add('show');
     saveBtn.disabled = false;
+    saveWrap.style.display = 'block';
   } else {
     formatBox.classList.remove('show');
     saveBtn.disabled = true;
+    saveWrap.style.display = 'none';
   }
 }
 
@@ -1146,6 +1168,7 @@ saveBtn.addEventListener('click', () => {
   muniSel.disabled = true;
   formatBox.classList.remove('show');
   saveBtn.disabled = true;
+  document.getElementById('fixedSaveWrap').style.display = 'none';
   resetChips();
 });
 
