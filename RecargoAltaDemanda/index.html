@@ -534,7 +534,7 @@ footer{
     <div class="header-icon">🛰️</div>
     <div class="header-text">
       <div class="header-title">Gestor Starlink — Partes y Computadores</div>
-      <div class="header-sub">// Base de Datos de Precios por Municipio</div>
+      <div class="header-sub">// Base de Datos de Precios por Municipio &nbsp;<span id="headerVersion" style="color:var(--accent);"></span></div>
     </div>
   </div>
 
@@ -650,7 +650,10 @@ footer{
     <button class="btn btn-drive" id="driveSyncBtn">☁ Sincronizar con la Nube</button>
   </div>
 
-  <footer>Partes y Computadores · partesycomputadores.com.co · v1.0</footer>
+  <footer>
+    Partes y Computadores · partesycomputadores.com.co
+    <span id="appVersionDisplay" style="display:block;margin-top:4px;color:var(--text-muted,#3a5068);">v2026.07.13-1</span>
+  </footer>
 </div>
 
 
@@ -891,6 +894,29 @@ const DEPTS = {
   ].sort()
 };
 
+// ========== VERSION (automática) ==========
+// Esta fecha se actualiza automáticamente con cada deploy a GitHub Pages
+// usando el meta tag de last-modified del documento
+const APP_VERSION = (() => {
+  const lm = document.lastModified;
+  const d  = new Date(lm);
+  const pad = n => String(n).padStart(2,'0');
+  return `v${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+})();
+
+window.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('appVersionDisplay');
+  const hv = document.getElementById('headerVersion');
+  if (el) el.textContent = APP_VERSION;
+  if (hv) hv.textContent = APP_VERSION;
+
+  const STORED_VERSION = localStorage.getItem('pyc_app_version');
+  if (STORED_VERSION && STORED_VERSION !== APP_VERSION) {
+    setTimeout(() => showToast(`🆕 Nueva versión: ${APP_VERSION}`, 'blue'), 2500);
+  }
+  localStorage.setItem('pyc_app_version', APP_VERSION);
+});
+
 // ========== STATE ==========
 let db = JSON.parse(localStorage.getItem('pyc_starlink_db') || '{}');
 function genKey(dept,muni){ return `${dept}__${muni}`; }
@@ -1098,82 +1124,49 @@ document.getElementById('searchClear').addEventListener('click', function() {
 });
 
 // ========== MAP ==========
-const DEPT_COORDS = {
-  "Amazonas":              { cx: 480, cy: 720 },
-  "Antioquia":             { cx: 230, cy: 310 },
-  "Arauca":                { cx: 390, cy: 175 },
-  "Atlántico":             { cx: 195, cy: 125 },
-  "Bolívar":               { cx: 220, cy: 200 },
-  "Boyacá":                { cx: 360, cy: 280 },
-  "Caldas":                { cx: 250, cy: 360 },
-  "Caquetá":               { cx: 390, cy: 560 },
-  "Casanare":              { cx: 420, cy: 280 },
-  "Cauca":                 { cx: 240, cy: 500 },
-  "Cesar":                 { cx: 300, cy: 165 },
-  "Chocó":                 { cx: 145, cy: 320 },
-  "Córdoba":               { cx: 205, cy: 210 },
-  "Cundinamarca":          { cx: 335, cy: 340 },
-  "Guainía":               { cx: 570, cy: 380 },
-  "Guaviare":              { cx: 460, cy: 470 },
-  "Huila":                 { cx: 320, cy: 480 },
-  "La Guajira":            { cx: 285, cy: 100 },
-  "Magdalena":             { cx: 265, cy: 145 },
-  "Meta":                  { cx: 410, cy: 385 },
-  "Nariño":                { cx: 215, cy: 590 },
-  "Norte de Santander":    { cx: 345, cy: 210 },
-  "Putumayo":              { cx: 300, cy: 600 },
-  "Quindío":               { cx: 245, cy: 385 },
-  "Risaralda":             { cx: 230, cy: 375 },
-  "San Andrés y Providencia": { cx: 80, cy: 200 },
-  "Santander":             { cx: 320, cy: 250 },
-  "Sucre":                 { cx: 225, cy: 185 },
-  "Tolima":                { cx: 295, cy: 415 },
-  "Valle del Cauca":       { cx: 210, cy: 430 },
-  "Vaupés":                { cx: 520, cy: 530 },
-  "Vichada":               { cx: 520, cy: 310 }
-};
-
 function getDeptColor(dept) {
   const records = Object.values(db).filter(r => r.dept === dept && r.status === 'done');
-  const total   = DEPTS[dept] ? DEPTS[dept].length : 0;
-  if (records.length === 0) return { fill: '#1a232e', stroke: '#2e4055', label: 'Sin datos' };
+  if (records.length === 0) return { fill: '#1a232e', stroke: '#2e4055' };
   const withRecargo = records.filter(r => r.mini > 0 || r.v4 > 0);
   const pct = withRecargo.length / records.length;
-  if (pct === 0)   return { fill: '#14532d', stroke: '#22c55e', label: 'Sin recargos' };
-  if (pct < 0.4)   return { fill: '#713f12', stroke: '#f59e0b', label: 'Recargo bajo' };
-  if (pct < 0.8)   return { fill: '#7c2d12', stroke: '#f97316', label: 'Recargo medio' };
-  return             { fill: '#7f1d1d', stroke: '#ef4444', label: 'Recargo alto' };
+  if (pct === 0)   return { fill: '#14532d', stroke: '#22c55e' };
+  if (pct < 0.4)   return { fill: '#713f12', stroke: '#f59e0b' };
+  if (pct < 0.8)   return { fill: '#7c2d12', stroke: '#f97316' };
+  return             { fill: '#7f1d1d', stroke: '#ef4444' };
 }
 
-function renderMap() {
+// Map dept names from TopoJSON to our DEPTS keys
+const DEPT_NAME_MAP = {
+  'Amazonas':'Amazonas','Antioquia':'Antioquia','Arauca':'Arauca',
+  'Atlántico':'Atlántico','Atlántico':'Atlántico','Bolívar':'Bolívar',
+  'Boyacá':'Boyacá','Caldas':'Caldas','Caquetá':'Caquetá',
+  'Casanare':'Casanare','Cauca':'Cauca','Cesar':'Cesar',
+  'Chocó':'Chocó','Córdoba':'Córdoba','Cundinamarca':'Cundinamarca',
+  'Guainía':'Guainía','Guaviare':'Guaviare','Huila':'Huila',
+  'La Guajira':'La Guajira','Magdalena':'Magdalena','Meta':'Meta',
+  'Nariño':'Nariño','Norte de Santander':'Norte de Santander',
+  'Putumayo':'Putumayo','Quindío':'Quindío','Risaralda':'Risaralda',
+  'Archipiélago de San Andrés':'San Andrés y Providencia',
+  'San Andrés':'San Andrés y Providencia',
+  'Santander':'Santander','Sucre':'Sucre','Tolima':'Tolima',
+  'Valle del Cauca':'Valle del Cauca','Vaupés':'Vaupés','Vichada':'Vichada',
+  'Bogotá D.C.':'Cundinamarca','Distrito Capital':'Cundinamarca'
+};
+
+let mapRendered = false;
+
+async function renderMap() {
   const wrap = document.getElementById('listMap');
-  const depts = Object.keys(DEPT_COORDS);
 
-  let circles = '';
-  depts.forEach(dept => {
-    const { cx, cy } = DEPT_COORDS[dept];
-    const { fill, stroke } = getDeptColor(dept);
-    const done  = Object.values(db).filter(r => r.dept === dept && r.status === 'done').length;
-    const total = DEPTS[dept] ? DEPTS[dept].length : 0;
-    const shortName = dept.replace('Norte de Santander','N. Santander')
-                          .replace('San Andrés y Providencia','San Andrés')
-                          .replace('Valle del Cauca','Valle');
-    circles += `
-      <g class="dept-bubble" onclick="mapClick('${dept}')">
-        <circle cx="${cx}" cy="${cy}" r="22" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="cursor:pointer"/>
-        <text x="${cx}" y="${cy - 4}" text-anchor="middle" fill="#e8edf4" font-size="6.5" font-family="JetBrains Mono,monospace" font-weight="600">${shortName}</text>
-        <text x="${cx}" y="${cy + 7}" text-anchor="middle" fill="${stroke}" font-size="8" font-family="JetBrains Mono,monospace" font-weight="700">${done}/${total}</text>
-      </g>`;
-  });
-
+  // Show skeleton while loading
   wrap.innerHTML = `
     <div class="map-container">
-      <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">
-        Concentración de Alta Demanda por Departamento
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">
+        Alta Demanda por Departamento
       </div>
-      <svg viewBox="0 60 660 720" width="100%" style="display:block;">
-        ${circles}
-      </svg>
+      <div id="mapSvgWrap" style="width:100%;min-height:320px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-3);">Cargando mapa...</span>
+      </div>
       <div class="map-legend">
         <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>Sin recargos</div>
         <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Recargo bajo</div>
@@ -1182,33 +1175,97 @@ function renderMap() {
         <div class="legend-item"><div class="legend-dot" style="background:#1a232e;border:1px solid #2e4055"></div>Sin datos</div>
       </div>
     </div>
-    <div id="mapDetail" class="card" style="display:none;margin-top:0;"></div>`;
+    <div id="mapDetail" class="card" style="display:none;margin-top:8px;"></div>`;
+
+  try {
+    // Load D3 and TopoJSON dynamically
+    if (!window.d3) {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js');
+    }
+    if (!window.topojson) {
+      await loadScript('https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js');
+    }
+
+    // Fetch Colombia TopoJSON
+    const res = await fetch('https://raw.githubusercontent.com/deldersveld/topojson/master/countries/colombia/colombia-departments.json');
+    if (!res.ok) throw new Error('No se pudo cargar el mapa');
+    const topo = await res.json();
+
+    const svgWrap = document.getElementById('mapSvgWrap');
+    const W = svgWrap.clientWidth || 320;
+    const H = Math.round(W * 1.3);
+
+    const geojson = topojson.feature(topo, Object.values(topo.objects)[0]);
+
+    const projection = d3.geoMercator().fitSize([W, H], geojson);
+    const path = d3.geoPath().projection(projection);
+
+    let svgHTML = `<svg width="${W}" height="${H}" style="display:block;overflow:visible;">`;
+
+    geojson.features.forEach(f => {
+      const rawName = f.properties.NAME_1 || f.properties.name || f.properties.NOMBRE_DEP || '';
+      const dept = DEPT_NAME_MAP[rawName] || rawName;
+      const { fill, stroke } = getDeptColor(dept);
+      const done  = Object.values(db).filter(r => r.dept === dept && r.status === 'done').length;
+      const total = DEPTS[dept] ? DEPTS[dept].length : 0;
+      const pct   = total > 0 ? Math.round(done/total*100) : 0;
+      const d     = path(f);
+      const centroid = path.centroid(f);
+
+      svgHTML += `
+        <g class="dept-shape" onclick="mapClick('${dept.replace(/'/g,"\\'")}')">
+          <path d="${d}" fill="${fill}" stroke="#0e1218" stroke-width="0.8"
+                style="cursor:pointer;transition:opacity .15s;"
+                onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='1'"/>
+          ${total > 0 && done > 0 ? `
+          <text x="${centroid[0]}" y="${centroid[1]}"
+                text-anchor="middle" dominant-baseline="middle"
+                fill="rgba(255,255,255,0.85)" font-size="7"
+                font-family="JetBrains Mono,monospace" font-weight="700"
+                pointer-events="none">${pct}%</text>` : ''}
+        </g>`;
+    });
+
+    svgHTML += `</svg>`;
+    svgWrap.innerHTML = svgHTML;
+
+  } catch(e) {
+    document.getElementById('mapSvgWrap').innerHTML =
+      `<span style="font-family:var(--mono);font-size:11px;color:var(--red,#ef4444);">Error al cargar mapa: ${e.message}</span>`;
+  }
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
 }
 
 function mapClick(dept) {
   const records = Object.values(db).filter(r => r.dept === dept && r.status === 'done')
     .sort((a,b) => a.muni.localeCompare(b.muni));
   const detail = document.getElementById('mapDetail');
-  if (!records.length) {
-    detail.style.display = 'none'; return;
-  }
+  if (!detail) return;
+  if (!records.length) { detail.style.display='none'; return; }
   const { stroke } = getDeptColor(dept);
-  detail.style.display = 'block';
+  const total = DEPTS[dept] ? DEPTS[dept].length : 0;
+  detail.style.display  = 'block';
   detail.style.borderColor = stroke;
   detail.innerHTML = `
-    <div style="font-family:var(--mono);font-size:10px;color:var(--text-2);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">
-      📍 ${dept} — ${records.length} municipios
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text-2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">
+      📍 ${dept} &nbsp;<span style="color:${stroke}">${records.length}/${total} consultados</span>
     </div>
     ${records.map(r => `
       <div class="result-row">
-        <span class="result-key">${r.muni}</span>
-        <span style="text-align:right;font-family:var(--mono);font-size:11px;">
-          <span style="color:${r.mini > 0 ? '#f59e0b' : '#22c55e'}">Mini: ${r.mini > 0 ? '$'+r.mini.toLocaleString('es-CO') : '✓'}</span>
-          &nbsp;
-          <span style="color:${r.v4 > 0 ? '#f59e0b' : '#22c55e'}">V4: ${r.v4 > 0 ? '$'+r.v4.toLocaleString('es-CO') : '✓'}</span>
+        <span class="result-key" style="font-size:11px">${r.muni}</span>
+        <span style="font-family:var(--mono);font-size:10px;display:flex;gap:8px;">
+          <span style="color:${r.mini>0?'#f59e0b':'#22c55e'}">Mini:${r.mini>0?' $'+r.mini.toLocaleString('es-CO'):' ✓'}</span>
+          <span style="color:${r.v4>0?'#f59e0b':'#22c55e'}">V4:${r.v4>0?' $'+r.v4.toLocaleString('es-CO'):' ✓'}</span>
         </span>
       </div>`).join('')}`;
-  detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  detail.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
 function renderAll(){
