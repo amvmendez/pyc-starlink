@@ -32,7 +32,7 @@
     "price": 60000,
     "sku": "SVC-REUBICACION",
     "desc": "Cambio de dirección de servicio o de zona de cobertura.",
-    "image": "",
+    "image": "https://raw.githubusercontent.com/amvmendez/pyc-starlink/main/assets/fotos-productos/reubicacion-de-servicio-starlink-1784016358812.jpg",
     "availability": null,
     "type": "servicio",
     "visible": true
