@@ -166,7 +166,7 @@ input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px
 </main>
 
 <script>
-const APP_VERSION = 'v2026.07.13-3';
+const APP_VERSION = 'v2026.07.13-4';
 document.addEventListener('DOMContentLoaded', ()=>{ $('versionTag').textContent = APP_VERSION; });
 
 const $=id=>document.getElementById(id);
@@ -287,7 +287,17 @@ async function startDiscovery(){
       await connectFixedFirebasePath('inventario_licencias/licencias');
       return;
     }
-    candidates = mode==='servicios' ? await discoverGithubFiles() : await discoverFirebaseNodes();
+    if(mode==='productos'){
+      candidates = await buildCandidatesFromPaths(['inventario_starlink/accesorios','inventario_starlink/entradasAccesorios']);
+      if(!candidates.length){ setStat('setupStatus','No pude leer ninguna de las dos rutas conocidas. Revisa la conexión.','err'); return; }
+      candIndex=0;
+      showCandidate();
+      setStat('setupStatus','','');
+      $('setup').classList.add('hidden');
+      $('discovery').classList.remove('hidden');
+      return;
+    }
+    candidates = await discoverGithubFiles();
     if(!candidates.length){
       setStat('setupStatus','No encontré nada que reconociera como catálogo. Mira abajo qué encontré, y mándame un pantallazo de esto:','err');
       $('setupDiagnostic').innerHTML = renderDiagnostic();
@@ -339,6 +349,28 @@ async function discoverGithubFiles(){
 }
 
 let lastDiagnostic=null;
+
+async function buildCandidatesFromPaths(paths){
+  const out=[];
+  async function shallowKeys(path){
+    const res = await fetch(`${fbUrl}/${path}.json?shallow=true`);
+    if(!res.ok) return null;
+    const data = await res.json();
+    if(!data || typeof data!=='object') return null;
+    return Object.keys(data);
+  }
+  for(const path of paths){
+    try{
+      const keys = await shallowKeys(path);
+      if(!keys || !keys.length) continue;
+      const sampleRes = await fetch(`${fbUrl}/${path}/${keys[0]}.json`);
+      if(!sampleRes.ok) continue;
+      const sample = await sampleRes.json();
+      out.push({kind:'firebase', nodeKey:path, count:keys.length, sample:[sample]});
+    }catch(e){ /* se ignora esta ruta si falla */ }
+  }
+  return out;
+}
 
 async function discoverFirebaseNodes(){
   const found=[];
