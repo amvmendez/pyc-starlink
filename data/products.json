@@ -19,7 +19,7 @@
     "sku": "SVC-RECUP-CTA",
     "desc": "Recuperamos el acceso a tu cuenta cuando perdiste el usuario o contraseña.",
     "detalle": "",
-    "image": "",
+    "image": "https://raw.githubusercontent.com/amvmendez/pyc-starlink/main/assets/fotos-productos/recuperacion-de-cuenta-starlink-1784016121322.jpg",
     "images": [],
     "availability": null,
     "visible": true,
