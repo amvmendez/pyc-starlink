@@ -1136,78 +1136,17 @@ function getDeptColor(dept) {
   return             { fill: '#7f1d1d', stroke: '#ef4444' };
 }
 
-// Colombia SVG paths — inline, sin fetch externo
-// Paths simplificados basados en coordenadas reales, viewBox 0 0 600 800
-const COLOMBIA_PATHS = {
-  "La Guajira":    "M320,20 L380,15 L410,25 L420,60 L400,80 L370,90 L340,75 L310,55 L300,35 Z",
-  "Atlántico":     "M215,95 L245,85 L260,95 L255,115 L230,120 L210,110 Z",
-  "Magdalena":     "M260,75 L310,55 L340,75 L355,100 L340,130 L310,145 L280,135 L255,115 L260,95 Z",
-  "Cesar":         "M340,75 L370,90 L400,80 L415,110 L410,145 L390,165 L360,160 L340,130 L355,100 Z",
-  "Bolívar":       "M185,115 L215,95 L230,120 L255,115 L280,135 L275,170 L250,185 L220,180 L195,165 L180,140 Z",
-  "Sucre":         "M175,160 L195,165 L220,180 L215,200 L195,210 L170,200 L160,180 Z",
-  "Córdoba":       "M145,155 L175,160 L180,140 L195,165 L175,200 L160,210 L135,200 L120,175 L125,155 Z",
-  "Norte de Santander": "M390,165 L415,145 L445,155 L455,185 L440,210 L410,215 L385,200 L375,180 Z",
-  "Arauca":        "M415,145 L460,135 L495,145 L500,170 L475,185 L455,185 L440,165 Z",
-  "Santander":     "M310,160 L340,150 L360,160 L375,180 L370,210 L345,230 L315,225 L295,205 L295,180 Z",
-  "Boyacá":        "M360,160 L390,165 L385,200 L375,215 L355,230 L330,235 L315,225 L345,210 L370,210 Z",
-  "Casanare":      "M410,165 L455,185 L475,185 L480,215 L465,240 L435,245 L405,230 L390,205 L410,190 Z",
-  "Vichada":       "M480,175 L540,170 L570,195 L565,265 L535,280 L500,270 L480,245 L475,215 Z",
-  "Chocó":         "M95,195 L125,185 L145,195 L150,230 L140,265 L120,285 L95,275 L80,245 L80,215 Z",
-  "Antioquia":     "M125,185 L160,175 L180,185 L200,180 L220,190 L225,225 L215,260 L195,275 L170,280 L145,265 L140,240 L125,215 Z",
-  "Cundinamarca":  "M315,225 L355,230 L370,250 L360,280 L335,295 L305,290 L290,265 L295,240 Z",
-  "Meta":          "M370,250 L410,245 L435,260 L440,305 L420,335 L390,345 L360,335 L345,305 L350,275 Z",
-  "Guainía":       "M480,245 L535,248 L555,270 L550,330 L520,355 L490,350 L470,320 L465,280 Z",
-  "Caldas":        "M195,255 L225,250 L235,270 L220,290 L200,290 L185,270 Z",
-  "Risaralda":     "M175,270 L200,265 L210,280 L200,295 L180,295 L168,282 Z",
-  "Quindío":       "M195,285 L215,280 L222,295 L210,308 L195,305 Z",
-  "Tolima":        "M220,265 L255,260 L275,275 L278,310 L260,335 L235,335 L215,315 L210,285 Z",
-  "Huila":         "M260,310 L295,305 L310,320 L308,360 L285,385 L260,385 L245,365 L245,335 Z",
-  "Valle del Cauca": "M140,270 L175,270 L185,285 L195,305 L210,320 L200,355 L178,370 L150,360 L130,330 L125,295 Z",
-  "Guaviare":      "M435,300 L480,295 L500,315 L498,360 L470,375 L440,365 L425,340 L425,315 Z",
-  "Vaupés":        "M490,355 L530,350 L555,370 L550,430 L520,450 L490,445 L470,415 L470,380 Z",
-  "Cauca":         "M150,350 L180,345 L200,360 L205,390 L185,415 L158,420 L138,400 L135,372 Z",
-  "Caquetá":       "M310,330 L355,330 L390,350 L395,400 L375,430 L340,440 L310,425 L295,395 L295,360 Z",
-  "Nariño":        "M135,405 L165,398 L185,415 L182,450 L160,468 L132,462 L115,440 L118,418 Z",
-  "Putumayo":      "M185,415 L215,410 L240,420 L242,455 L220,472 L192,468 L178,450 Z",
-  "Amazonas":      "M295,435 L340,435 L375,450 L390,510 L370,555 L330,565 L295,555 L275,515 L278,470 Z",
-  "San Andrés y Providencia": "M48,155 L58,150 L65,158 L62,170 L52,173 L44,165 Z",
-};
-
-function renderMap() {
+async function renderMap() {
   const wrap = document.getElementById('listMap');
-
-  let paths = '';
-  Object.entries(COLOMBIA_PATHS).forEach(([dept, d]) => {
-    const { fill, stroke } = getDeptColor(dept);
-    const done  = Object.values(db).filter(r => r.dept === dept && r.status === 'done').length;
-    const total = DEPTS[dept] ? DEPTS[dept].length : 0;
-    const pct   = total > 0 ? Math.round(done / total * 100) : 0;
-
-    // Compute simple centroid from first M point
-    const pts = [...d.matchAll(/[ML]([\d.]+),([\d.]+)/g)].map(m => [+m[1], +m[2]]);
-    const cx  = pts.reduce((s,p) => s + p[0], 0) / pts.length;
-    const cy  = pts.reduce((s,p) => s + p[1], 0) / pts.length;
-
-    paths += `
-      <g onclick="mapClick('${dept.replace(/'/g,"\\'")}')">
-        <path d="${d}" fill="${fill}" stroke="#0e1218" stroke-width="0.8"
-              style="cursor:pointer;transition:opacity .15s"
-              onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'"/>
-        ${done > 0 ? `<text x="${cx}" y="${cy+1}" text-anchor="middle" dominant-baseline="middle"
-              fill="rgba(255,255,255,0.9)" font-size="7" font-weight="700"
-              font-family="JetBrains Mono,monospace" pointer-events="none">${pct}%</text>` : ''}
-      </g>`;
-  });
-
   wrap.innerHTML = `
     <div class="map-container">
       <div style="font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">
-        Alta Demanda por Departamento
+        Mapa de calor — Alta Demanda por Departamento
       </div>
-      <svg viewBox="0 0 610 590" width="100%" style="display:block;">
-        ${paths}
-      </svg>
-      <div class="map-legend">
+      <div id="mapSvgWrap" style="width:100%;min-height:340px;display:flex;align-items:center;justify-content:center;">
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-3);">⏳ Cargando mapa...</span>
+      </div>
+      <div class="map-legend" style="margin-top:10px;">
         <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>Sin recargos</div>
         <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Recargo bajo</div>
         <div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Recargo medio</div>
@@ -1216,6 +1155,87 @@ function renderMap() {
       </div>
     </div>
     <div id="mapDetail" class="card" style="display:none;margin-top:8px;"></div>`;
+
+  try {
+    if (!window.d3) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js');
+
+    // GeoJSON real de departamentos de Colombia — john-guerra / gist
+    const res = await fetch('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/3aadedf47badbdac1e11b1d5f0b85c2bf2f4af94/colombia.geo.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const geojson = await res.json();
+
+    const svgWrap = document.getElementById('mapSvgWrap');
+    const W = svgWrap.clientWidth || 300;
+    const H = Math.round(W * 1.35);
+    svgWrap.style.minHeight = H + 'px';
+
+    // Name normalization from GeoJSON to our DEPTS keys
+    const normalize = name => {
+      if (!name) return '';
+      const map = {
+        'Bogotá D.C.': 'Cundinamarca',
+        'Bogota D.C.': 'Cundinamarca',
+        'Archipiélago de San Andrés, Providencia y Santa Catalina': 'San Andrés y Providencia',
+        'San Andrés': 'San Andrés y Providencia',
+        'Norte De Santander': 'Norte de Santander',
+        'Valle Del Cauca': 'Valle del Cauca',
+        'La Guajira': 'La Guajira',
+      };
+      return map[name] || name;
+    };
+
+    const projection = d3.geoMercator().fitSize([W, H], geojson);
+    const pathGen   = d3.geoPath().projection(projection);
+
+    const svg = d3.create('svg')
+      .attr('width', W)
+      .attr('height', H)
+      .style('display', 'block');
+
+    geojson.features.forEach(f => {
+      const rawName = f.properties.NOMBRE_DPT || f.properties.name || f.properties.NAME_1 || '';
+      const dept    = normalize(rawName);
+      const { fill, stroke } = getDeptColor(dept);
+      const done  = Object.values(db).filter(r => r.dept === dept && r.status === 'done').length;
+      const total = DEPTS[dept] ? DEPTS[dept].length : 0;
+      const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+      const centroid = pathGen.centroid(f);
+
+      const g = svg.append('g')
+        .style('cursor', 'pointer')
+        .on('click', () => mapClick(dept));
+
+      g.append('path')
+        .attr('d', pathGen(f))
+        .attr('fill', fill)
+        .attr('stroke', '#0a0f14')
+        .attr('stroke-width', 0.6)
+        .on('mouseover', function() { d3.select(this).attr('opacity', 0.75); })
+        .on('mouseout',  function() { d3.select(this).attr('opacity', 1); });
+
+      // Percentage label
+      if (done > 0 && !isNaN(centroid[0])) {
+        g.append('text')
+          .attr('x', centroid[0])
+          .attr('y', centroid[1])
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'middle')
+          .attr('fill', 'rgba(255,255,255,0.9)')
+          .attr('font-size', '6.5')
+          .attr('font-weight', '700')
+          .attr('font-family', 'JetBrains Mono, monospace')
+          .attr('pointer-events', 'none')
+          .text(pct + '%');
+      }
+    });
+
+    svgWrap.innerHTML = '';
+    svgWrap.appendChild(svg.node());
+
+  } catch(e) {
+    document.getElementById('mapSvgWrap').innerHTML =
+      `<span style="font-family:var(--mono);font-size:11px;color:#ef4444;">Error: ${e.message}</span>`;
+  }
 }
 
 function loadScript(src) {
