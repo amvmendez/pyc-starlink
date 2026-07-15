@@ -1988,8 +1988,8 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-10";
-  const APP_VERSION_NOTA = "Precios finales de servicios Starlink + descripciones recuperadas de products.json";
+  const APP_VERSION = "2026.07.12-12";
+  const APP_VERSION_NOTA = "Respaldo en Firebase para Cotizaciones/Cuentas de cobro/Recibos (ya no dependen solo del caché)";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
@@ -2123,6 +2123,11 @@
   };
 
   let syncTimer = null;
+  // Se pone en true la primera vez que pullFromCloud() confirma una carga
+  // exitosa en esta sesión — sirve para advertir en forceSync() si el usuario
+  // intenta subir sin haber confirmado que tiene los datos más recientes
+  // (por ejemplo, si abrió la app sin internet).
+  let hasPulledThisSession = false;
 
   /* ============================================================
      UTILIDADES
@@ -2345,6 +2350,10 @@
 
   function forceSync(){
     const btn = $("#btnForceSync");
+    if(!hasPulledThisSession){
+      const ok = confirm("⚠️ No se pudo confirmar que se cargaron los datos más recientes en esta sesión (puede que no haya internet).\n\n¿Seguro que quieres subir de todas formas? Esto podría borrar cambios recientes en Firebase.");
+      if(!ok) return;
+    }
     btn.classList.add("spinning");
     saveLocalImmediate();
     clearTimeout(syncTimer);
@@ -2403,6 +2412,7 @@
         }
         renderAll();
         saveLocalImmediate();
+        hasPulledThisSession = true;
         setStatus('cloud', '<b>Datos cargados desde Firebase</b>');
         if(!silent) toast("Datos cargados desde Firebase");
       })
@@ -5020,9 +5030,9 @@
     $("#btnCancelarEdicionDespliegue").addEventListener("click", cancelarEdicionDespliegue);
     $("#depEstado").addEventListener("change", actualizarVisibilidadFechaServicio);
 
-    // Si este navegador/dispositivo nunca ha guardado nada localmente,
-    // asumimos que es "nuevo" y traemos automáticamente el último respaldo de Firebase.
-    if(!hadLocalData && isUrlConfigured()){
+    // Siempre traemos automáticamente el último respaldo de Firebase al abrir,
+    // para nunca trabajar con una copia vieja de este dispositivo.
+    if(isUrlConfigured()){
       pullFromCloud(true);
     }
 
@@ -5085,6 +5095,58 @@ Garantía sujeta a las políticas del fabricante y/o de partesycomputadores.com.
 let lastPdfBlob = null;
 let lastPdfName = '';
 
+/* ============================================================
+   RESPALDO EN FIREBASE (Cotizaciones / Cuentas de cobro / Recibos)
+   Antes, este módulo solo guardaba en localStorage — si se borraba el
+   caché del navegador, se perdía todo sin remedio. Ahora, cada vez que
+   se guarda algo aquí, también se sube una copia a Firebase; y si al
+   leer no se encuentra nada en localStorage (por ejemplo, tras borrar
+   caché o en un dispositivo nuevo), se intenta recuperar desde ahí
+   automáticamente y se vuelve a guardar localmente.
+============================================================ */
+const FIREBASE_DB_URL_COTIZADOR = "https://inventarioyfinanzas-default-rtdb.firebaseio.com";
+const COTIZADOR_BACKUP_PATH = "cotizador_backup";
+
+function claveFirebaseSegura(key){
+  // Firebase Realtime Database no permite . # $ [ ] en las claves.
+  return String(key).replace(/[.#$\[\]]/g, "_");
+}
+
+async function respaldarEnFirebase(key, value){
+  try{
+    const url = `${FIREBASE_DB_URL_COTIZADOR}/${COTIZADOR_BACKUP_PATH}/${claveFirebaseSegura(key)}.json`;
+    await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(value)
+    });
+  }catch(e){
+    console.warn("No se pudo respaldar en Firebase la clave", key, e);
+  }
+}
+
+async function recuperarDeFirebase(key){
+  try{
+    const url = `${FIREBASE_DB_URL_COTIZADOR}/${COTIZADOR_BACKUP_PATH}/${claveFirebaseSegura(key)}.json`;
+    const res = await fetch(url);
+    if(!res.ok) return null;
+    const data = await res.json();
+    return (data === null || data === undefined) ? null : data;
+  }catch(e){
+    console.warn("No se pudo recuperar de Firebase la clave", key, e);
+    return null;
+  }
+}
+
+async function borrarDeFirebase(key){
+  try{
+    const url = `${FIREBASE_DB_URL_COTIZADOR}/${COTIZADOR_BACKUP_PATH}/${claveFirebaseSegura(key)}.json`;
+    await fetch(url, { method: "DELETE" });
+  }catch(e){
+    console.warn("No se pudo borrar de Firebase la clave", key, e);
+  }
+}
+
 /* Works both inside Claude (window.storage) and standalone, e.g. GitHub Pages (localStorage) */
 const storageAdapter = {
   async get(key){
@@ -5092,21 +5154,36 @@ const storageAdapter = {
       try{ const r = await window.storage.get(key, false); return r ? r.value : null; }
       catch(e){ return null; }
     }
-    try{ return localStorage.getItem(key); }catch(e){ return null; }
+    try{
+      const local = localStorage.getItem(key);
+      if(local !== null) return local;
+    }catch(e){}
+    // No está en este dispositivo — intenta recuperarlo del respaldo en la nube.
+    const cloud = await recuperarDeFirebase(key);
+    if(cloud !== null){
+      try{ localStorage.setItem(key, cloud); }catch(e){}
+      return cloud;
+    }
+    return null;
   },
   async set(key, value){
     if(typeof window.storage !== 'undefined' && window.storage){
       try{ const r = await window.storage.set(key, value, false); return !!r; }
       catch(e){ return false; }
     }
-    try{ localStorage.setItem(key, value); return true; }catch(e){ return false; }
+    let ok = false;
+    try{ localStorage.setItem(key, value); ok = true; }catch(e){}
+    respaldarEnFirebase(key, value); // en paralelo, no bloquea el guardado local
+    return ok;
   },
   async delete(key){
     if(typeof window.storage !== 'undefined' && window.storage){
       try{ await window.storage.delete(key, false); return true; }
       catch(e){ return false; }
     }
-    try{ localStorage.removeItem(key); return true; }catch(e){ return false; }
+    try{ localStorage.removeItem(key); }catch(e){}
+    borrarDeFirebase(key); // en paralelo
+    return true;
   }
 };
 
