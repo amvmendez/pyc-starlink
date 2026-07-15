@@ -1628,7 +1628,7 @@
       <label>Eslogan / actividad (opcional)</label>
       <input type="text" id="co_tagline" value="Partes, componentes y equipos de cómputo">
       <div class="row2">
-        <div><label>NIT</label><input type="text" id="co_nit" placeholder="900.XXX.XXX-X"></div>
+        <div><label>RUT</label><input type="text" id="co_nit" placeholder="900.XXX.XXX-X"></div>
         <div><label>Teléfono / WhatsApp</label><input type="tel" id="co_phone" placeholder="300 000 0000"></div>
       </div>
       <div class="row2">
@@ -1660,7 +1660,7 @@
       <h2>Datos del cliente</h2>
       <div class="row2">
         <div><label>Nombre / razón social</label><input type="text" id="cl_name" placeholder="Nombre del cliente"></div>
-        <div><label>NIT / Cédula</label><input type="text" id="cl_id" placeholder="C.C. / NIT"></div>
+        <div><label>RUT / Cédula</label><input type="text" id="cl_id" placeholder="C.C. / RUT"></div>
       </div>
       <div class="row2">
         <div><label>Teléfono</label><input type="tel" id="cl_phone" placeholder="Ej: 3001234567"></div>
@@ -1713,7 +1713,7 @@
           <input type="text" id="pm_transfer_number">
           <div class="row2">
             <div><label>Titular</label><input type="text" id="pm_transfer_holder" value="Partes y Computadores"></div>
-            <div><label>NIT / C.C. titular</label><input type="text" id="pm_transfer_holderid"></div>
+            <div><label>RUT / C.C. titular</label><input type="text" id="pm_transfer_holderid"></div>
           </div>
         </div>
       </div>
@@ -1842,7 +1842,7 @@
       </div>
       <label>Recibí de (nombre del cliente)</label>
       <input type="text" id="rc_payername" placeholder="Nombre de quien paga">
-      <label>NIT / C.C. de quien paga (opcional)</label>
+      <label>RUT / C.C. de quien paga (opcional)</label>
       <input type="text" id="rc_payerid">
       <label>Documento de referencia (cotización o cuenta de cobro)</label>
       <input type="text" id="rc_refdoc" placeholder="Ej: CC-2026-0004">
@@ -1988,8 +1988,8 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-12";
-  const APP_VERSION_NOTA = "Respaldo en Firebase para Cotizaciones/Cuentas de cobro/Recibos (ya no dependen solo del caché)";
+  const APP_VERSION = "2026.07.12-13";
+  const APP_VERSION_NOTA = "NIT reemplazado por RUT en formularios y documentos del cotizador";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
@@ -5376,7 +5376,7 @@ function renderPreview(){
   $('pv_coname').textContent = state.company.name || 'Tu empresa';
   $('pv_cotag').textContent = state.company.tagline || '';
   const metaParts = [];
-  if(state.company.nit) metaParts.push('NIT: '+state.company.nit);
+  if(state.company.nit) metaParts.push('RUT: '+state.company.nit);
   if(state.company.address) metaParts.push(state.company.address);
   if(state.company.phone) metaParts.push('Tel: '+state.company.phone);
   if(state.company.email) metaParts.push(state.company.email);
@@ -5403,7 +5403,7 @@ function renderPreview(){
 
   $('pv_client').innerHTML = `
     <div><b>Cliente:</b> ${escapeHtml(state.client.name)||'—'}</div>
-    <div><b>NIT/CC:</b> ${escapeHtml(state.client.id)||'—'}</div>
+    <div><b>RUT/CC:</b> ${escapeHtml(state.client.id)||'—'}</div>
     <div><b>Teléfono:</b> ${escapeHtml(state.client.phone)||'—'}</div>
     <div><b>Correo:</b> ${escapeHtml(state.client.email)||'—'}</div>
     <div style="grid-column:1/-1;"><b>Dirección:</b> ${escapeHtml(state.client.address)||'—'}</div>`;
@@ -5931,7 +5931,7 @@ async function drawHeader(doc, pageW, margin, {docLabel, docNumber, rightLines})
   }
 
   const contactLines = [
-    state.company.nit ? 'NIT: '+state.company.nit : '',
+    state.company.nit ? 'RUT: '+state.company.nit : '',
     state.company.address || '',
     state.company.phone ? 'Tel: '+state.company.phone : '',
     state.company.email || '',
@@ -6082,7 +6082,7 @@ async function generatePDF(){
   y += 5;
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...INK);
   const clientLines = [
-    'Cliente: '+(state.client.name||'—')+'    NIT/CC: '+(state.client.id||'—'),
+    'Cliente: '+(state.client.name||'—')+'    RUT/CC: '+(state.client.id||'—'),
     'Teléfono: '+(state.client.phone||'—')+'    Correo: '+(state.client.email||'—'),
     'Dirección: '+(state.client.address||'—')
   ];
@@ -6235,7 +6235,7 @@ async function generateCuentaCobroPDF(){
   doc.setFont('helvetica','bold'); doc.setFontSize(11);
   doc.text(state.client.name || '—', margin, y); y += 5;
   doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...INKSOFT);
-  if(state.client.id){ doc.text('NIT/CC: '+state.client.id, margin, y); y += 4.5; }
+  if(state.client.id){ doc.text('RUT/CC: '+state.client.id, margin, y); y += 4.5; }
   if(state.client.address){ doc.text(state.client.address, margin, y); y += 4.5; }
   y += 6;
 
@@ -6369,7 +6369,7 @@ async function generateReciboPDF(){
   doc.text(state.recibo.payerName || '—', margin, y); y += 5;
   if(state.recibo.payerId){
     doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...INKSOFT);
-    doc.text('NIT/CC: '+state.recibo.payerId, margin, y); y += 4.5;
+    doc.text('RUT/CC: '+state.recibo.payerId, margin, y); y += 4.5;
   }
   y += 6;
 
