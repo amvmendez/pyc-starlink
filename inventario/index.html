@@ -577,6 +577,17 @@
   #tab-cotizador .btn-secondary{background:var(--bg-3);color:var(--tx-0);border:1px solid var(--line);}
   #tab-cotizador .btn-outline{background:var(--bg-1);border:1px solid var(--line);color:var(--tx-1);}
   #tab-cotizador .btn:disabled{opacity:.5;cursor:not-allowed;}
+  #tab-cotizador .btn-save-emphasis{
+    background:linear-gradient(135deg,var(--amber),#ff8a3d);
+    color:#05131c; border:none; font-weight:800;
+    box-shadow:0 4px 20px rgba(255,181,71,0.4);
+    animation:saveGlow 2.2s ease-in-out infinite;
+  }
+  #tab-cotizador .btn-save-emphasis:hover{filter:brightness(1.06);}
+  @keyframes saveGlow{
+    0%,100%{ box-shadow:0 4px 20px rgba(255,181,71,0.4); }
+    50%{ box-shadow:0 4px 26px rgba(255,181,71,0.75); }
+  }
   #tab-cotizador .status{font-size:12px;color:var(--ink-soft);margin-top:2px;min-height:16px;}
   #tab-cotizador .status.ok{color:var(--green);}
   #tab-cotizador .note{font-size:11.5px;color:var(--ink-faint);line-height:1.5;margin-top:6px;}
@@ -1660,7 +1671,7 @@
       <h2>Datos del cliente</h2>
       <div class="row2">
         <div><label>Nombre / razón social</label><input type="text" id="cl_name" placeholder="Nombre del cliente"></div>
-        <div><label>RUT / Cédula</label><input type="text" id="cl_id" placeholder="C.C. / RUT"></div>
+        <div><label>Cédula/Nit</label><input type="text" id="cl_id" placeholder="C.C. / Nit"></div>
       </div>
       <div class="row2">
         <div><label>Teléfono</label><input type="tel" id="cl_phone" placeholder="Ej: 3001234567"></div>
@@ -1769,7 +1780,7 @@
 
     <div class="card">
       <h2>Guardar y retomar cotización</h2>
-      <button class="btn btn-outline" id="saveDraftBtn">💾 Guardar avance de esta cotización</button>
+      <button class="btn btn-save-emphasis" id="saveDraftBtn">💾 Guardar avance de esta cotización</button>
       <div class="status" id="draftStatus"></div>
       <label>Cotizaciones guardadas</label>
       <select id="draftSelect"><option value="">— Selecciona una cotización guardada —</option></select>
@@ -1823,7 +1834,7 @@
       <label style="margin-top:14px;">Cuentas de cobro guardadas</label>
       <select id="ccDraftSelect"><option value="">— Selecciona una cuenta de cobro guardada —</option></select>
       <div class="actions" style="flex-direction:row;">
-        <button class="btn btn-outline" id="ccSaveBtn" style="flex:1;">💾 Guardar</button>
+        <button class="btn btn-save-emphasis" id="ccSaveBtn" style="flex:1;">💾 Guardar</button>
         <button class="btn btn-secondary" id="ccLoadBtn" style="flex:1;">↩️ Retomar</button>
         <button class="btn btn-outline" id="ccDeleteBtn" style="flex:1;">🗑️ Eliminar</button>
       </div>
@@ -1877,7 +1888,7 @@
       <label style="margin-top:14px;">Recibos guardados</label>
       <select id="reciboDraftSelect"><option value="">— Selecciona un recibo guardado —</option></select>
       <div class="actions" style="flex-direction:row;">
-        <button class="btn btn-outline" id="reciboSaveBtn" style="flex:1;">💾 Guardar</button>
+        <button class="btn btn-save-emphasis" id="reciboSaveBtn" style="flex:1;">💾 Guardar</button>
         <button class="btn btn-secondary" id="reciboLoadBtn" style="flex:1;">↩️ Retomar</button>
         <button class="btn btn-outline" id="reciboDeleteBtn" style="flex:1;">🗑️ Eliminar</button>
       </div>
@@ -1988,8 +1999,8 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-13";
-  const APP_VERSION_NOTA = "NIT reemplazado por RUT en formularios y documentos del cotizador";
+  const APP_VERSION = "2026.07.12-15";
+  const APP_VERSION_NOTA = "Vuelve a la última pestaña tras recarga automática, para ver el aviso de recuperar avance al instante";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
@@ -2473,6 +2484,12 @@
     fab.classList.toggle("visible", !esInicio);
 
     window.scrollTo({ top: 0, behavior: "instant" });
+
+    // Recordamos la última pestaña para volver aquí solos si el navegador
+    // recarga la página (por ejemplo, al cambiar de pestaña o de app y
+    // que el sistema libere memoria). Así el aviso de "recuperar avance"
+    // de Cotizaciones aparece de inmediato, sin que haya que ir a buscarlo.
+    try{ localStorage.setItem("pyc_ultima_pestana", tabName); }catch(e){}
   }
 
   function initTabs(){
@@ -4939,6 +4956,18 @@
     setStatus('local');
     mostrarBurbujaTareas();
 
+    // Si la app se recargó sola (cambio de pestaña del navegador, de app,
+    // etc.) volvemos automáticamente a la última pestaña donde estabas,
+    // en vez de dejarte en Inicio — así, si estabas en Cotizaciones, el
+    // aviso de "recuperar avance" te aparece de inmediato.
+    try{
+      const ultimaPestana = localStorage.getItem("pyc_ultima_pestana");
+      const tabsValidos = ["antenas","despliegues","servicios","accesorios","licencias","finanzas","cotizador","tareas","historial"];
+      if(ultimaPestana && ultimaPestana !== "inicio" && tabsValidos.includes(ultimaPestana)){
+        goToTab(ultimaPestana);
+      }
+    }catch(e){}
+
     $("#btnCerrarBurbujaTareas").addEventListener("click", () => {
       $("#tareasBubble").style.display = "none";
     });
@@ -5192,6 +5221,19 @@ function formatCOP(n){
   return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n);
 }
 
+// Numera cada línea no vacía de las condiciones comerciales ("1. ", "2. "...)
+// para la vista previa y el PDF — el textarea donde se editan se queda como
+// texto libre, una condición por línea, sin que el usuario tenga que llevar
+// la numeración manualmente.
+function enumerarCondiciones(texto){
+  return (texto || '')
+    .split('\n')
+    .map(l => l.trim())
+    .filter(Boolean)
+    .map((l, i) => `${i+1}. ${l}`)
+    .join('\n');
+}
+
 function computeTotals(){
   const subtotal = state.items.reduce((s,it)=> s + (Number(it.qty)||0)*(Number(it.price)||0), 0);
   const afterDiscount = Math.max(subtotal - (Number(state.discount)||0), 0);
@@ -5209,7 +5251,7 @@ function renderItemsForm(){
     row.innerHTML = `
       <button class="del" data-i="${i}" title="Eliminar">✕</button>
       <label style="margin-top:0;">Descripción</label>
-      <input type="text" data-field="desc" data-i="${i}" value="${escapeAttr(it.desc)}" placeholder="Ej: Disco SSD 1TB NVMe">
+      <input type="text" data-field="desc" data-i="${i}" value="${escapeAttr(it.desc)}" placeholder="Ej: DISCO SSD 1TB NVME" style="text-transform:uppercase;">
       <div class="row3">
         <div><label>Cantidad</label><input type="number" min="0" step="1" data-field="qty" data-i="${i}" value="${it.qty}"></div>
         <div><label>Vlr. unitario (COP)</label><input type="number" min="0" data-field="price" data-i="${i}" value="${it.price}"></div>
@@ -5222,7 +5264,17 @@ function renderItemsForm(){
     inp.addEventListener('input', e=>{
       const i = Number(e.target.dataset.i);
       const f = e.target.dataset.field;
-      state.items[i][f] = f==='desc' ? e.target.value : Number(e.target.value);
+      if(f === 'desc'){
+        const cursorPos = e.target.selectionStart;
+        const upper = e.target.value.toUpperCase();
+        if(e.target.value !== upper){
+          e.target.value = upper;
+          e.target.setSelectionRange(cursorPos, cursorPos);
+        }
+        state.items[i][f] = upper;
+      } else {
+        state.items[i][f] = Number(e.target.value);
+      }
       // update subtotal cell live without full re-render (avoid focus loss)
       const row = e.target.closest('.item-row');
       const subCell = row.querySelector('.row3 input[disabled]');
@@ -5403,7 +5455,7 @@ function renderPreview(){
 
   $('pv_client').innerHTML = `
     <div><b>Cliente:</b> ${escapeHtml(state.client.name)||'—'}</div>
-    <div><b>RUT/CC:</b> ${escapeHtml(state.client.id)||'—'}</div>
+    <div><b>Cédula/Nit:</b> ${escapeHtml(state.client.id)||'—'}</div>
     <div><b>Teléfono:</b> ${escapeHtml(state.client.phone)||'—'}</div>
     <div><b>Correo:</b> ${escapeHtml(state.client.email)||'—'}</div>
     <div style="grid-column:1/-1;"><b>Dirección:</b> ${escapeHtml(state.client.address)||'—'}</div>`;
@@ -5423,7 +5475,7 @@ function renderPreview(){
   totalsHtml += `<div class="grand"><span>Total</span><span>${formatCOP(t.total)}</span></div>`;
   $('pv_totals').innerHTML = totalsHtml;
 
-  $('pv_conditions').textContent = state.conditions;
+  $('pv_conditions').textContent = enumerarCondiciones(state.conditions);
 
   const pay = state.payment;
   let payHtml = '';
@@ -5439,6 +5491,61 @@ function renderPreview(){
   $('pv_payment').innerHTML = payHtml || '<div class="pitem" style="color:#B3462C;">Selecciona al menos un medio de pago.</div>';
 
   $('pv_foot').textContent = `${state.company.name} · ${state.company.website} — Documento generado automáticamente, sujeto a las condiciones comerciales descritas.`;
+
+  programarAutoguardadoCotizacion();
+}
+
+/* ============================================================
+   AUTOGUARDADO DEL AVANCE ACTUAL (para no perder nada si la
+   pestaña del navegador se recarga sola por estar mucho tiempo en
+   segundo plano, o si simplemente se te olvida tocar "Guardar")
+============================================================ */
+let autoguardadoCotizacionTimer = null;
+function programarAutoguardadoCotizacion(){
+  clearTimeout(autoguardadoCotizacionTimer);
+  autoguardadoCotizacionTimer = setTimeout(autoguardarCotizacionActual, 2500);
+}
+async function autoguardarCotizacionActual(){
+  const snapshot = {
+    client: state.client, meta: state.meta, items: state.items,
+    discount: state.discount, conditions: state.conditions,
+    payment: state.payment, savedAt: new Date().toISOString()
+  };
+  await storageAdapter.set('autosave_cotizacion_actual', JSON.stringify(snapshot));
+}
+async function revisarAutoguardadoAlAbrir(){
+  try{
+    const raw = await storageAdapter.get('autosave_cotizacion_actual');
+    if(!raw) return;
+    const data = JSON.parse(raw);
+    if(!data || !data.savedAt) return;
+    // Si no hay nada relevante guardado (ni cliente ni ítems con contenido), no molestamos con el aviso.
+    const tieneContenido = (data.client && data.client.name) ||
+      (data.items && data.items.some(it => it.desc && it.desc.trim()));
+    if(!tieneContenido) return;
+
+    const fecha = new Date(data.savedAt).toLocaleString('es-CO', { dateStyle:'medium', timeStyle:'short' });
+    const nombreCliente = (data.client && data.client.name) || 'sin nombre de cliente';
+    const ok = confirm(`Encontramos un avance sin guardar del ${fecha} (cliente: ${nombreCliente}).\n\n¿Quieres recuperarlo?`);
+    if(!ok) return;
+
+    state.client = data.client || state.client;
+    state.items = (data.items && data.items.length) ? data.items : state.items;
+    state.discount = data.discount ?? state.discount;
+    state.conditions = data.conditions || state.conditions;
+    state.payment = data.payment || state.payment;
+    reflectClientMetaMiscToForm();
+    reflectPaymentToForm();
+    renderItemsForm();
+    renderPreview();
+    toast_cot("Avance recuperado");
+  }catch(e){
+    console.warn("No se pudo revisar el autoguardado:", e);
+  }
+}
+function toast_cot(msg){
+  const el = $('genStatus');
+  if(el){ el.textContent = '✓ ' + msg; el.className = 'status ok'; }
 }
 
 /* ---------- STORAGE (persist company + payment profile) ---------- */
@@ -6082,7 +6189,7 @@ async function generatePDF(){
   y += 5;
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...INK);
   const clientLines = [
-    'Cliente: '+(state.client.name||'—')+'    RUT/CC: '+(state.client.id||'—'),
+    'Cliente: '+(state.client.name||'—')+'    Cédula/Nit: '+(state.client.id||'—'),
     'Teléfono: '+(state.client.phone||'—')+'    Correo: '+(state.client.email||'—'),
     'Dirección: '+(state.client.address||'—')
   ];
@@ -6146,7 +6253,7 @@ async function generatePDF(){
   doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...TRACE);
   doc.text('CONDICIONES COMERCIALES', margin, y); y+=5;
   doc.setFont('helvetica','normal'); doc.setFontSize(8.3); doc.setTextColor(...INK);
-  const condLines = doc.splitTextToSize(state.conditions, pageW-2*margin);
+  const condLines = doc.splitTextToSize(enumerarCondiciones(state.conditions), pageW-2*margin);
   condLines.forEach(l=>{
     if(y>pageH-20){ doc.addPage(); y=margin; }
     doc.text(l, margin, y); y+=4.2;
@@ -6235,7 +6342,7 @@ async function generateCuentaCobroPDF(){
   doc.setFont('helvetica','bold'); doc.setFontSize(11);
   doc.text(state.client.name || '—', margin, y); y += 5;
   doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...INKSOFT);
-  if(state.client.id){ doc.text('RUT/CC: '+state.client.id, margin, y); y += 4.5; }
+  if(state.client.id){ doc.text('Cédula/Nit: '+state.client.id, margin, y); y += 4.5; }
   if(state.client.address){ doc.text(state.client.address, margin, y); y += 4.5; }
   y += 6;
 
@@ -6547,6 +6654,7 @@ $('ccMailBtn').addEventListener('click', ()=>{
   renderItemsForm();
   renderPreview();
   actualizarEstadoPagadaCC();
+  await revisarAutoguardadoAlAbrir();
 })();
 
 })();
