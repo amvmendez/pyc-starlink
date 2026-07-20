@@ -812,11 +812,28 @@ const formatTxt = document.getElementById('formatText');
 const copyBtn   = document.getElementById('copyBtn');
 const saveBtn   = document.getElementById('saveBtn');
 
-Object.keys(DEPTS).sort().forEach(d => {
-  const o = document.createElement('option');
-  o.value = d; o.textContent = d;
-  deptSel.appendChild(o);
-});
+function refreshDeptSelect() {
+  const currentVal = deptSel.value;
+  // Remove all options except placeholder
+  deptSel.innerHTML = '<option value="">— Seleccionar departamento —</option>';
+
+  const doneSet = new Set(
+    Object.values(db).filter(r => r.status === 'done').map(r => genKey(r.dept, r.muni))
+  );
+
+  Object.keys(DEPTS).sort().forEach(d => {
+    // Check if all municipalities of this dept are done
+    const allDone = DEPTS[d].every(m => doneSet.has(genKey(d, m)));
+    if (allDone) return; // skip — fully completed dept
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    if (d === currentVal) o.selected = true;
+    deptSel.appendChild(o);
+  });
+}
+
+// Initial population
+refreshDeptSelect();
 
 deptSel.addEventListener('change', () => populateMunis());
 
@@ -1239,6 +1256,7 @@ function renderAll(){
   document.getElementById('progressFill').style.width = pct + '%';
 
   if (deptSel && deptSel.value) populateMunis();
+  refreshDeptSelect();
   if (currentTab === 'map') renderMap();
 }
 
