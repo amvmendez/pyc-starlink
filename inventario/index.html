@@ -152,6 +152,14 @@
   .fab-back:active{transform:scale(0.93);}
   .fab-back svg{width:22px; height:22px;}
 
+  .btn-volver-inicio-top{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--bg-1); border:1px solid var(--line); color:var(--tx-1);
+    font-size:12px; font-weight:600; padding:7px 12px; border-radius:20px;
+    margin-bottom:12px;
+  }
+  .btn-volver-inicio-top:active{background:var(--bg-3);}
+
   /* ---------- BURBUJA FLOTANTE DE TAREAS ---------- */
   .tareas-bubble{
     position:fixed; left:16px; right:16px; bottom:24px; z-index:75;
@@ -233,7 +241,7 @@
   tbody td{padding:10px 12px; border-top:1px solid var(--line); color:var(--tx-1); white-space:nowrap;}
   tbody tr:hover{background:rgba(0,224,255,0.03);}
   .num-input{width:72px; padding:7px 8px; font-size:13px;}
-  .qty-group{display:flex; align-items:center; gap:5px;}
+  .qty-group{display:flex; align-items:center; gap:5px; flex-wrap:wrap; max-width:120px;}
   .qty-btn{
     flex:none; width:28px; height:28px; border-radius:8px;
     background:var(--bg-3); border:1px solid var(--line); color:var(--tx-0);
@@ -265,6 +273,9 @@
   }
   .btn-warn-noaffect:active{background:rgba(255,93,108,0.25);}
   .price-input{width:110px; padding:7px 8px; font-size:13px;}
+  .price-input-venta{width:82px;}
+  .td-nombre-amplia{min-width:190px;}
+  .td-compacta{padding:8px 6px !important; font-size:12.5px;}
   .mono{font-family:var(--mono);}
   .cop{color:var(--green); font-weight:600;}
   .cop-egreso{color:var(--blue); font-weight:600;}
@@ -1068,6 +1079,11 @@
           </select>
         </div>
         <div class="field" style="grid-column:1/-1;">
+          <label>Descripción larga (se muestra en "Ver más detalles" en la tienda)</label>
+          <textarea id="newAccDescripcion" rows="3" placeholder="Descripción detallada para el cliente..."></textarea>
+          <button type="button" class="link-btn" id="btnGenerarDescAcc" style="margin-top:4px;">✨ Generar automática a partir del nombre</button>
+        </div>
+        <div class="field" style="grid-column:1/-1;">
           <label>Foto (URL pública de la imagen)</label>
           <input type="text" id="newAccFoto" placeholder="https://.../router-mini.jpg" autocapitalize="off" autocorrect="off">
           <small class="hint">⚠️ Este campo NO sube archivos — solo guarda un link. Debe ser una <b>URL pública</b> (empieza por <b>https://</b>) que cualquiera pueda abrir sin iniciar sesión, ej: una imagen ya subida a tu repo de GitHub (<span class="mono">https://raw.githubusercontent.com/...</span>), a Firebase Storage, o cualquier otro sitio. Si primero subes la foto ahí y luego pegas ese link aquí, se refleja sola en la tienda. Si la dejas vacía o el link no carga, la tienda muestra su ícono de respaldo sin romperse.</small>
@@ -1355,6 +1371,7 @@
         <div class="field" style="grid-column:1/-1;">
           <label>Descripción corta (se muestra en la tienda)</label>
           <textarea id="newSvcDescripcion" rows="2" placeholder="Ej: Formateo completo de tu equipo por conexión remota, con respaldo previo."></textarea>
+          <button type="button" class="link-btn" id="btnGenerarDescSvc" style="margin-top:4px;">✨ Generar automática a partir del nombre</button>
         </div>
         <div class="field" style="grid-column:1/-1;">
           <label>Foto (URL pública de la imagen)</label>
@@ -1412,6 +1429,11 @@
         <div class="field" style="grid-column:1/-1;">
           <label><input type="checkbox" id="newLicVisible" checked style="width:16px; height:16px; vertical-align:middle; margin-right:6px;"> Visible en la tienda</label>
           <small class="hint">Se muestra como disponible en la tienda mientras esto esté activo, sin importar el stock — las licencias siempre se pueden conseguir con el proveedor.</small>
+        </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label>Descripción larga (se muestra en "Ver más detalles" en la tienda)</label>
+          <textarea id="newLicDescripcion" rows="3" placeholder="Descripción detallada para el cliente..."></textarea>
+          <button type="button" class="link-btn" id="btnGenerarDescLic" style="margin-top:4px;">✨ Generar automática a partir del nombre</button>
         </div>
         <div class="field" style="grid-column:1/-1;">
           <label>Foto (URL pública de la imagen)</label>
@@ -1612,6 +1634,9 @@
     <h1>Cotizador · Partes y Computadores</h1>
     <p>Genera cotizaciones en PDF listas para enviar por WhatsApp o correo</p>
   </div>
+  <button type="button" id="btnVolverInicioCotizador" style="margin-left:auto; display:inline-flex; align-items:center; gap:6px; background:var(--bg-1); border:1px solid var(--line); color:var(--tx-1); font-size:12px; font-weight:600; padding:8px 12px; border-radius:20px; white-space:nowrap;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" width="15" height="15"><path d="M19 12H5m0 0l6-6m-6 6l6 6"/></svg> Menú principal
+  </button>
 </div>
 
 <div class="cz-subnav">
@@ -1999,58 +2024,58 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-15";
-  const APP_VERSION_NOTA = "Vuelve a la última pestaña tras recarga automática, para ver el aviso de recuperar avance al instante";
+  const APP_VERSION = "2026.07.12-18";
+  const APP_VERSION_NOTA = "Descripción larga en Accesorios/Licencias, generador automático, columnas ajustadas, botón de menú en cada pestaña";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
     // --- Alimentación / routers ---
-    { id:"fuente_std4",   nombre:"Fuente de alimentación avanzada | Standard 4", precio:1063000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"router3",       nombre:"Router 3 | Standard 4, Mini",                  precio:624000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"router_mini",   nombre:"Router Mini",                                  precio:249790, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"fuente_std4",   nombre:"Fuente de alimentación avanzada | Standard 4", precio:1063000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"router3",       nombre:"Router 3 | Standard 4, Mini",                  precio:624000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"router_mini",   nombre:"Router Mini",                                  precio:249790, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
     // --- Cables ---
-    { id:"cable_15",      nombre:"Cable Starlink de 15 m",                       precio:341600, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"cable_45",      nombre:"Cable Starlink de 45 m",                       precio:630800, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"cc_mini_15",    nombre:"Cable de alimentación CC | Mini 15 m",         precio:210000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"cc_mini_30",    nombre:"Cable de alimentación CC | Mini 30 m",         precio:265000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"cable_eth_mini_15", nombre:"Cable Ethernet | Mini 15 m",               precio:211000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"cable_usbc_mini_5", nombre:"Cable USB-C | Mini 5 m",                   precio:175000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"cable_15",      nombre:"Cable Starlink de 15 m",                       precio:341600, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"cable_45",      nombre:"Cable Starlink de 45 m",                       precio:630800, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"cc_mini_15",    nombre:"Cable de alimentación CC | Mini 15 m",         precio:210000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"cc_mini_30",    nombre:"Cable de alimentación CC | Mini 30 m",         precio:265000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"cable_eth_mini_15", nombre:"Cable Ethernet | Mini 15 m",               precio:211000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"cable_usbc_mini_5", nombre:"Cable USB-C | Mini 5 m",                   precio:175000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
     // --- Kits y adaptadores ---
-    { id:"kit_viaje_mini", nombre:"Kit de viaje | Mini",                         precio:237000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"adap_auto_mini", nombre:"Adaptador para automóvil | Mini",             precio:280000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"adap_std4_a_mini", nombre:"Adaptador de soporte Standard 4/4X a Standard mini", precio:231000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"adap_tubo_std4", nombre:"Adaptador de tubo | Standard 4",              precio:286700, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"masonry_kit",   nombre:"Masonry Routing Kit",                         precio:374300, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"cable_routing_kit", nombre:"Cable Routing Kit",                       precio:262000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"kit_viaje_mini", nombre:"Kit de viaje | Mini",                         precio:237000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"adap_auto_mini", nombre:"Adaptador para automóvil | Mini",             precio:280000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"adap_std4_a_mini", nombre:"Adaptador de soporte Standard 4/4X a Standard mini", precio:231000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"adap_tubo_std4", nombre:"Adaptador de tubo | Standard 4",              precio:286700, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"masonry_kit",   nombre:"Masonry Routing Kit",                         precio:374300, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"cable_routing_kit", nombre:"Cable Routing Kit",                       precio:262000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
     // --- Soportes Standard 4 ---
-    { id:"soporte_portaequip_std4", nombre:"Soporte para portaequipajes | Standard 4",     precio:355000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_giratorio_std4",  nombre:"Soporte giratorio | Standard 4 y 4X, Enterprise", precio:41000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_pared_std4",      nombre:"Soporte de pared | Standard 4",                precio:419600, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_base_cruz_std4",  nombre:"Base de estructura en cruz | Standard 4/4X, Enterprise", precio:410000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_cresta_std4",     nombre:"Soporte para cresta | Standard 4/4X",          precio:420000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_router3",         nombre:"Soporte del Router 3",                         precio:228900, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_movilidad_std4",  nombre:"Soporte para movilidad | Standard 4",          precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_fuente_std4",     nombre:"Soporte de la fuente de alimentación | Standard 4", precio:221300, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_portaequip_std4", nombre:"Soporte para portaequipajes | Standard 4",     precio:355000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_giratorio_std4",  nombre:"Soporte giratorio | Standard 4 y 4X, Enterprise", precio:41000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_pared_std4",      nombre:"Soporte de pared | Standard 4",                precio:419600, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_base_cruz_std4",  nombre:"Base de estructura en cruz | Standard 4/4X, Enterprise", precio:410000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_cresta_std4",     nombre:"Soporte para cresta | Standard 4/4X",          precio:420000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_router3",         nombre:"Soporte del Router 3",                         precio:228900, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_movilidad_std4",  nombre:"Soporte para movilidad | Standard 4",          precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_fuente_std4",     nombre:"Soporte de la fuente de alimentación | Standard 4", precio:221300, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
     // --- Soportes Mini ---
-    { id:"soporte_movilidad_mini",  nombre:"Soporte para movilidad | Mini",                precio:100000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_portaequip_mini", nombre:"Soporte para portaequipajes | Mini",           precio:110000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_giratorio_mini",  nombre:"Soporte giratorio | Mini",                     precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_pared_mini",      nombre:"Soporte de pared | Mini",                      precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_movilidad_mini",  nombre:"Soporte para movilidad | Mini",                precio:100000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_portaequip_mini", nombre:"Soporte para portaequipajes | Mini",           precio:110000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_giratorio_mini",  nombre:"Soporte giratorio | Mini",                     precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_pared_mini",      nombre:"Soporte de pared | Mini",                      precio:41000, precioCompra:0,  stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
     // --- Varios ---
-    { id:"soporte_varios", nombre:"Soporte / trípode (otros)",                  precio:0, precioCompra:0,       stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"soporte_varios", nombre:"Soporte / trípode (otros)",                  precio:0, precioCompra:0,       stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
     // --- Kits con activación y accesorios importados/complementarios ---
-    { id:"kit_std4_activacion",       nombre:"Kit Antena Starlink Estándar V4 + Activación y Configuración", precio:1900000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"kit_mini_activacion",       nombre:"Kit Antena Starlink Mini + Activación y Configuración",        precio:1100000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"protector_acrilico_std4",   nombre:"Protector Acrílico de Antena Starlink Estándar V4",            precio:380000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"adaptador_poe_v4",          nombre:"Adaptador PoE para Starlink V4 12V a 57V (Importado)",         precio:380000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"maletin_camuflado",         nombre:"Maletín Camuflado de Transporte para Starlink",                precio:300000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_acrilico_router3",  nombre:"Soporte Acrílico para Router Gen 3",                           precio:260000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"radio_enlace_ptp",          nombre:"Radio Enlace Punto a Punto (1 KM de Alcance - Importado)",     precio:580000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"soporte_pared_compat_v4",   nombre:"Soporte / Base de Pared Compatible V4",                        precio:280000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"kit_mini_base_techo_carro", nombre:"Kit Starlink Mini para base de techo de carro",                precio:195000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"cable_3puntas_mini",        nombre:"Cable de 3 puntas para Antena Starlink Mini",                  precio:195000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"cable_generico_cigarrera",  nombre:"Cable genérico para conectar Antena en Cigarrera",             precio:185000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
-    { id:"maletin_rigido_mini_imp",   nombre:"Maletín Rígido para Starlink Mini (Importado)",                precio:280000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", custom:false },
+    { id:"kit_std4_activacion",       nombre:"Kit Antena Starlink Estándar V4 + Activación y Configuración", precio:1900000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"kit_mini_activacion",       nombre:"Kit Antena Starlink Mini + Activación y Configuración",        precio:1100000, precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"protector_acrilico_std4",   nombre:"Protector Acrílico de Antena Starlink Estándar V4",            precio:380000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"adaptador_poe_v4",          nombre:"Adaptador PoE para Starlink V4 12V a 57V (Importado)",         precio:380000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"maletin_camuflado",         nombre:"Maletín Camuflado de Transporte para Starlink",                precio:300000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_acrilico_router3",  nombre:"Soporte Acrílico para Router Gen 3",                           precio:260000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"radio_enlace_ptp",          nombre:"Radio Enlace Punto a Punto (1 KM de Alcance - Importado)",     precio:580000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"soporte_pared_compat_v4",   nombre:"Soporte / Base de Pared Compatible V4",                        precio:280000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"kit_mini_base_techo_carro", nombre:"Kit Starlink Mini para base de techo de carro",                precio:195000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"cable_3puntas_mini",        nombre:"Cable de 3 puntas para Antena Starlink Mini",                  precio:195000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"cable_generico_cigarrera",  nombre:"Cable genérico para conectar Antena en Cigarrera",             precio:185000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
+    { id:"maletin_rigido_mini_imp",   nombre:"Maletín Rígido para Starlink Mini (Importado)",                precio:280000,  precioCompra:0, stock:0, visible:true, disponibilidad:"importado", foto:"", descripcion:"", custom:false },
   ];
 
   // Ítems que SOLO se alquilan, no se venden — independientes del catálogo de accesorios de inventario
@@ -2075,21 +2100,21 @@
 
   const CATALOGO_LICENCIAS = [
     // --- Windows ---
-    { id:"win_retail", nombre:"Windows Retail", categoria:"Windows", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
-    { id:"win_oem",    nombre:"Windows OEM",    categoria:"Windows", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"win_retail", nombre:"Windows Retail", categoria:"Windows", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
+    { id:"win_oem",    nombre:"Windows OEM",    categoria:"Windows", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
     // --- Office ---
-    { id:"office365_retail",   nombre:"Office 365 Retail",                        categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
-    { id:"office365_bind",     nombre:"Office 365 Bind",                          categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
-    { id:"office2021_retail",  nombre:"Office 2021 Pro Plus Retail",              categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
-    { id:"office2021_bind",    nombre:"Office 2021 Pro Plus Bind",                categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
-    { id:"office2024_retail",  nombre:"Office 2024 Home and Business Retail",     categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
-    { id:"office2024_bind",    nombre:"Office 2024 Home and Business Bind",       categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"office365_retail",   nombre:"Office 365 Retail",                        categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
+    { id:"office365_bind",     nombre:"Office 365 Bind",                          categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
+    { id:"office2021_retail",  nombre:"Office 2021 Pro Plus Retail",              categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
+    { id:"office2021_bind",    nombre:"Office 2021 Pro Plus Bind",                categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
+    { id:"office2024_retail",  nombre:"Office 2024 Home and Business Retail",     categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
+    { id:"office2024_bind",    nombre:"Office 2024 Home and Business Bind",       categoria:"Office", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
     // --- Antivirus McAfee ---
-    { id:"mcafee_is_12m",  nombre:"McAfee Internet Security | 12 Meses", categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
-    { id:"mcafee_is_2a",   nombre:"McAfee Internet Security | 2 Años",   categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
-    { id:"mcafee_plus_4a", nombre:"McAfee Plus | 4 Años",                categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
-    { id:"mcafee_tp_12m",  nombre:"McAfee Total Protection | 12 Meses",  categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
-    { id:"mcafee_tp_4a",   nombre:"McAfee Total Protection | 4 Años",    categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", custom:false },
+    { id:"mcafee_is_12m",  nombre:"McAfee Internet Security | 12 Meses", categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
+    { id:"mcafee_is_2a",   nombre:"McAfee Internet Security | 2 Años",   categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
+    { id:"mcafee_plus_4a", nombre:"McAfee Plus | 4 Años",                categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
+    { id:"mcafee_tp_12m",  nombre:"McAfee Total Protection | 12 Meses",  categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
+    { id:"mcafee_tp_4a",   nombre:"McAfee Total Protection | 4 Años",    categoria:"Antivirus", precioCompra:0, precioVenta:0, stock:0, visible:true, foto:"", descripcion:"", custom:false },
   ];
 
   // Catálogo administrable de servicios con precio fijo (distinto del
@@ -2153,6 +2178,40 @@
   function formatCOP(n){
     n = Number(n) || 0;
     return n.toLocaleString('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 });
+  }
+
+  // Genera una descripción larga razonable a partir del nombre, buscando
+  // palabras clave típicas de accesorios/licencias/servicios Starlink.
+  // No es magia — es un punto de partida para que edites y ajustes, no un
+  // reemplazo de que tú la revises antes de publicarla en la tienda.
+  function generarDescripcionAutomatica(nombre, tipo){
+    const n = (nombre || "").toLowerCase();
+    const reglas = [
+      { test:/cable/,                          texto:`${nombre}. Cable de conexión compatible con equipos Starlink, fabricado para uso continuo, incluso en exteriores.` },
+      { test:/soporte|base|montaje|estructura/, texto:`${nombre}. Soporte de instalación para tu equipo Starlink, resistente a la intemperie y fácil de montar.` },
+      { test:/adaptador/,                       texto:`${nombre}. Adaptador de conexión compatible con tu equipo Starlink.` },
+      { test:/malet[ií]n|maleta/,                texto:`${nombre}. Estuche de transporte y protección para llevar tu antena Starlink de un lugar a otro sin daños.` },
+      { test:/protector/,                       texto:`${nombre}. Protección adicional para tu antena Starlink, ideal para prolongar su vida útil.` },
+      { test:/router/,                          texto:`${nombre}. Equipo de red compatible con tu instalación Starlink.` },
+      { test:/kit/,                             texto:`${nombre}. Kit completo, listo para instalar.` },
+      { test:/windows/,                         texto:`${nombre}. Licencia original con activación garantizada para sistemas Windows.` },
+      { test:/office/,                          texto:`${nombre}. Licencia original de Microsoft Office, con activación garantizada.` },
+      { test:/mcafee|antivirus/,                texto:`${nombre}. Licencia de protección antivirus original, con activación garantizada.` },
+      { test:/formateo/,                        texto:`${nombre}, realizado por conexión remota, con respaldo previo de tu información.` },
+      { test:/optimizaci/,                      texto:`${nombre}, para que tu equipo vuelva a rendir como el primer día.` },
+      { test:/instalaci.*programa|instalaci.*remota/, texto:`${nombre}, sin que tengas que salir de casa.` },
+      { test:/backup|respaldo/,                 texto:`${nombre} de toda tu información importante, de forma segura.` },
+      { test:/garant[ií]a/,                      texto:`${nombre}. Gestionamos el trámite directamente ante el fabricante por ti.` },
+      { test:/recuperaci[oó]n.*cuenta/,          texto:`${nombre}. Te ayudamos a recuperar el acceso cuando perdiste tu usuario o contraseña.` },
+      { test:/reubicaci[oó]n/,                   texto:`${nombre}. Gestionamos el cambio de dirección o zona de cobertura de tu servicio.` },
+      { test:/activaci[oó]n/,                    texto:`${nombre}. Gestionamos la activación de tu equipo en la zona correspondiente.` }
+    ];
+    for(const regla of reglas){
+      if(regla.test.test(n)) return regla.texto;
+    }
+    if(tipo === "licencia") return `${nombre}. Licencia original, con activación garantizada.`;
+    if(tipo === "servicio") return `${nombre}, realizado por técnicos certificados.`;
+    return `${nombre}. Producto original, compatible con tu equipo Starlink.`;
   }
 
   // Para Finanzas: los egresos se muestran en azul con signo menos, para
@@ -2295,7 +2354,8 @@
       nombre: l.nombre,
       precio: Number(l.precioVenta) || 0,
       visible: l.visible !== false,
-      foto: l.foto || ""
+      foto: l.foto || "",
+      descripcion: l.descripcion || ""
     }));
     fetch(url, {
       method: "PUT",
@@ -2346,7 +2406,7 @@
     }
     setStatus('syncing');
     pushToFirebase()
-      .then(() => setStatus('cloud'))
+      .then(() => { hayCambiosPendientesDeSync = false; setStatus('cloud'); })
       .catch(err => {
         console.warn("Error de sincronización con Firebase:", err);
         setStatus('err', 'Error sincronizando con Firebase');
@@ -2355,9 +2415,26 @@
 
   function scheduleSync(){
     saveLocalImmediate();
+    hayCambiosPendientesDeSync = true;
     clearTimeout(syncTimer);
     syncTimer = setTimeout(syncToCloud, DEBOUNCE_MS);
   }
+
+  // Los navegadores móviles pausan o retrasan los setTimeout cuando la
+  // pestaña pasa a segundo plano (cambias de app, bloqueas el celular,
+  // etc.) — eso hacía que el guardado automático de 2 segundos a veces
+  // nunca llegara a dispararse. Por eso, en cuanto detectamos que la
+  // pestaña se está por ocultar, forzamos la subida de inmediato, sin
+  // esperar el temporizador.
+  let hayCambiosPendientesDeSync = false;
+  document.addEventListener("visibilitychange", () => {
+    if(document.hidden && hayCambiosPendientesDeSync && isUrlConfigured()){
+      clearTimeout(syncTimer);
+      pushToFirebase()
+        .then(() => { hayCambiosPendientesDeSync = false; })
+        .catch(err => console.warn("No se pudo sincronizar al pasar a segundo plano:", err));
+    }
+  });
 
   function forceSync(){
     const btn = $("#btnForceSync");
@@ -2489,8 +2566,9 @@
     // recarga la página (por ejemplo, al cambiar de pestaña o de app y
     // que el sistema libere memoria). Así el aviso de "recuperar avance"
     // de Cotizaciones aparece de inmediato, sin que haya que ir a buscarlo.
-    try{ localStorage.setItem("pyc_ultima_pestana", tabName); }catch(e){}
+    try{ sessionStorage.setItem("pyc_ultima_pestana", tabName); }catch(e){}
   }
+  window.goToTab = goToTab;
 
   function initTabs(){
     $all(".tab-btn[data-tab]").forEach(btn => {
@@ -2500,6 +2578,21 @@
       card.addEventListener("click", () => goToTab(card.dataset.tab));
     });
     $("#btnVolverInicio").addEventListener("click", () => goToTab("inicio"));
+    agregarBotonesVolverInicioArriba();
+  }
+
+  // El botón flotante (FAB) de abajo a la derecha ya existía, pero es fácil
+  // no notarlo — esto agrega uno explícito y visible arriba de cada pestaña,
+  // como redundancia para que siempre sea obvio cómo volver al menú.
+  function agregarBotonesVolverInicioArriba(){
+    $all(".panel").forEach(panel => {
+      if(panel.querySelector(".btn-volver-inicio-top")) return; // evita duplicar
+      const btn = document.createElement("button");
+      btn.className = "btn-volver-inicio-top";
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" width="15" height="15"><path d="M19 12H5m0 0l6-6m-6 6l6 6"/></svg> Menú principal`;
+      btn.addEventListener("click", () => goToTab("inicio"));
+      panel.insertBefore(btn, panel.firstChild);
+    });
   }
 
   /* ============================================================
@@ -2966,14 +3059,14 @@
     const accesoriosOrdenados = [...state.accesorios].sort((a,b) => a.nombre.localeCompare(b.nombre, "es"));
     body.innerHTML = accesoriosOrdenados.map(a => `
       <tr>
-        <td>
-          <input type="text" class="acc-nombre" data-id="${a.id}" value="${escapeHtml(a.nombre)}" style="min-width:160px;">
+        <td class="td-nombre-amplia">
+          <input type="text" class="acc-nombre" data-id="${a.id}" value="${escapeHtml(a.nombre)}" style="min-width:170px;">
         </td>
         <td>
           <input type="number" min="0" step="1000" class="price-input acc-precio-compra" data-id="${a.id}" value="${Number(a.precioCompra)||0}">
         </td>
         <td>
-          <input type="number" min="0" step="1000" class="price-input acc-precio" data-id="${a.id}" value="${Number(a.precio)||0}">
+          <input type="number" min="0" step="1000" class="price-input price-input-venta acc-precio" data-id="${a.id}" value="${Number(a.precio)||0}">
         </td>
         <td>
           <div class="qty-group">
@@ -2984,7 +3077,7 @@
             <button class="mini-icon-btn mini-red" data-ajuste-sin-fin="${a.id}" title="Ajustar stock SIN afectar Finanzas">⚠️</button>
           </div>
         </td>
-        <td class="cop">${formatCOP((Number(a.stock)||0) * (Number(a.precioCompra)||0))}</td>
+        <td class="cop td-compacta">${formatCOP((Number(a.stock)||0) * (Number(a.precioCompra)||0))}</td>
         <td>
           <label style="display:flex; align-items:center; gap:5px; font-size:11px; white-space:nowrap;">
             <input type="checkbox" class="acc-visible" data-id="${a.id}" ${a.visible !== false ? "checked" : ""} style="width:15px; height:15px;">
@@ -2995,6 +3088,7 @@
             <option value="encargo" ${a.disponibilidad==="encargo"?"selected":""}>Por encargo, 1-3 días</option>
           </select>
           <input type="text" class="acc-foto" data-id="${a.id}" value="${escapeHtml(a.foto||"")}" placeholder="URL foto (tienda)" style="margin-top:4px; font-size:10px; padding:3px 5px; width:100%;">
+          <textarea class="acc-descripcion" data-id="${a.id}" rows="2" placeholder="Descripción larga (ver más detalles)" style="margin-top:4px; font-size:10px; padding:3px 5px; width:100%;">${escapeHtml(a.descripcion||"")}</textarea>
         </td>
         <td>
           ${a.custom ? `<button class="icon-btn del" data-del-accesorio="${a.id}" title="Eliminar">
@@ -3067,6 +3161,15 @@
         if(acc.foto && !/^https?:\/\//i.test(acc.foto) && !acc.foto.startsWith("productos/")){
           toast("Ojo: debe ser una URL pública (https://...) o una ruta dentro de /productos/ de tu repo, o la tienda no la va a poder cargar");
         }
+        scheduleSync();
+      });
+    });
+
+    $all(".acc-descripcion").forEach(inp => {
+      inp.addEventListener("change", (e) => {
+        const acc = state.accesorios.find(x => x.id === e.target.dataset.id);
+        if(!acc) return;
+        acc.descripcion = e.target.value.trim();
         scheduleSync();
       });
     });
@@ -3242,6 +3345,7 @@
     const visible = $("#newAccVisible").checked;
     const disponibilidad = $("#newAccDisponibilidad").value || "importado";
     const foto = $("#newAccFoto").value.trim();
+    const descripcion = $("#newAccDescripcion").value.trim();
 
     if(!nombre){
       toast("Ingresa el nombre del accesorio");
@@ -3253,7 +3357,7 @@
       return;
     }
 
-    const nuevo = { id: uid("acc"), nombre, precio, precioCompra, stock, visible, disponibilidad, foto, custom:true };
+    const nuevo = { id: uid("acc"), nombre, precio, precioCompra, stock, visible, disponibilidad, foto, descripcion, custom:true };
     state.accesorios.push(nuevo);
     const fotoSospechosa = foto && !/^https?:\/\//i.test(foto) && !foto.startsWith("productos/");
     logHistorial("Accesorio agregado", `${nombre} — ${stock} unidades a costo ${formatCOP(precioCompra)}, venta ${formatCOP(precio)}` +
@@ -3275,6 +3379,7 @@
     $("#newAccVisible").checked = true;
     $("#newAccDisponibilidad").value = "importado";
     $("#newAccFoto").value = "";
+    $("#newAccDescripcion").value = "";
     $("#newAccDisponibilidadWrap").style.display = "none";
 
     renderAccesorios();
@@ -3317,15 +3422,15 @@
     const body = $("#licenciasBody");
     body.innerHTML = state.licencias.map(l => `
       <tr>
-        <td>
-          <input type="text" class="lic-nombre" data-id="${l.id}" value="${escapeHtml(l.nombre)}" style="min-width:160px;">
+        <td class="td-nombre-amplia">
+          <input type="text" class="lic-nombre" data-id="${l.id}" value="${escapeHtml(l.nombre)}" style="min-width:170px;">
         </td>
         <td>${escapeHtml(l.categoria || "Otro")}</td>
         <td>
           <input type="number" min="0" step="1000" class="price-input lic-precio-compra" data-id="${l.id}" value="${Number(l.precioCompra)||0}">
         </td>
         <td>
-          <input type="number" min="0" step="1000" class="price-input lic-precio-venta" data-id="${l.id}" value="${Number(l.precioVenta)||0}">
+          <input type="number" min="0" step="1000" class="price-input price-input-venta lic-precio-venta" data-id="${l.id}" value="${Number(l.precioVenta)||0}">
         </td>
         <td>
           <div class="qty-group">
@@ -3335,13 +3440,14 @@
             <button class="mini-icon-btn mini-red" data-lic-ajuste-sin-fin="${l.id}" title="Ajustar stock SIN afectar Finanzas">⚠️</button>
           </div>
         </td>
-        <td class="cop">${formatCOP((Number(l.stock)||0) * (Number(l.precioCompra)||0))}</td>
+        <td class="cop td-compacta">${formatCOP((Number(l.stock)||0) * (Number(l.precioCompra)||0))}</td>
         <td>
           <label style="display:flex; align-items:center; gap:5px; font-size:11px; white-space:nowrap;">
             <input type="checkbox" class="lic-visible" data-id="${l.id}" ${l.visible !== false ? "checked" : ""} style="width:15px; height:15px;">
             Visible
           </label>
           <input type="text" class="lic-foto" data-id="${l.id}" value="${escapeHtml(l.foto||"")}" placeholder="URL foto (tienda)" style="margin-top:4px; font-size:10px; padding:3px 5px; width:100%;">
+          <textarea class="lic-descripcion" data-id="${l.id}" rows="2" placeholder="Descripción larga (ver más detalles)" style="margin-top:4px; font-size:10px; padding:3px 5px; width:100%;">${escapeHtml(l.descripcion||"")}</textarea>
         </td>
         <td>
           <button class="icon-btn del" data-del-licencia="${l.id}" title="Eliminar">
@@ -3419,6 +3525,16 @@
           toast("Ojo: debe ser una URL pública (https://...) o la tienda no la va a poder cargar");
         }
         renderLicencias();
+        scheduleSync();
+        scheduleSyncLicenciasPublicas();
+      });
+    });
+
+    $all(".lic-descripcion").forEach(inp => {
+      inp.addEventListener("change", (e) => {
+        const lic = state.licencias.find(x => x.id === e.target.dataset.id);
+        if(!lic) return;
+        lic.descripcion = e.target.value.trim();
         scheduleSync();
         scheduleSyncLicenciasPublicas();
       });
@@ -3538,6 +3654,7 @@
     const stock = Number($("#newLicStock").value) || 0;
     const visible = $("#newLicVisible").checked;
     const foto = $("#newLicFoto").value.trim();
+    const descripcion = $("#newLicDescripcion").value.trim();
 
     if(!nombre){
       toast("Ingresa el nombre de la licencia");
@@ -3549,7 +3666,7 @@
       return;
     }
 
-    state.licencias.push({ id: uid("lic"), nombre, categoria, precioCompra, precioVenta, stock, visible, foto, custom:true });
+    state.licencias.push({ id: uid("lic"), nombre, categoria, precioCompra, precioVenta, stock, visible, foto, descripcion, custom:true });
     const fotoSospechosa = foto && !/^https?:\/\//i.test(foto);
     logHistorial("Licencia agregada", `${nombre} (${categoria}) — ${stock} unidades`);
 
@@ -3569,6 +3686,7 @@
     $("#newLicCategoria").value = "Windows";
     $("#newLicVisible").checked = true;
     $("#newLicFoto").value = "";
+    $("#newLicDescripcion").value = "";
 
     renderLicencias();
     renderHistorial();
@@ -4961,7 +5079,7 @@
     // en vez de dejarte en Inicio — así, si estabas en Cotizaciones, el
     // aviso de "recuperar avance" te aparece de inmediato.
     try{
-      const ultimaPestana = localStorage.getItem("pyc_ultima_pestana");
+      const ultimaPestana = sessionStorage.getItem("pyc_ultima_pestana");
       const tabsValidos = ["antenas","despliegues","servicios","accesorios","licencias","finanzas","cotizador","tareas","historial"];
       if(ultimaPestana && ultimaPestana !== "inicio" && tabsValidos.includes(ultimaPestana)){
         goToTab(ultimaPestana);
@@ -4981,10 +5099,31 @@
     $("#newAccStock").addEventListener("input", (e) => {
       $("#newAccDisponibilidadWrap").style.display = (Number(e.target.value) || 0) === 0 ? "block" : "none";
     });
+    $("#btnGenerarDescAcc").addEventListener("click", () => {
+      const nombre = $("#newAccNombre").value.trim();
+      if(!nombre){ toast("Escribe primero el nombre del accesorio"); return; }
+      const campo = $("#newAccDescripcion");
+      if(campo.value.trim() && !confirm("Ya hay una descripción escrita — ¿la reemplazo por la automática?")) return;
+      campo.value = generarDescripcionAutomatica(nombre, "accesorio");
+    });
     $("#btnAddLicencia").addEventListener("click", addLicencia);
+    $("#btnGenerarDescLic").addEventListener("click", () => {
+      const nombre = $("#newLicNombre").value.trim();
+      if(!nombre){ toast("Escribe primero el nombre de la licencia"); return; }
+      const campo = $("#newLicDescripcion");
+      if(campo.value.trim() && !confirm("Ya hay una descripción escrita — ¿la reemplazo por la automática?")) return;
+      campo.value = generarDescripcionAutomatica(nombre, "licencia");
+    });
     $("#btnAddDespliegue").addEventListener("click", addDespliegue);
     $("#btnAddServicio").addEventListener("click", addServicio);
     $("#btnAddServicioCatalogo").addEventListener("click", addServicioCatalogo);
+    $("#btnGenerarDescSvc").addEventListener("click", () => {
+      const nombre = $("#newSvcNombre").value.trim();
+      if(!nombre){ toast("Escribe primero el nombre del servicio"); return; }
+      const campo = $("#newSvcDescripcion");
+      if(campo.value.trim() && !confirm("Ya hay una descripción escrita — ¿la reemplazo por la automática?")) return;
+      campo.value = generarDescripcionAutomatica(nombre, "servicio");
+    });
     $("#servTipo").addEventListener("change", (e) => {
       $("#servOtroWrap").style.display = e.target.value === "Otro" ? "block" : "none";
     });
@@ -5513,6 +5652,17 @@ async function autoguardarCotizacionActual(){
   };
   await storageAdapter.set('autosave_cotizacion_actual', JSON.stringify(snapshot));
 }
+
+// Igual que en el resto de la app: los navegadores móviles pueden pausar
+// el setTimeout del autoguardado cuando la pestaña pasa a segundo plano.
+// En cuanto detectamos que se está por ocultar, forzamos el autoguardado
+// de inmediato, sin esperar los 2.5 segundos.
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden){
+    clearTimeout(autoguardadoCotizacionTimer);
+    autoguardarCotizacionActual();
+  }
+});
 async function revisarAutoguardadoAlAbrir(){
   try{
     const raw = await storageAdapter.get('autosave_cotizacion_actual');
@@ -6655,6 +6805,9 @@ $('ccMailBtn').addEventListener('click', ()=>{
   renderPreview();
   actualizarEstadoPagadaCC();
   await revisarAutoguardadoAlAbrir();
+  $('btnVolverInicioCotizador').addEventListener('click', () => {
+    if(typeof window.goToTab === 'function') window.goToTab('inicio');
+  });
 })();
 
 })();
