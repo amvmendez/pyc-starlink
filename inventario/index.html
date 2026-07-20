@@ -142,7 +142,7 @@
 
   /* ---------- BOTÓN FLOTANTE VOLVER ---------- */
   .fab-back{
-    position:fixed; right:16px; bottom:24px; z-index:70;
+    position:fixed; right:16px; bottom:100px; z-index:80;
     width:52px; height:52px; border-radius:50%; border:none;
     background:linear-gradient(135deg,var(--cyan),var(--blue)); color:#05131c;
     display:none; align-items:center; justify-content:center;
@@ -2024,8 +2024,8 @@
   // vistazo (en el header y en Inicio) qué versión estás viendo, y queda
   // registrado en el Historial la primera vez que un dispositivo carga una
   // versión nueva.
-  const APP_VERSION = "2026.07.12-18";
-  const APP_VERSION_NOTA = "Descripción larga en Accesorios/Licencias, generador automático, columnas ajustadas, botón de menú en cada pestaña";
+  const APP_VERSION = "2026.07.12-19";
+  const APP_VERSION_NOTA = "Corregido: la burbuja de tareas tapaba el botón flotante de volver al menú";
   const APP_VERSION_KEY = "pyc_app_version_vista";
 
   const CATALOGO_BASE = [
