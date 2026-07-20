@@ -383,7 +383,7 @@
     cursor:pointer;
   }
   .pm-media{
-    position:relative; aspect-ratio:16/10; background:var(--panel-2);
+    position:relative; aspect-ratio:16/10; max-height:36vh; background:var(--panel-2);
     display:flex; align-items:center; justify-content:center; flex:0 0 auto;
   }
   .pm-media img{ width:100%; height:100%; object-fit:contain; padding:16px; }
@@ -397,7 +397,7 @@
   .pm-nav-prev{ left:10px; }
   .pm-nav-next{ right:10px; }
   .pm-thumbs{
-    display:flex; gap:8px; padding:10px 20px 0; overflow-x:auto; scrollbar-width:none; flex:0 0 auto;
+    display:flex; gap:8px; padding:10px 20px 0; overflow-x:auto; scrollbar-width:none; flex:0 0 auto; min-height:0;
   }
   .pm-thumbs::-webkit-scrollbar{ display:none; }
   .pm-thumb{
@@ -406,7 +406,7 @@
   }
   .pm-thumb:hover{ opacity:.9; }
   .pm-thumb.active{ border-color:var(--c-orange); opacity:1; }
-  .pm-body{ padding:18px 20px calc(20px + env(safe-area-inset-bottom)); overflow-y:auto; }
+  .pm-body{ padding:18px 20px calc(20px + env(safe-area-inset-bottom)); overflow-y:auto; flex:1 1 auto; min-height:120px; }
   .pm-body h3{ font-size:19px; margin:6px 0 10px; line-height:1.25; }
   .pm-desc-short{ color:var(--muted); font-size:14px; line-height:1.55; margin:0 0 14px; }
   .pm-detail{
@@ -666,7 +666,7 @@
    No necesitas tocar nada más del archivo.
    ========================================================================= */
 
-const APP_VERSION = "1.9.2";
+const APP_VERSION = "1.9.4";
 const APP_BUILD_DATE = "2026-07-12";
 console.info(`PARTESYCOMPUTADORES.COM.CO — tienda v${APP_VERSION} (${APP_BUILD_DATE})`);
 
@@ -911,7 +911,7 @@ function cardHTML(p) {
   <article class="card">
     <div class="card-media" data-detail="${p.id}">${badge}${media}</div>
     <div class="card-body">
-      <div class="card-cat">${p.category} · ${p.sku}</div>
+      <div class="card-cat">${p.category}</div>
       <div class="card-name" data-detail="${p.id}">${p.name}</div>
       <div class="card-desc">${p.desc || ""}</div>
       <button class="card-details-link" data-detail="${p.id}">Ver detalles →</button>
@@ -1195,7 +1195,7 @@ let modalGallery = [];
 function openProductModal(p, updateUrl = true) {
   modalProduct = p;
   document.getElementById("pmTitle").textContent = p.name;
-  document.getElementById("pmCat").textContent = `${p.category} · ${p.sku}`;
+  document.getElementById("pmCat").textContent = p.category;
   document.getElementById("pmDescShort").textContent = p.desc || "";
   document.getElementById("pmDetail").textContent = p.detalle || "";
   document.getElementById("pmPrice").innerHTML = p.price
