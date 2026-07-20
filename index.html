@@ -219,10 +219,9 @@
   .grid{
     display:grid; gap:14px;
     grid-template-columns:repeat(2, 1fr);
-    padding-right:64px;
   }
-  @media (min-width:640px){ .grid{ grid-template-columns:repeat(3, 1fr); padding-right:76px; } }
-  @media (min-width:940px){ .grid{ grid-template-columns:repeat(4, 1fr); padding-right:76px; } }
+  @media (min-width:640px){ .grid{ grid-template-columns:repeat(3, 1fr); } }
+  @media (min-width:940px){ .grid{ grid-template-columns:repeat(4, 1fr); } }
 
   .card{
     background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
@@ -666,7 +665,7 @@
    No necesitas tocar nada más del archivo.
    ========================================================================= */
 
-const APP_VERSION = "1.9.5";
+const APP_VERSION = "1.9.6";
 const APP_BUILD_DATE = "2026-07-12";
 console.info(`PARTESYCOMPUTADORES.COM.CO — tienda v${APP_VERSION} (${APP_BUILD_DATE})`);
 
