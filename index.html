@@ -219,9 +219,10 @@
   .grid{
     display:grid; gap:14px;
     grid-template-columns:repeat(2, 1fr);
+    padding-right:64px;
   }
-  @media (min-width:640px){ .grid{ grid-template-columns:repeat(3, 1fr); } }
-  @media (min-width:940px){ .grid{ grid-template-columns:repeat(4, 1fr); } }
+  @media (min-width:640px){ .grid{ grid-template-columns:repeat(3, 1fr); padding-right:76px; } }
+  @media (min-width:940px){ .grid{ grid-template-columns:repeat(4, 1fr); padding-right:76px; } }
 
   .card{
     background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
@@ -429,7 +430,7 @@
     body{ font-size:16px; }
     .brand-name{ font-size:16px; }
     .hero{ padding:72px 0 48px; }
-    .hero h1{ font-size:clamp(38px, 3.4vw, 58px); max-width:20ch; }
+    .hero h1{ font-size:clamp(34px, 2.6vw, 50px); max-width:none; line-height:1.15; }
     .hero p{ font-size:18px; max-width:58ch; }
     .eyebrow{ font-size:12.5px; padding:7px 12px; }
     .btn{ font-size:14.5px; padding:12px 18px; }
@@ -459,7 +460,28 @@
     .grid{ gap:18px; }
   }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ElectronicsStore",
+  "name": "PARTESYCOMPUTADORES.COM.CO",
+  "url": "https://partesycomputadores.com.co/",
+  "telephone": "+573157863409",
+  "email": "adrianamendezvargas@partesycomputadores.com.co",
+  "image": "https://partesycomputadores.com.co/assets/logo-fondo.png",
+  "priceRange": "$$",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Medellín",
+    "addressRegion": "Antioquia",
+    "addressCountry": "CO"
+  },
+  "areaServed": "CO",
+  "sameAs": []
+}
+</script>
 </head>
+
 <body>
 <a href="#catalogo" class="skiplink">Ir al catálogo</a>
 
@@ -644,7 +666,7 @@
    No necesitas tocar nada más del archivo.
    ========================================================================= */
 
-const APP_VERSION = "1.6.0";
+const APP_VERSION = "1.9.1";
 const APP_BUILD_DATE = "2026-07-12";
 console.info(`PARTESYCOMPUTADORES.COM.CO — tienda v${APP_VERSION} (${APP_BUILD_DATE})`);
 
@@ -984,9 +1006,70 @@ function renderGrid() {
   });
 }
 
+// ============================== ESTADÍSTICAS / MARKETING ====================
+// Registro liviano de visitas y clics a WhatsApp, para ver en admin.html.
+// No usa cookies ni identifica personas — solo cuenta eventos con fecha y origen.
+const STATS_NODE = "tienda_stats";
+
+function logEvent(subnode, data) {
+  fetch(`${FIREBASE_BASE}/${STATS_NODE}/${subnode}.json`, {
+    method: "POST",
+    body: JSON.stringify({ ts: Date.now(), ...data })
+  }).catch(() => { /* si falla, no interrumpe nada de la tienda */ });
+}
+
+function trackVisit() {
+  const params = new URLSearchParams(location.search);
+  logEvent("visitas", {
+    src: params.get("utm_source") || "directo",
+    campana: params.get("utm_campaign") || "",
+    medio: params.get("utm_medium") || ""
+  });
+}
+
+function trackWhatsappClicks() {
+  const selectors = ['a[href*="wa.me"]', "#cartWaBtn"];
+  document.querySelectorAll(selectors.join(",")).forEach(el => {
+    el.addEventListener("click", () => {
+      logEvent("whatsapp_clicks", { origen: el.id || el.closest("[class]")?.className?.split(" ")[0] || "link" });
+    });
+  });
+}
+
+async function applySeoSettings() {
+  try {
+    const res = await fetch("data/seo.json", { cache: "no-store" });
+    if (!res.ok) return;
+    const seo = await res.json();
+    if (seo.title) {
+      document.title = seo.title;
+      document.querySelector('meta[property="og:title"]')?.setAttribute("content", seo.title);
+      document.querySelector('meta[name="twitter:title"]')?.setAttribute("content", seo.title);
+    }
+    if (seo.description) {
+      document.querySelector('meta[name="description"]')?.setAttribute("content", seo.description);
+      document.querySelector('meta[property="og:description"]')?.setAttribute("content", seo.description);
+      document.querySelector('meta[name="twitter:description"]')?.setAttribute("content", seo.description);
+    }
+    if (seo.keywords) {
+      let kw = document.querySelector('meta[name="keywords"]');
+      if (!kw) {
+        kw = document.createElement("meta");
+        kw.name = "keywords";
+        document.head.appendChild(kw);
+      }
+      kw.setAttribute("content", seo.keywords);
+    }
+  } catch (err) {
+    console.warn("[SEO] No se pudo aplicar data/seo.json:", err.message);
+  }
+}
+
 async function init() {
   document.getElementById("year").textContent = new Date().getFullYear();
   document.getElementById("versionTag").textContent = `v${APP_VERSION} · ${APP_BUILD_DATE}`;
+  applySeoSettings();
+  trackVisit();
   const [manual, live, licencias, servicios] = await Promise.all([loadManualProducts(), loadStarlinkLive(), loadLicenciasLive(), loadServiciosLive()]);
   ALL_PRODUCTS = [...manual, ...live, ...licencias, ...servicios].filter(p => p.visible !== false);
   renderPins();
@@ -994,6 +1077,7 @@ async function init() {
   renderGrid();
   initCart();
   openProductFromUrlIfPresent();
+  trackWhatsappClicks();
 }
 init();
 
