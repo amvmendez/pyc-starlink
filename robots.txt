@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /inventario/
+Disallow: /cotizador/
+Disallow: /data/
+
+Sitemap: https://partesycomputadores.com.co/sitemap.xml
