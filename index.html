@@ -84,7 +84,7 @@
     padding:12px 18px;
   }
   .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; min-width:0; flex:1 1 auto; }
-  .brand img{ height:38px; width:38px; flex:0 0 auto; }
+  .brand img{ height:52px; width:52px; flex:0 0 auto; }
   .brand-name{
     font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:13px; line-height:1.2;
     white-space:normal; overflow-wrap:anywhere; min-width:0;
@@ -278,22 +278,12 @@
   .foot-link svg{ width:15px; height:15px; flex:0 0 auto; color:var(--muted-2); }
   .fine{ margin-top:30px; padding-top:18px; border-top:1px solid var(--line); font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted-2); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
 
-  /* ---------- mobile action bar ---------- */
-  .mabar{
-    position:fixed; left:0; right:0; bottom:0; z-index:50;
-    display:flex; gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-    background:rgba(13,15,22,.92); backdrop-filter:blur(10px); border-top:1px solid var(--line);
-  }
-  .mabar .btn{ flex:1; justify-content:center; }
-  @media (min-width:760px){ .mabar{ display:none; } }
-  @media (max-width:759px){ footer{ padding-bottom:100px; } }
-
   .skiplink{ position:absolute; left:-999px; }
   .skiplink:focus{ left:12px; top:12px; z-index:100; background:var(--c-orange); color:#0d0f16; padding:8px 12px; border-radius:8px; }
 
   /* ---------- carrito ---------- */
   .cart-fab{
-    position:fixed; right:16px; bottom:160px; z-index:60;
+    position:fixed; right:16px; bottom:92px; z-index:60;
     width:52px; height:52px; border-radius:50%; background:var(--grad); color:#fff;
     display:flex; align-items:center; justify-content:center; border:none; cursor:pointer;
     box-shadow:0 10px 24px -8px rgba(232,66,95,.55);
@@ -304,16 +294,16 @@
     background:#0d0f16; border:2px solid var(--ink); color:#fff; border-radius:100px;
     font-family:'IBM Plex Mono',monospace; font-size:10.5px; display:flex; align-items:center; justify-content:center;
   }
-  @media (min-width:760px){ .cart-fab{ bottom:92px; } }
+
 
   .wa-fab{
-    position:fixed; right:16px; bottom:96px; z-index:60;
+    position:fixed; right:16px; bottom:24px; z-index:60;
     width:52px; height:52px; border-radius:50%; background:#25D366; color:#fff;
     display:flex; align-items:center; justify-content:center; text-decoration:none;
     box-shadow:0 10px 24px -8px rgba(37,211,102,.55);
   }
   .wa-fab svg{ width:26px; height:26px; }
-  @media (min-width:760px){ .wa-fab{ bottom:24px; } }
+
 
   .cart-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:70; opacity:0; pointer-events:none; transition:opacity .2s ease;
@@ -586,12 +576,6 @@
   </div>
 </footer>
 
-<div class="mabar">
-  <a class="btn btn-grad" href="https://wa.me/573157863409" target="_blank" rel="noopener">WhatsApp</a>
-  <a class="btn btn-ghost" href="tel:+573157863409">Llamar</a>
-  <a class="btn btn-ghost" href="mailto:adrianamendezvargas@partesycomputadores.com.co">Correo</a>
-</div>
-
 <button class="cart-fab" id="cartFabBtn" aria-label="Ver carrito">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
   <span class="count" id="cartCount">0</span>
@@ -665,7 +649,7 @@
    No necesitas tocar nada más del archivo.
    ========================================================================= */
 
-const APP_VERSION = "1.9.6";
+const APP_VERSION = "1.10.1";
 const APP_BUILD_DATE = "2026-07-12";
 console.info(`PARTESYCOMPUTADORES.COM.CO — tienda v${APP_VERSION} (${APP_BUILD_DATE})`);
 
