@@ -312,7 +312,7 @@
 </div>
 
 <script>
-const APP_VERSION = "1.9.0";
+const APP_VERSION = "1.9.1";
 const APP_BUILD_DATE = "2026-07-12";
 document.getElementById("versionTag").textContent = `v${APP_VERSION} · ${APP_BUILD_DATE}`;
 console.info(`Admin del catálogo — v${APP_VERSION} (${APP_BUILD_DATE})`);
@@ -844,8 +844,20 @@ $("seoSaveBtn").addEventListener("click", async () => {
       description: $("seoDesc").value.trim(),
       keywords: $("seoKeywords").value.trim()
     };
-    const fresh = await ghGetFile(SEO_PATH);
-    await ghPutFile(SEO_PATH, utf8ToB64(JSON.stringify(seo, null, 2)), "Actualizar SEO de la tienda", fresh ? fresh.sha : undefined);
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const fresh = await ghGetFile(SEO_PATH);
+      try {
+        await ghPutFile(SEO_PATH, utf8ToB64(JSON.stringify(seo, null, 2)), "Actualizar SEO de la tienda", fresh ? fresh.sha : undefined);
+        break;
+      } catch (err) {
+        const isShaConflict = /does not match|409/i.test(err.message);
+        if (isShaConflict && attempt === 1) {
+          await new Promise(r => setTimeout(r, 600));
+          continue;
+        }
+        throw err;
+      }
+    }
     setStatus(statusEl, "ok", "Guardado. Se aplica en la tienda en 1-2 min.");
   } catch (err) {
     setStatus(statusEl, "err", "No se pudo guardar: " + err.message);
