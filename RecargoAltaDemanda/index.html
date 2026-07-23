@@ -804,6 +804,13 @@ let db = JSON.parse(localStorage.getItem('pyc_starlink_db') || '{}');
 function genKey(dept,muni){ return `${dept}__${muni}`; }
 function saveDB(){ localStorage.setItem('pyc_starlink_db', JSON.stringify(db)); }
 
+// ========== FIREBASE CONFIG ==========
+const FIREBASE_URL = 'https://pycnuevo-default-rtdb.firebaseio.com';
+function getConfig() {
+  const raw = localStorage.getItem('pyc_endpoint_id') || FIREBASE_URL;
+  return { endpointId: raw.replace(/\/+$/, '') };
+}
+
 // ========== INIT SELECTS ==========
 const deptSel = document.getElementById('deptSelect');
 const muniSel = document.getElementById('muniSelect');
@@ -1343,12 +1350,6 @@ function fillFormFromPending(dept, muni) {
 }
 
 // ========== CLOUD SYNC (Firebase Realtime Database) ==========
-const FIREBASE_URL = 'https://pycnuevo-default-rtdb.firebaseio.com';
-
-function getConfig() {
-  const raw = localStorage.getItem('pyc_endpoint_id') || FIREBASE_URL;
-  return { endpointId: raw.replace(/\/+$/, '') };
-}
 
 function setCloudStatus(state, msg) {
   document.getElementById('driveDot').className = 'drive-dot ' + state;
@@ -1356,10 +1357,24 @@ function setCloudStatus(state, msg) {
 }
 
 // Cities that were incorrectly seeded as pending — always strip them
-const FAKE_PENDING = new Set([
-  'Antioquia__Medellín','Antioquia__Rionegro','Antioquia__Yondó',
-  'Cundinamarca__Bogotá D.C.','Valle del Cauca__Cali','Atlántico__Barranquilla'
-]);
+// Remove ALL pending records from DB — pending is now computed dynamically from DEPTS
+// Any record with status 'pending' is either a legacy seed or an error
+function cleanPendingRecords() {
+  let changed = false;
+  Object.keys(db).forEach(key => {
+    if (db[key].status === 'pending') {
+      delete db[key];
+      changed = true;
+    }
+  });
+  if (changed) {
+    saveDB();
+    console.log('Cleaned pending records from local DB');
+  }
+  return changed;
+}
+
+const FAKE_PENDING = new Set([]); // kept for cloudPull filter compatibility
 
 async function cloudPull(force = false) {
   const { endpointId } = getConfig();
@@ -1379,8 +1394,8 @@ async function cloudPull(force = false) {
     records.forEach(r => {
       if (!r.departamento || !r.municipio) return;
       const key = genKey(r.departamento, r.municipio);
-      // Skip fake pending seeds
-      if (FAKE_PENDING.has(key) && r.estado === 'pending') return;
+      // Skip ALL pending records — pending is computed dynamically
+      if (r.estado === 'pending') return;
       const remoteNewer = !db[key] || new Date(r.ultima_actualizacion) > new Date(db[key].ts);
       if (force || remoteNewer) {
         db[key] = {
@@ -1393,10 +1408,8 @@ async function cloudPull(force = false) {
         merged++;
       }
     });
-    // Also clean any fake pending already in local db
-    FAKE_PENDING.forEach(key => {
-      if (db[key] && db[key].status === 'pending') { delete db[key]; }
-    });
+    // Remove any pending records that slipped through
+    cleanPendingRecords();
     saveDB();
     setCloudStatus('ok', `sincronizado ✓ ${records.length} registros · ${new Date().toLocaleTimeString('es-CO',{hour12:false})}`);
     return merged;
@@ -1412,7 +1425,9 @@ async function cloudPush() {
   if (!endpointId) { setCloudStatus('warn', 'sin configurar'); return false; }
   setCloudStatus('', 'subiendo...');
   const url = `${endpointId}/data.json`;
-  const records = Object.values(db).map(r => ({
+  const records = Object.values(db)
+    .filter(r => r.status === 'done')  // never push pending records
+    .map(r => ({
     municipio: r.muni, departamento: r.dept, pais: 'Colombia',
     precio_recargo_mini_usd: r.mini, precio_recargo_v4_usd: r.v4,
     estado: r.status, ultima_actualizacion: r.ts
@@ -1494,15 +1509,9 @@ const FAKE_SEEDS = [
 ];
 
 function seedFromFile() {
-  // Clean fake pending seeds from local db
-  let changed = false;
-  FAKE_PENDING.forEach(key => {
-    if (db[key] && db[key].status === 'pending') { delete db[key]; changed = true; }
-  });
-  if (changed) saveDB();
-
+  // Clean ALL pending records — they're legacy artifacts
+  cleanPendingRecords();
   if (Object.keys(db).length > 0) return;
-
   SEED_RECORDS.forEach(r => {
     if (r.estado !== 'done') return;
     const key = genKey(r.departamento, r.municipio);
