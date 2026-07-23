@@ -1386,16 +1386,21 @@ async function cloudPull(force = false) {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const records = Array.isArray(data) ? data : [];
-    if (records.length === 0) {
-      setCloudStatus('ok', 'conectado — sin datos remotos aún');
+    // Filter out pending records
+    const doneRecords = records.filter(r => r.estado === 'done');
+
+    if (records.length > 0 && doneRecords.length === 0) {
+      // Firebase only has pending records — clean them on next push
+      setCloudStatus('warn', 'limpiando registros obsoletos...');
+      return 0;
+    }
+    if (doneRecords.length === 0) {
+      setCloudStatus('ok', 'conectado — sin datos aún');
       return 0;
     }
     let merged = 0;
-    records.forEach(r => {
+    doneRecords.forEach(r => {
       if (!r.departamento || !r.municipio) return;
-      const key = genKey(r.departamento, r.municipio);
-      // Skip ALL pending records — pending is computed dynamically
-      if (r.estado === 'pending') return;
       const remoteNewer = !db[key] || new Date(r.ultima_actualizacion) > new Date(db[key].ts);
       if (force || remoteNewer) {
         db[key] = {
@@ -1534,13 +1539,13 @@ function seedFromFile() {
     try {
       const merged = await cloudPull(true);
       renderAll();
+      // Always push to clean Firebase of any pending records
+      await cloudPush();
       if (merged > 0) {
         showToast(`☁ ${merged} registros cargados`, 'blue');
-        // Push back to remove fake pendings from Firebase
-        await cloudPush();
       }
     } catch(e) {
-      setCloudStatus('err', 'error al conectar — reintenta');
+      setCloudStatus('err', 'error — toca Sincronizar para reintentar');
     }
   } else {
     setCloudStatus('warn', 'no configurada — clic en Sincronizar');
