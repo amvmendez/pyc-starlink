@@ -68,9 +68,11 @@
     "price": 30000,
     "sku": "SUP-INSTALA",
     "desc": "Instalamos y configuramos los programas que necesites, sin salir de casa.",
+    "detalle": "",
     "image": "",
+    "images": [],
     "availability": null,
-    "type": "servicio",
-    "visible": true
+    "visible": false,
+    "type": "servicio"
   }
 ]
